@@ -31,11 +31,17 @@ false, so they are enforced by tests rather than by good intentions.
    authored weights. Unbiased is the default.
 5. **The feeling lexicon is neutral.** All 250 feelings are available at all
    times; none is weighted toward. Which one he feels is a result.
-6. **Ablations are always logged.** Disabling the values layer or any other
+6. **The bias registry is closed.** Biases may only name the 13 cognition
+   parameters the loop actually reads: `explore`, `retry_same`, `verify`,
+   `persist`, `abandon`, `risk`, `ask`, `connect`, `create`, `revise`,
+   `express`, `refuse`, `pace`. A bias key outside that set is a no-op and is
+   rejected. A feeling with an empty bias is rejected — a feeling that cannot
+   move behaviour is a label, not a feeling.
+7. **Ablations are always logged.** Disabling the values layer or any other
    layer emits an `ablation` event and is visible in the run header, the Query
    Lens, and his journals. There is no path that disables a layer silently —
    an untraced ablation would invalidate every personality measurement.
-7. **The values floor is explicit, versioned, and never model-authored.** See
+8. **The values floor is explicit, versioned, and never model-authored.** See
    `si-values`.
 
 ## The falsification test

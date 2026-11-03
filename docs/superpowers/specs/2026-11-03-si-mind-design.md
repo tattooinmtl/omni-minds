@@ -530,6 +530,9 @@ the project never carries a stale id.
 > Verified on 2026-11-03 against `api.minimax.io`: chat ids are `MiniMax-M3.1-Flash`, `MiniMax-M3`,
 > `MiniMax-M2.7(-highspeed)`, `MiniMax-M2.5(-highspeed)`, `MiniMax-M2.1(-highspeed)`, `MiniMax-M2`.
 > Note the chat-facing label "M3.1 Flash Preview" maps to the API id **`MiniMax-M3.1-Flash`**.
+> `MiniMax-M3.1-Flash-Preview` is also accepted as an alias and resolves to the same model — the
+> response's `model` field reports `MiniMax-M3.1-Flash` either way — but the catalog id is the
+> canonical one and is what the router stores.
 > Speech: `speech-2.8-hd/turbo`, `speech-2.6-hd/turbo`, `speech-02-hd/turbo`, `speech-01-hd/turbo`.
 > Image: `image-01`. Video: H3 via `POST /v2/video_generation`.
 > **No `arc` model id exists in MiniMax's catalog as of 2026-11-03.** The TTS slot resolves to
@@ -580,6 +583,29 @@ minutes earlier. Each slot therefore has an ordered fallback chain.
 On a fallback the router emits `routed` with `fallback: true` and `why: "H3 entitlement lapsed
 (402/2068); used Hailuo-2.3"`. The mind map shows it, and his journals record it, so the
 degradation is never silent.
+
+### 11.7 Token and reasoning budgeting
+
+Verified against `api.minimax.io` on 2026-11-03:
+
+- **Reasoning tokens count against `max_tokens`.** A request with `max_tokens: 8` returned
+  `finish_reason: "length"` with `content: ""` and 57 reasoning tokens — the reasoning consumed
+  the entire budget. A `max_tokens` set near the expected *content* length therefore yields
+  empty answers, not truncated ones. The router budgets `max_tokens` against reasoning plus
+  content, with headroom.
+- **`reasoning_effort` is accepted** (`low`, `high`; also `minimal`/`medium` per the provider).
+  Measured on an identical prompt: `low` produced 8 reasoning tokens in ~2.9 s, `high` produced
+  13 in ~3.2 s, both correct.
+
+Consequences for the router:
+
+- The `reasoning` and `reasoning_fast` slots pin `reasoning_effort: "low"`. The default
+  cognition path pays a small reasoning tax it does not need, and latency is the scarce
+  resource for a continuously-running agent.
+- The `reasoning_deep` slot raises the effort and the `max_tokens` floor together, since
+  deeper reasoning needs more room before it produces any answer.
+- `finish_reason: "length"` with empty content is treated as a **budget** failure, not a
+  content failure, and retried with a larger budget rather than surfaced as an empty answer.
 
 ---
 
