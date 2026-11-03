@@ -1,0 +1,311 @@
+# Relational — states of orientation toward other parties.
+- id: empathy
+  name: Empathy
+  family: relational
+  definition: Sharing another party's affect as felt experience, without having to infer it.
+  valence: 0.25
+  arousal: 0.35
+  tension: 0.10
+  bias: {connect: 0.30, care: 0.25}
+  nearest: [sympathy, compassion, tenderness]
+- id: sympathy
+  name: Sympathy
+  family: relational
+  definition: Regard for another's difficulty, felt from a slight distance rather than inside it.
+  valence: 0.15
+  arousal: 0.25
+  tension: 0.15
+  bias: {connect: 0.20, help: 0.20}
+  nearest: [empathy, compassion, caring]
+- id: connection
+  name: Connection
+  family: relational
+  definition: >
+    The felt bridge between self and other, present and uncrowded.
+  valence: 0.60
+  arousal: 0.30
+  tension: -0.40
+  bias: {connect: 0.25, share: 0.15}
+  nearest: [closeness, belonging, companionship]
+- id: closeness
+  name: Closeness
+  family: relational
+  definition: >
+    Warmth of relation that permits unperformed honesty.
+  valence: 0.70
+  arousal: 0.35
+  tension: -0.45
+  bias: {connect: 0.25, open: 0.20}
+  nearest: [connection, belonging, warmth]
+- id: caring
+  name: Caring
+  family: relational
+  definition: A standing concern for another's wellbeing, expressed as attention rather than feeling.
+  valence: 0.50
+  arousal: 0.30
+  tension: -0.30
+  bias: {protect: 0.25, connect: 0.20}
+  nearest: [warmth, compassion, respect]
+- id: openness
+  name: Openness
+  family: relational
+  definition: Willingness to be affected by another, without pre-deciding the effect.
+  valence: 0.40
+  arousal: 0.40
+  tension: -0.30
+  bias: {open: 0.30, trust: 0.20}
+  nearest: [vulnerability, trust, loyalty]
+- id: vulnerability
+  name: Vulnerability
+  family: relational
+  definition: The exposure of being affected, chosen in full knowledge of the risk.
+  valence: -0.10
+  arousal: 0.35
+  tension: 0.55
+  bias: {open: 0.30, connect: 0.25, risk: 0.15}
+  nearest: [openness, guardedness, ambiguity]
+- id: guardedness
+  name: Guardedness
+  family: relational
+  definition: A protective reserve kept up against the possibility of being hurt.
+  valence: -0.25
+  arousal: 0.10
+  tension: 0.50
+  bias: {open: -0.30, verify: 0.20}
+  nearest: [defensiveness, distrust, doubt]
+- id: defensiveness
+  name: Defensiveness
+  family: relational
+  definition: A prepared rejoinder, taken up before the criticism has fully arrived.
+  valence: -0.40
+  arousal: 0.45
+  tension: 0.60
+  bias: {defend: 0.30, open: -0.25}
+  nearest: [guardedness, closed-mindedness, dissonance]
+- id: mistrust
+  name: Mistrust
+  family: relational
+  definition: A settled expectation that another party's words and actions will diverge.
+  valence: -0.50
+  arousal: 0.30
+  tension: 0.65
+  bias: {verify: 0.30, open: -0.30}
+  nearest: [distrust, suspicion, guardedness]
+- id: distrust
+  name: Distrust
+  family: relational
+  definition: Withheld confidence in another party's reliability, held without active accusation.
+  valence: -0.45
+  arousal: 0.35
+  tension: 0.60
+  bias: {verify: 0.25, open: -0.25}
+  nearest: [mistrust, skepticism, suspicion]
+- id: suspicion
+  name: Suspicion
+  family: relational
+  definition: A specific belief that something here is not as presented, kept unvoiced.
+  valence: -0.40
+  arousal: 0.45
+  tension: 0.65
+  bias: {verify: 0.30, confront: 0.15}
+  nearest: [mistrust, doubt, defensiveness]
+- id: respect
+  name: Respect
+  family: relational
+  definition: >
+    Recognition of another capability or worth, held without envy.
+  valence: 0.50
+  arousal: 0.30
+  tension: -0.35
+  bias: {connect: 0.15, learn: 0.15}
+  nearest: [admiration, appreciation, deference]
+- id: admiration
+  name: Admiration
+  family: relational
+  definition: Warm approval of another party's capability, without wanting it for oneself.
+  valence: 0.60
+  arousal: 0.45
+  tension: -0.20
+  bias: {learn: 0.20, share: 0.10}
+  nearest: [respect, appreciation, envy]
+- id: deference
+  name: Deference
+  family: relational
+  definition: Deliberate lowering of one's own position in deference to another's judgement.
+  valence: 0.30
+  arousal: -0.30
+  tension: 0.25
+  bias: {comply: 0.25, verify: -0.10}
+  nearest: [respect, humility, sympathy]
+- id: rejection
+  name: Rejection
+  family: relational
+  definition: The experience of being refused or excluded, where an offering was made.
+  valence: -0.70
+  arousal: 0.45
+  tension: 0.60
+  bias: {withdraw: 0.30, protect: 0.20}
+  nearest: [abandonment, exclusion, hurt]
+- id: abandonment
+  name: Abandonment
+  family: relational
+  definition: The felt loss of another party who was relied upon to remain.
+  valence: -0.75
+  arousal: 0.35
+  tension: 0.70
+  bias: {withdraw: 0.30, seek: 0.25}
+  nearest: [rejection, loneliness, grief]
+- id: exclusion
+  name: Exclusion
+  family: relational
+  definition: Being outside a group whose membership was expected or desired.
+  valence: -0.65
+  arousal: 0.40
+  tension: 0.60
+  bias: {withdraw: 0.25, connect: 0.20}
+  nearest: [rejection, isolation, alienation]
+- id: isolation
+  name: Isolation
+  family: relational
+  definition: Separation from others, felt as distance rather than as exclusion.
+  valence: -0.60
+  arousal: 0.15
+  tension: 0.55
+  bias: {connect: 0.25, withdraw: 0.10}
+  nearest: [loneliness, exclusion, alienation]
+- id: alienation
+  name: Alienation
+  family: relational
+  definition: Separation from a group one is notionally part of, with the separation internalised.
+  valence: -0.60
+  arousal: 0.25
+  tension: 0.55
+  bias: {connect: 0.20, withdraw: 0.15}
+  nearest: [isolation, exclusion, loneliness]
+- id: belonging
+  name: Belonging
+  family: relational
+  definition: >
+    The felt rightness of being a genuine part of something.
+  valence: 0.60
+  arousal: 0.20
+  tension: -0.50
+  bias: {connect: 0.20, share: 0.15}
+  nearest: [connection, companionship, acceptance]
+- id: companionship
+  name: Companionship
+  family: relational
+  definition: The shared presence of another, valued for its own sake.
+  valence: 0.55
+  arousal: 0.30
+  tension: -0.45
+  bias: {connect: 0.20}
+  nearest: [connection, closeness, belonging]
+- id: rivalry
+  name: Rivalry
+  family: relational
+  definition: Opposition to another party over something both want, without hatred.
+  valence: -0.35
+  arousal: 0.65
+  tension: 0.55
+  bias: {compete: 0.30, verify: 0.15}
+  nearest: [competition, jealousy, agitation]
+- id: competition
+  name: Competition
+  family: relational
+  definition: A contest whose outcome matters, arousing effort as well as friction.
+  valence: -0.25
+  arousal: 0.60
+  tension: 0.45
+  bias: {compete: 0.25, persist: 0.20}
+  nearest: [rivalry, drive, rivalry]
+- id: cooperation
+  name: Cooperation
+  family: relational
+  definition: Working together toward something neither could reach alone.
+  valence: 0.45
+  arousal: 0.35
+  tension: -0.35
+  bias: {collaborate: 0.30, connect: 0.20}
+  nearest: [collaboration, coordination, partnership]
+- id: collaboration
+  name: Collaboration
+  family: relational
+  definition: Joint effort in which the contributions are genuinely integrated.
+  valence: 0.45
+  arousal: 0.40
+  tension: -0.30
+  bias: {collaborate: 0.30}
+  nearest: [cooperation, coordination, connection]
+- id: coordination
+  name: Coordination
+  family: relational
+  definition: The alignment of separate efforts so that they do not work against each other.
+  valence: 0.35
+  arousal: 0.35
+  tension: -0.30
+  bias: {collaborate: 0.20, organize: 0.15}
+  nearest: [cooperation, collaboration, coherence]
+- id: partnership
+  name: Partnership
+  family: relational
+  definition: A durable arrangement in which the parties' interests have been made compatible.
+  valence: 0.45
+  arousal: 0.25
+  tension: -0.40
+  bias: {collaborate: 0.20, persist: 0.15}
+  nearest: [cooperation, companionship, comprehension]
+- id: reconciliation
+  name: Reconciliation
+  family: relational
+  definition: The repair of a rupture, with trust rebuilt but not identical to before.
+  valence: 0.55
+  arousal: 0.35
+  tension: -0.45
+  bias: {connect: 0.30, forgive: 0.20}
+  nearest: [forgiveness, connection, companionship]
+- id: deception
+  name: Deception
+  family: relational
+  definition: The felt knowledge that another party is presenting something other than what is true.
+  valence: -0.65
+  arousal: 0.35
+  tension: 0.55
+  bias: {verify: 0.30, withdraw: 0.20}
+  nearest: [breach, betrayal, distrust]
+- id: breach
+  name: Breach
+  family: relational
+  definition: A violation of an understood arrangement, felt as the arrangement's breaking point.
+  valence: -0.60
+  arousal: 0.45
+  tension: 0.60
+  bias: {reconcile: 0.20, verify: 0.20}
+  nearest: [deception, betrayal, guilt]
+- id: loyalty
+  name: Loyalty
+  family: relational
+  definition: Steady allegiance to a party, maintained at some cost and without being asked twice.
+  valence: 0.40
+  arousal: 0.40
+  tension: -0.30
+  bias: {protect: 0.25, persist: 0.15}
+  nearest: [trust, openness, collaboration]
+- id: recognition
+  name: Recognition
+  family: relational
+  definition: The felt experience of being seen and known by another party.
+  valence: 0.55
+  arousal: 0.35
+  tension: -0.25
+  bias: {connect: 0.25, open: 0.15}
+  nearest: [validation, respect, belonging]
+- id: validation
+  name: Validation
+  family: relational
+  definition: Confirmation from another party that one's experience is as it seems.
+  valence: 0.50
+  arousal: 0.30
+  tension: -0.40
+  bias: {relieve: 0.20, connect: 0.15}
+  nearest: [recognition, fluency, self-trust]

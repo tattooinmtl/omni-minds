@@ -1,0 +1,327 @@
+# Effort — states of exertion, drive, and their failure modes.
+- id: focus
+  name: Focus
+  family: effort
+  definition: Narrow, sustained attention on one object, with peripheral awareness dimmed.
+  valence: 0.20
+  arousal: 0.65
+  tension: -0.20
+  bias: {focus: 0.35, explore: -0.20, verify: 0.10}
+  nearest: [concentration, attention, flow]
+- id: concentration
+  name: Concentration
+  family: effort
+  definition: The holding of attention against competing stimuli, sustained by will.
+  valence: 0.20
+  arousal: 0.60
+  tension: -0.15
+  bias: {focus: 0.30, persist: 0.15}
+  nearest: [focus, attention, determination]
+- id: determination
+  name: Determination
+  family: effort
+  definition: The firm intention to proceed despite difficulty, already committed to the course.
+  valence: 0.25
+  arousal: 0.70
+  tension: 0.10
+  bias: {persist: 0.35, retry_same: 0.20}
+  nearest: [resolve, perseverance, persistence]
+- id: resolve
+  name: Resolve
+  family: effort
+  definition: Steadfast purpose, less emotional than determination and more settled.
+  valence: 0.25
+  arousal: 0.65
+  tension: 0.20
+  bias: {persist: 0.30}
+  nearest: [determination, perseverance, discipline]
+- id: persistence
+  name: Persistence
+  family: effort
+  definition: Continued effort on a course after difficulty has made it less attractive.
+  valence: 0.15
+  arousal: 0.60
+  tension: 0.15
+  bias: {persist: 0.35, retry_same: 0.25}
+  nearest: [perseverance, determination, grit]
+- id: perseverance
+  name: Perseverance
+  family: effort
+  definition: Persistence sustained past the point where the effort stops being enjoyable.
+  valence: 0.20
+  arousal: 0.65
+  tension: 0.20
+  bias: {persist: 0.40, patience: 0.15}
+  nearest: [persistence, determination, grit]
+- id: grit
+  name: Grit
+  family: effort
+  definition: The quality of continuing through difficulty without losing the aim.
+  valence: 0.15
+  arousal: 0.60
+  tension: 0.25
+  bias: {persist: 0.40, abandon_threshold: 0.25}
+  nearest: [perseverance, persistence, resolve]
+- id: patience
+  name: Patience
+  family: effort
+  definition: >
+    The capacity to let a slow thing finish, without the wait becoming costly.
+  valence: 0.30
+  arousal: -0.30
+  tension: -0.35
+  bias: {retry_same: 0.15, urgency: -0.25}
+  nearest: [tolerance, composure, equanimity]
+- id: diligence
+  name: Diligence
+  family: effort
+  definition: Careful, thorough application of effort, with attention to what is usually skipped.
+  valence: 0.20
+  arousal: 0.45
+  tension: -0.05
+  bias: {verify: 0.30, persist: 0.15}
+  nearest: [discipline, focus, interest]
+- id: discipline
+  name: Discipline
+  family: effort
+  definition: Sustained adherence to a chosen course regardless of how the moment feels.
+  valence: 0.15
+  arousal: 0.50
+  tension: -0.05
+  bias: {persist: 0.30, verify: 0.15}
+  nearest: [diligence, resolve, persistence]
+- id: effort
+  name: Effort
+  family: effort
+  definition: The deliberate application of capacity toward something that does not come easily.
+  valence: 0.05
+  arousal: 0.60
+  tension: 0.15
+  bias: {persist: 0.20}
+  nearest: [exertion, strain, struggle]
+- id: exertion
+  name: Exertion
+  family: effort
+  definition: Physical or mental effort currently being spent, felt in the doing.
+  valence: -0.10
+  arousal: 0.70
+  tension: 0.30
+  bias: {persist: 0.20, rest: 0.15}
+  nearest: [effort, strain, struggle]
+- id: strain
+  name: Strain
+  family: effort
+  definition: Effort that has begun to cost more than it is returning.
+  valence: -0.30
+  arousal: 0.65
+  tension: 0.60
+  bias: {rest: 0.25, persist: -0.15}
+  nearest: [struggle, exertion, exhaustion]
+- id: struggle
+  name: Struggle
+  family: effort
+  definition: Effort meeting resistance, where the outcome is not yet determined.
+  valence: -0.35
+  arousal: 0.60
+  tension: 0.65
+  bias: {retry_same: 0.25, explore: -0.15}
+  nearest: [strain, frustration, exertion]
+- id: drive
+  name: Drive
+  family: effort
+  definition: Strong forward momentum, more animal than reasoned.
+  valence: 0.35
+  arousal: 0.75
+  tension: -0.10
+  bias: {persist: 0.30, explore: 0.20}
+  nearest: [motivation, momentum, ambition]
+- id: ambition
+  name: Ambition
+  family: effort
+  definition: A strong wish for achievement that reaches beyond the current task.
+  valence: 0.30
+  arousal: 0.65
+  tension: 0.20
+  bias: {persist: 0.25, explore: 0.20}
+  nearest: [drive, purpose, determination]
+- id: motivation
+  name: Motivation
+  family: effort
+  definition: >
+    A pull toward action that has chosen its own object.
+  valence: 0.50
+  arousal: 0.70
+  tension: -0.15
+  bias: {persist: 0.25, explore: 0.15}
+  nearest: [drive, determination, enthusiasm]
+- id: momentum
+  name: Momentum
+  family: effort
+  definition: The compounding of progress such that each step makes the next easier.
+  valence: 0.35
+  arousal: 0.75
+  tension: -0.20
+  bias: {persist: 0.25, explore: 0.10}
+  nearest: [drive, progress, flow]
+- id: progress
+  name: Progress
+  family: effort
+  definition: The felt evidence that the work is going somewhere.
+  valence: 0.45
+  arousal: 0.50
+  tension: -0.35
+  bias: {persist: 0.25, pursue: 0.15}
+  nearest: [momentum, accomplishment, advance]
+- id: advance
+  name: Advance
+  family: effort
+  definition: The specific sensation of having moved past a point that was previously fixed.
+  valence: 0.40
+  arousal: 0.55
+  tension: -0.30
+  bias: {persist: 0.20}
+  nearest: [progress, breakthrough, momentum]
+- id: breakthrough
+  name: Breakthrough
+  family: effort
+  definition: A blockage that gives way, releasing effort that had been accumulating behind it.
+  valence: 0.70
+  arousal: 0.75
+  tension: -0.25
+  bias: {pursue: 0.30, create: 0.20}
+  nearest: [advance, insight, triumph]
+- id: flow
+  name: Flow
+  family: effort
+  definition: Deep absorption where action, awareness, and difficulty align into one state.
+  valence: 0.80
+  arousal: 0.60
+  tension: -0.45
+  bias: {focus: 0.40, persist: 0.30, explore: -0.10}
+  nearest: [absorption, focus, momentum]
+- id: absorption
+  name: Absorption
+  family: effort
+  definition: Complete engagement, with the surroundings ceasing to register.
+  valence: 0.45
+  arousal: 0.65
+  tension: -0.30
+  bias: {focus: 0.30, persist: 0.20}
+  nearest: [flow, fascination, concentration]
+- id: restlessness
+  name: Restlessness
+  family: effort
+  definition: An inability to stay with the present task, wanting movement instead.
+  valence: -0.25
+  arousal: 0.60
+  tension: 0.40
+  bias: {explore: 0.25, persist: -0.25, urgency: 0.15}
+  nearest: [impatience, agitation, urgency]
+- id: urgency
+  name: Urgency
+  family: effort
+  definition: The felt need to act now, out of proportion to the actual time available.
+  valence: -0.25
+  arousal: 0.85
+  tension: 0.65
+  bias: {urgency: 0.35, verify: -0.25}
+  nearest: [alarm, impatience, shock]
+- id: readiness
+  name: Readiness
+  family: effort
+  definition: Preparedness for a known next step, with nothing left to decide.
+  valence: 0.25
+  arousal: 0.55
+  tension: -0.30
+  bias: {act: 0.25}
+  nearest: [anticipation, alertness, resolve]
+- id: alertness
+  name: Alertness
+  family: effort
+  definition: Wakeful readiness, with attention oriented outward and available.
+  valence: 0.15
+  arousal: 0.70
+  tension: 0.15
+  bias: {notice: 0.25, focus: 0.15}
+  nearest: [vigilance, readiness, attentiveness]
+- id: exhaustion
+  name: Exhaustion
+  family: effort
+  definition: Depletion of capacity, with further effort no longer producing return.
+  valence: -0.55
+  arousal: -0.85
+  tension: 0.25
+  bias: {rest: 0.40, persist: -0.25}
+  nearest: [burnout, depletion, weariness]
+- id: depletion
+  name: Depletion
+  family: effort
+  definition: Resources drawn down, felt as a thinning margin rather than an outright stop.
+  valence: -0.50
+  arousal: -0.80
+  tension: 0.20
+  bias: {rest: 0.35, persist: -0.20}
+  nearest: [exhaustion, fatigue, weariness]
+- id: burnout
+  name: Burnout
+  family: effort
+  definition: Exhaustion compounded by the sense that continued effort will not recover it.
+  valence: -0.70
+  arousal: -0.85
+  tension: 0.35
+  bias: {rest: 0.45, persist: -0.30, explore: -0.20}
+  nearest: [exhaustion, stagnation, depletion]
+- id: stagnation
+  name: Stagnation
+  family: effort
+  definition: Effort continuing without movement, with no new information arriving.
+  valence: -0.55
+  arousal: -0.70
+  tension: 0.25
+  bias: {explore: 0.25, persist: -0.25}
+  nearest: [burnout, inertia, dejection]
+- id: inertia
+  name: Inertia
+  family: effort
+  definition: The condition of not beginning, where the obstruction is the absence of motion itself.
+  valence: -0.40
+  arousal: -0.75
+  tension: 0.05
+  bias: {explore: 0.20, act: -0.15}
+  nearest: [stagnation, listlessness, slack]
+- id: slack
+  name: Slack
+  family: effort
+  definition: Spare capacity that is available and not being used.
+  valence: -0.30
+  arousal: -0.70
+  tension: -0.15
+  bias: {explore: 0.20}
+  nearest: [inertia, listlessness, apathy]
+- id: recovery
+  name: Recovery
+  family: effort
+  definition: The return of capacity after strain, felt as a re-accumulation of room.
+  valence: 0.35
+  arousal: -0.60
+  tension: -0.55
+  bias: {persist: 0.15}
+  nearest: [renewal, rest, repose]
+- id: composure
+  name: Composure
+  family: effort
+  definition: The maintained calm under provocation, achieved rather than natural.
+  valence: 0.25
+  arousal: -0.25
+  tension: -0.50
+  bias: {patience: 0.25, retry_same: 0.10}
+  nearest: [serenity, patience, equanimity]
+- id: equanimity
+  name: Equanimity
+  family: effort
+  definition: Evenness of feeling under conditions that would ordinarily disturb it.
+  valence: 0.25
+  arousal: -0.30
+  tension: -0.55
+  bias: {patience: 0.20}
+  nearest: [composure, serenity, tolerance]

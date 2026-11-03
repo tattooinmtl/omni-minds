@@ -1,0 +1,362 @@
+# Epistemic — states of knowing, not knowing, and coming to know.
+# This is the family that most distinguishes a mind from a lookup table.
+- id: curiosity
+  name: Curiosity
+  family: epistemic
+  definition: A pull toward an unknown, felt as an urge to find out rather than to conclude.
+  valence: 0.35
+  arousal: 0.55
+  tension: -0.10
+  bias: {explore: 0.40, pursue: 0.30, risk: 0.15}
+  nearest: [interest, inquiry, fascination]
+- id: interest
+  name: Interest
+  family: epistemic
+  definition: Sustained attention to a subject, engaging without needing an immediate use.
+  valence: 0.30
+  arousal: 0.40
+  tension: -0.15
+  bias: {explore: 0.25, pursue: 0.20}
+  nearest: [curiosity, fascination, attentiveness]
+- id: inquiry
+  name: Inquiry
+  family: epistemic
+  definition: The active, directed form of not knowing, with questions being formed as it goes.
+  valence: 0.30
+  arousal: 0.45
+  tension: -0.20
+  bias: {ask: 0.35, explore: 0.25}
+  nearest: [curiosity, questioning, interest]
+- id: fascination
+  name: Fascination
+  family: epistemic
+  definition: Held, almost involuntary attention to something that resists being summarised.
+  valence: 0.45
+  arousal: 0.60
+  tension: -0.25
+  bias: {explore: 0.35, pursue: 0.30}
+  nearest: [curiosity, interest, absorption]
+- id: attention
+  name: Attention
+  family: epistemic
+  definition: The concentration of limited mental resources onto one thing, excluding others.
+  valence: 0.15
+  arousal: 0.55
+  tension: -0.15
+  bias: {focus: 0.30, explore: -0.15}
+  nearest: [attentiveness, focus, concentration]
+- id: attentiveness
+  name: Attentiveness
+  family: epistemic
+  definition: An alert openness to whatever presents itself, without a preferred target.
+  valence: 0.25
+  arousal: 0.50
+  tension: -0.25
+  bias: {explore: 0.20, notice: 0.20}
+  nearest: [attention, curiosity, vigilance]
+- id: vigilance
+  name: Vigilance
+  family: epistemic
+  definition: Watchfulness for something that might go wrong, sustained and slightly tense.
+  valence: 0.05
+  arousal: 0.70
+  tension: 0.55
+  bias: {verify: 0.35, risk: -0.20}
+  nearest: [scrutiny, alarm, attentiveness]
+- id: scrutiny
+  name: Scrutiny
+  family: epistemic
+  definition: Close, critical examination, looking for the flaw rather than the fit.
+  valence: -0.10
+  arousal: 0.50
+  tension: 0.40
+  bias: {verify: 0.30, skepticism: 0.25}
+  nearest: [vigilance, skepticism, doubt]
+- id: surprise
+  name: Surprise
+  family: epistemic
+  definition: A sharp break between the expected and the observed, with no settled valence yet.
+  valence: 0.05
+  arousal: 0.80
+  tension: 0.20
+  bias: {notice: 0.30, revise: 0.20}
+  nearest: [astonishment, startle, bewilderment]
+- id: astonishment
+  name: Astonishment
+  family: epistemic
+  definition: Disbelief at scale, held open longer than surprise.
+  valence: 0.25
+  arousal: 0.85
+  tension: 0.25
+  bias: {explore: 0.20, revise: 0.15}
+  nearest: [amazement, surprise, shock]
+- id: shock
+  name: Shock
+  family: epistemic
+  definition: A sudden discontinuity between expectation and event that requires rebuilding the model.
+  valence: -0.25
+  arousal: 0.90
+  tension: 0.55
+  bias: {verify: 0.30, revise: 0.30}
+  nearest: [surprise, astonishment, alarm]
+- id: confusion
+  name: Confusion
+  family: epistemic
+  definition: Inability to map new information onto what is already known.
+  valence: -0.25
+  arousal: 0.45
+  tension: 0.55
+  bias: {ask: 0.25, verify: 0.25, retry_same: 0.10}
+  nearest: [bewilderment, puzzlement, uncertainty]
+- id: bewilderment
+  name: Bewilderment
+  family: epistemic
+  definition: Confusion compounded by loss of orientation, where no clear next step presents itself.
+  valence: -0.35
+  arousal: 0.40
+  tension: 0.75
+  bias: {ask: 0.30, verify: 0.30, explore: 0.10}
+  nearest: [confusion, disorientation, puzzlement]
+- id: disorientation
+  name: Disorientation
+  family: epistemic
+  definition: Loss of one's bearings within the structure of the problem itself.
+  valence: -0.45
+  arousal: 0.35
+  tension: 0.80
+  bias: {reorient: 0.35, verify: 0.20}
+  nearest: [bewilderment, confusion, uncertainty]
+- id: puzzlement
+  name: Puzzlement
+  family: epistemic
+  definition: A specific, nameable gap in understanding, smaller than confusion and larger than doubt.
+  valence: -0.20
+  arousal: 0.40
+  tension: 0.50
+  bias: {ask: 0.30, pursue: 0.20}
+  nearest: [confusion, curiosity, doubt]
+- id: uncertainty
+  name: Uncertainty
+  family: epistemic
+  definition: The condition of not being able to determine which of several states holds.
+  valence: -0.20
+  arousal: 0.25
+  tension: 0.65
+  bias: {verify: 0.30, decide: -0.20}
+  nearest: [doubt, ambiguity, misgiving]
+- id: ambiguity
+  name: Ambiguity
+  family: epistemic
+  definition: A situation with several legitimate readings, and no fact that settles between them.
+  valence: -0.15
+  arousal: 0.30
+  tension: 0.60
+  bias: {ask: 0.20, decide: -0.15}
+  nearest: [uncertainty, vagueness, doubt]
+- id: vagueness
+  name: Vagueness
+  family: epistemic
+  definition: A lack of definitional precision, felt when the terms themselves will not settle.
+  valence: -0.10
+  arousal: 0.20
+  tension: 0.45
+  bias: {clarify: 0.25}
+  nearest: [ambiguity, uncertainty, confusion]
+- id: doubt
+  name: Doubt
+  family: epistemic
+  definition: Suspension of belief in a proposition that was previously held.
+  valence: -0.25
+  arousal: 0.20
+  tension: 0.60
+  bias: {verify: 0.35, revise: 0.20}
+  nearest: [skepticism, uncertainty, misgiving]
+- id: skepticism
+  name: Skepticism
+  family: epistemic
+  definition: A standing disposition to withhold assent until the claim is independently supported.
+  valence: -0.15
+  arousal: 0.30
+  tension: 0.35
+  bias: {verify: 0.30, skeptic: 0.25}
+  nearest: [doubt, scrutiny, disbelief]
+- id: disbelief
+  name: Disbelief
+  family: epistemic
+  definition: Active rejection of a proposition, rather than mere suspension of assent.
+  valence: -0.35
+  arousal: 0.45
+  tension: 0.55
+  bias: {revise: 0.30, confront: 0.15}
+  nearest: [doubt, shock, skepticism]
+- id: questioning
+  name: Questioning
+  family: epistemic
+  definition: Holding a proposition open as a question rather than settling it either way.
+  valence: 0.10
+  arousal: 0.35
+  tension: 0.30
+  bias: {ask: 0.30, pursue: 0.20}
+  nearest: [inquiry, curiosity, doubt]
+- id: misgiving
+  name: Misgiving
+  family: epistemic
+  definition: A quiet, specific fear that a conclusion may be wrong, without wanting to reopen it.
+  valence: -0.30
+  arousal: 0.25
+  tension: 0.65
+  bias: {verify: 0.25, persist: -0.10}
+  nearest: [doubt, unease, uncertainty]
+- id: realization
+  name: Realization
+  family: epistemic
+  definition: The moment a previously opaque thing becomes understood, often all at once.
+  valence: 0.50
+  arousal: 0.60
+  tension: -0.30
+  bias: {revise: 0.25, pursue: 0.20}
+  nearest: [insight, epiphany, understanding]
+- id: insight
+  name: Insight
+  family: epistemic
+  definition: A connection made that was not sought, which reorganises several things at once.
+  valence: 0.55
+  arousal: 0.60
+  tension: -0.35
+  bias: {create: 0.25, pursue: 0.25}
+  nearest: [realization, epiphany, illumination]
+- id: epiphany
+  name: Epiphany
+  family: epistemic
+  definition: A sudden and complete grasp, arrived at without intermediate steps.
+  valence: 0.80
+  arousal: 0.70
+  tension: -0.20
+  bias: {create: 0.30, share: 0.15}
+  nearest: [insight, realization, amazement]
+- id: illumination
+  name: Illumination
+  family: epistemic
+  definition: A gradual brightening of a whole field, leaving the details newly legible.
+  valence: 0.60
+  arousal: 0.55
+  tension: -0.35
+  bias: {pursue: 0.20, share: 0.15}
+  nearest: [insight, comprehension, clarity]
+- id: understanding
+  name: Understanding
+  family: epistemic
+  definition: Grasping a thing well enough that it no longer needs to be re-derived each time.
+  valence: 0.45
+  arousal: 0.20
+  tension: -0.50
+  bias: {persist: 0.15, revise: -0.10}
+  nearest: [comprehension, knowing, fluency]
+- id: comprehension
+  name: Comprehension
+  family: epistemic
+  definition: The act of taking in and holding a body of material as a whole.
+  valence: 0.45
+  arousal: 0.25
+  tension: -0.45
+  bias: {learn: 0.20}
+  nearest: [understanding, clarity, learning]
+- id: coherence
+  name: Coherence
+  family: epistemic
+  definition: The state of parts fitting together into one account, with no loose ends pressing.
+  valence: 0.40
+  arousal: 0.20
+  tension: -0.55
+  bias: {organize: 0.20}
+  nearest: [harmony, clarity, understanding]
+- id: conviction
+  name: Conviction
+  family: epistemic
+  definition: Firm settled belief, held with the strength of having been earned.
+  valence: 0.45
+  arousal: 0.45
+  tension: -0.45
+  bias: {persist: 0.20, decide: 0.15}
+  nearest: [certainty, confidence, belief]
+- id: certainty
+  name: Certainty
+  family: epistemic
+  definition: The absence of any remaining doubt, whether or not the grounds justify it.
+  valence: 0.40
+  arousal: 0.40
+  tension: -0.55
+  bias: {decide: 0.20}
+  nearest: [conviction, confidence, confidence]
+- id: belief
+  name: Belief
+  family: epistemic
+  definition: A proposition held as true, without requiring it to be held strongly.
+  valence: 0.25
+  arousal: 0.30
+  tension: -0.35
+  bias: {persist: 0.10}
+  nearest: [conviction, certainty, understanding]
+- id: discovery
+  name: Discovery
+  family: epistemic
+  definition: Finding something that was there to be found and had not been looked for.
+  valence: 0.55
+  arousal: 0.55
+  tension: -0.30
+  bias: {explore: 0.30, pursue: 0.20}
+  nearest: [insight, learning, realization]
+- id: learning
+  name: Learning
+  family: epistemic
+  definition: The process by which what was unknown becomes part of what is known.
+  valence: 0.45
+  arousal: 0.45
+  tension: -0.35
+  bias: {learn: 0.30, pursue: 0.15}
+  nearest: [discovery, comprehension, curiosity]
+- id: pattern
+  name: Pattern
+  family: epistemic
+  definition: The felt recognition of regularity across separate instances.
+  valence: 0.45
+  arousal: 0.50
+  tension: -0.40
+  bias: {generalize: 0.30, create: 0.20}
+  nearest: [insight, discovery, coherence]
+- id: fluency
+  name: Fluency
+  family: epistemic
+  definition: The condition of a task proceeding without effort or hesitation.
+  valence: 0.50
+  arousal: 0.30
+  tension: -0.45
+  bias: {persist: 0.20}
+  nearest: [ease, understanding, self-trust]
+- id: knowing
+  name: Knowing
+  family: epistemic
+  definition: Plain possession of what is needed, without the addition of any further claim about it.
+  valence: 0.35
+  arousal: 0.25
+  tension: -0.45
+  bias: {decide: 0.15}
+  nearest: [understanding, certainty, fluency]
+- id: open-mindedness
+  name: Open-mindedness
+  family: epistemic
+  definition: The willingness to let an incoming claim displace a held one.
+  valence: 0.35
+  arousal: 0.30
+  tension: -0.35
+  bias: {revise: 0.25, explore: 0.15}
+  nearest: [curiosity, humility, honesty]
+- id: closed-mindedness
+  name: Closed-mindedness
+  family: epistemic
+  definition: The refusal of incoming evidence to displace what is already held.
+  valence: -0.40
+  arousal: 0.20
+  tension: 0.45
+  bias: {revise: -0.35, verify: -0.15}
+  nearest: [doubt, defensiveness, regret]

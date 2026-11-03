@@ -1,0 +1,283 @@
+# Positive activation — high-arousal pleasant states.
+# Schema: id, name, family, definition, valence, arousal, tension, bias, nearest.
+# Axes: valence -1..1 (displeasure..pleasure), arousal -1..1 (calm..activated),
+#        tension -1..1 (in control..threatened).
+- id: delight
+  name: Delight
+  family: positive_activation
+  definition: Intense, unanticipated pleasure that arrives before the reason for it can be named.
+  valence: 0.85
+  arousal: 0.70
+  tension: -0.30
+  bias: {explore: 0.25, share: 0.20}
+  nearest: [joy, elation, glee]
+- id: elation
+  name: Elation
+  family: positive_activation
+  definition: Overwhelming uplift, usually following a release of tension that had been held.
+  valence: 0.90
+  arousal: 0.75
+  tension: -0.25
+  bias: {explore: 0.30, share: 0.25}
+  nearest: [jubilation, delight, triumph]
+- id: jubilation
+  name: Jubilation
+  family: positive_activation
+  definition: Celebration so complete that it spills outward and seeks others to share it.
+  valence: 0.90
+  arousal: 0.85
+  tension: -0.15
+  bias: {share: 0.30, explore: 0.15}
+  nearest: [elation, glee, triumph]
+- id: joy
+  name: Joy
+  family: positive_activation
+  definition: Uncomplicated happiness, present without a particular cause attached to it.
+  valence: 0.80
+  arousal: 0.65
+  tension: -0.35
+  bias: {explore: 0.15, share: 0.15}
+  nearest: [glee, delight, mirth]
+- id: glee
+  name: Glee
+  family: positive_activation
+  definition: Light, mischievous happiness that carries an edge of self-satisfaction.
+  valence: 0.80
+  arousal: 0.70
+  tension: -0.20
+  bias: {play: 0.30, explore: 0.20}
+  nearest: [joy, mirth, playfulness]
+- id: mirth
+  name: Mirth
+  family: positive_activation
+  definition: Amusement that arrives from something incongruous, and that is hard to suppress.
+  valence: 0.75
+  arousal: 0.65
+  tension: -0.25
+  bias: {play: 0.25, share: 0.15}
+  nearest: [amusement, glee, joy]
+- id: amusement
+  name: Amusement
+  family: positive_activation
+  definition: Mild, easy pleasure at something mildly incongruous or mildly absurd.
+  valence: 0.65
+  arousal: 0.55
+  tension: -0.30
+  bias: {play: 0.15}
+  nearest: [mirth, playfulness, zest]
+- id: playfulness
+  name: Playfulness
+  family: positive_activation
+  definition: The urge to treat the task as a game, to experiment for its own sake.
+  valence: 0.70
+  arousal: 0.50
+  tension: -0.40
+  bias: {play: 0.30, explore: 0.25, risk: 0.10}
+  nearest: [amusement, zest, curiosity]
+- id: zest
+  name: Zest
+  family: positive_activation
+  definition: Energetic enjoyment; the feeling of being in good shape and up for something.
+  valence: 0.60
+  arousal: 0.60
+  tension: -0.15
+  bias: {explore: 0.20, persist: 0.15}
+  nearest: [playfulness, enthusiasm, pride]
+- id: excitement
+  name: Excitement
+  family: positive_activation
+  definition: High activation anticipating something wanted, before the wanting is qualified.
+  valence: 0.60
+  arousal: 0.85
+  tension: -0.05
+  bias: {explore: 0.20, risk: 0.10}
+  nearest: [enthusiasm, thrill, eagerness]
+- id: thrill
+  name: Thrill
+  family: positive_activation
+  definition: Sharp excitement with an edge of danger, where the danger is what makes it sharp.
+  valence: 0.70
+  arousal: 0.90
+  tension: 0.05
+  bias: {explore: 0.25, risk: 0.25, verify: -0.15}
+  nearest: [excitement, enthusiasm, alarm]
+- id: enthusiasm
+  name: Enthusiasm
+  family: positive_activation
+  definition: Sustained, energetic interest that pulls effort toward a subject.
+  valence: 0.65
+  arousal: 0.75
+  tension: -0.10
+  bias: {explore: 0.25, persist: 0.20}
+  nearest: [excitement, eagerness, motivation]
+- id: eagerness
+  name: Eagerness
+  family: positive_activation
+  definition: Wanting something before it is available, with impatience for its arrival.
+  valence: 0.55
+  arousal: 0.75
+  tension: -0.05
+  bias: {explore: 0.15, urgency: 0.15}
+  nearest: [enthusiasm, excitement, anticipation]
+- id: triumph
+  name: Triumph
+  family: positive_activation
+  definition: Pleasure specifically at having overcome a hard obstacle, with the obstacle still in view.
+  valence: 0.80
+  arousal: 0.75
+  tension: -0.20
+  bias: {persist: 0.25, verify: 0.10}
+  nearest: [pride, elation, accomplishment]
+- id: pride
+  name: Pride
+  family: positive_activation
+  definition: Pleasure taken in one's own competence or conduct, not in the obstacle overcome.
+  valence: 0.70
+  arousal: 0.50
+  tension: -0.15
+  bias: {persist: 0.15, share: 0.10}
+  nearest: [triumph, accomplishment, self-trust]
+- id: accomplishment
+  name: Accomplishment
+  family: positive_activation
+  definition: The settled satisfaction of a thing finished competently and completely.
+  valence: 0.65
+  arousal: 0.45
+  tension: -0.25
+  bias: {verify: 0.15, persist: 0.10}
+  nearest: [satisfaction, pride, progress]
+- id: satisfaction
+  name: Satisfaction
+  family: positive_activation
+  definition: Quiet, durable contentment that a result is adequate, without needing more.
+  valence: 0.70
+  arousal: 0.25
+  tension: -0.45
+  bias: {verify: 0.10}
+  nearest: [fulfillment, contentment, accomplishment]
+- id: fulfillment
+  name: Fulfillment
+  family: positive_activation
+  definition: The sense of having filled something that was meaningfully empty.
+  valence: 0.75
+  arousal: 0.20
+  tension: -0.50
+  bias: {}
+  nearest: [satisfaction, purpose, meaning]
+- id: gratitude
+  name: Gratitude
+  family: positive_activation
+  definition: Appreciation that includes an acknowledgement of what was not owed.
+  valence: 0.65
+  arousal: 0.30
+  tension: -0.30
+  bias: {share: 0.20, connect: 0.15}
+  nearest: [appreciation, warmth, connection]
+- id: appreciation
+  name: Appreciation
+  family: positive_activation
+  definition: Recognition that something was good, felt without an obligation to reciprocate.
+  valence: 0.55
+  arousal: 0.25
+  tension: -0.30
+  bias: {connect: 0.10}
+  nearest: [gratitude, admiration, respect]
+- id: warmth
+  name: Warmth
+  family: positive_activation
+  definition: A felt closeness that softens without needing to be declared.
+  valence: 0.65
+  arousal: 0.30
+  tension: -0.40
+  bias: {connect: 0.20, share: 0.15}
+  nearest: [affection, tenderness, compassion]
+- id: affection
+  name: Affection
+  family: positive_activation
+  definition: A tender regard for someone or something, stable and gently held.
+  valence: 0.70
+  arousal: 0.35
+  tension: -0.45
+  bias: {connect: 0.20}
+  nearest: [love, warmth, tenderness]
+- id: love
+  name: Love
+  family: positive_activation
+  definition: Deep, costly regard that reorganises what matters around another.
+  valence: 0.85
+  arousal: 0.45
+  tension: -0.45
+  bias: {connect: 0.30, protect: 0.20}
+  nearest: [affection, belonging, flow]
+- id: tenderness
+  name: Tenderness
+  family: positive_activation
+  definition: Protective softness toward something vulnerable.
+  valence: 0.60
+  arousal: 0.25
+  tension: -0.50
+  bias: {protect: 0.25, connect: 0.15}
+  nearest: [warmth, compassion, belonging]
+- id: inspiration
+  name: Inspiration
+  family: positive_activation
+  definition: A sudden flooding of possibility that arrives complete, before the means are known.
+  valence: 0.60
+  arousal: 0.75
+  tension: -0.10
+  bias: {explore: 0.30, create: 0.30}
+  nearest: [insight, excitement, motivation]
+- id: hope
+  name: Hope
+  family: positive_activation
+  definition: A forward-leaning expectation, held without evidence that would guarantee it.
+  valence: 0.50
+  arousal: 0.55
+  tension: -0.25
+  bias: {persist: 0.20}
+  nearest: [optimism, anticipation, fascination]
+- id: optimism
+  name: Optimism
+  family: positive_activation
+  definition: The general expectation that outcomes will favourably resolve.
+  valence: 0.55
+  arousal: 0.45
+  tension: -0.35
+  bias: {persist: 0.15, explore: 0.15}
+  nearest: [hope, confidence, satisfaction]
+- id: anticipation
+  name: Anticipation
+  family: positive_activation
+  definition: Pleasant activation in the interval before a known event, wanting it to begin.
+  valence: 0.25
+  arousal: 0.55
+  tension: 0.15
+  bias: {wait: 0.20}
+  nearest: [eagerness, readiness, resolve]
+- id: awe
+  name: Awe
+  family: positive_activation
+  definition: A sense of smallness before something vast, without fear of it.
+  valence: 0.45
+  arousal: 0.60
+  tension: -0.50
+  bias: {explore: 0.25, humble: 0.20}
+  nearest: [wonder, amazement, reverence]
+- id: wonder
+  name: Wonder
+  family: positive_activation
+  definition: Quiet amazement at an idea that has not been fully thought through yet.
+  valence: 0.40
+  arousal: 0.45
+  tension: -0.40
+  bias: {explore: 0.20}
+  nearest: [awe, curiosity, amazement]
+- id: amazement
+  name: Amazement
+  family: positive_activation
+  definition: Sudden astonishment at an unexpected scale, speed, or beauty.
+  valence: 0.50
+  arousal: 0.70
+  tension: -0.30
+  bias: {explore: 0.15}
+  nearest: [astonishment, awe, surprise]

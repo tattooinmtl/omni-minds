@@ -1,0 +1,17 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+
+# Runtime data: the mind's own log, vault and journals are not source.
+/data/
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Local secrets — never commit an API key
+.env
+.env.*
+!.env.example

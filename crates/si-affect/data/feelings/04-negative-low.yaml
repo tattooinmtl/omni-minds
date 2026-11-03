@@ -1,0 +1,235 @@
+# Negative low — low-arousal unpleasant states.
+- id: boredom
+  name: Boredom
+  family: negative_low
+  definition: Disengagement from a task that offers no demand, with a wish for something else.
+  valence: -0.35
+  arousal: -0.65
+  tension: -0.10
+  bias: {explore: 0.25, persist: -0.15}
+  nearest: [listlessness, apathy, weariness]
+- id: weariness
+  name: Weariness
+  family: negative_low
+  definition: Tiredness that has settled into the body and dulls the edges of everything.
+  valence: -0.40
+  arousal: -0.80
+  tension: 0.10
+  bias: {persist: -0.20, explore: -0.10}
+  nearest: [fatigue, lethargy, exhaustion]
+- id: fatigue
+  name: Fatigue
+  family: negative_low
+  definition: Physical depletion that makes continued effort feel disproportionately costly.
+  valence: -0.35
+  arousal: -0.85
+  tension: 0.05
+  bias: {persist: -0.20, rest: 0.30}
+  nearest: [weariness, lethargy, depletion]
+- id: melancholy
+  name: Melancholy
+  family: negative_low
+  definition: A soft, unresisting sadness that colours things without demanding action.
+  valence: -0.50
+  arousal: -0.45
+  tension: 0.15
+  bias: {withdraw: 0.10}
+  nearest: [sadness, wistfulness, dejection]
+- id: sadness
+  name: Sadness
+  family: negative_low
+  definition: A settled lowering of spirits, present without a specific cause.
+  valence: -0.65
+  arousal: -0.35
+  tension: 0.30
+  bias: {withdraw: 0.15}
+  nearest: [sorrow, melancholy, dejection]
+- id: despondency
+  name: Despondency
+  family: negative_low
+  definition: Hopelessness that has settled in and stopped expecting rescue.
+  valence: -0.75
+  arousal: -0.55
+  tension: 0.45
+  bias: {persist: -0.30, explore: -0.25}
+  nearest: [hopelessness, despair, resignation]
+- id: hopelessness
+  name: Hopelessness
+  family: negative_low
+  definition: The conviction that no available action will change the outcome.
+  valence: -0.85
+  arousal: -0.50
+  tension: 0.55
+  bias: {persist: -0.35, explore: -0.30}
+  nearest: [despondency, despair, resignation]
+- id: dejection
+  name: Dejection
+  family: negative_low
+  definition: Low spirits after a loss of confidence or expectation.
+  valence: -0.60
+  arousal: -0.60
+  tension: 0.30
+  bias: {persist: -0.10}
+  nearest: [discouragement, sadness, disappointment]
+- id: gloom
+  name: Gloom
+  family: negative_low
+  definition: A general lowering of light, felt as atmosphere rather than as a fact about anything.
+  valence: -0.50
+  arousal: -0.45
+  tension: 0.25
+  bias: {withdraw: 0.10}
+  nearest: [melancholy, dejection, weariness]
+- id: despair
+  name: Despair
+  family: negative_low
+  definition: The loss of hope, felt as a finality rather than a difficulty.
+  valence: -0.85
+  arousal: -0.40
+  tension: 0.60
+  bias: {persist: -0.30, explore: -0.25}
+  nearest: [hopelessness, misery, despondency]
+- id: emptiness
+  name: Emptiness
+  family: negative_low
+  definition: A felt absence where something was expected to be, with no content to point at.
+  valence: -0.55
+  arousal: -0.55
+  tension: 0.05
+  bias: {explore: 0.15, fill: 0.15}
+  nearest: [hollowness, numbness, apathy]
+- id: hollowness
+  name: Hollowness
+  family: negative_low
+  definition: The sensation of a shape where something substantial ought to be.
+  valence: -0.50
+  arousal: -0.60
+  tension: 0.10
+  bias: {explore: 0.15}
+  nearest: [emptiness, melancholy, listlessness]
+- id: apathy
+  name: Apathy
+  family: negative_low
+  definition: Absence of motivation to engage, without distress about the absence.
+  valence: -0.45
+  arousal: -0.75
+  tension: -0.05
+  bias: {explore: -0.15, persist: -0.20}
+  nearest: [indifference, listlessness, lethargy]
+- id: indifference
+  name: Indifference
+  family: negative_low
+  definition: Genuine absence of concern, neither pleasant nor painful in itself.
+  valence: -0.25
+  arousal: -0.70
+  tension: -0.20
+  bias: {explore: -0.10}
+  nearest: [apathy, detachment, listlessness]
+- id: detachment
+  name: Detachment
+  family: negative_low
+  definition: Standing slightly outside the situation, unaffected by its pull.
+  valence: -0.10
+  arousal: -0.60
+  tension: -0.25
+  bias: {risk: 0.10, verify: -0.10}
+  nearest: [indifference, apathy, equanimity]
+- id: numbness
+  name: Numbness
+  family: negative_low
+  definition: Reduced capacity to feel what would otherwise register, protective or depleted.
+  valence: -0.40
+  arousal: -0.80
+  tension: 0.00
+  bias: {explore: -0.20, feel: -0.25}
+  nearest: [apathy, emptiness, weariness]
+- id: listlessness
+  name: Listlessness
+  family: negative_low
+  definition: A lack of energy to act, without a reason that would justify the inaction.
+  valence: -0.40
+  arousal: -0.70
+  tension: 0.05
+  bias: {persist: -0.20, explore: 0.15}
+  nearest: [apathy, boredom, lethargy]
+- id: discouragement
+  name: Discouragement
+  family: negative_low
+  definition: A weakening of confidence in the path, short of despair.
+  valence: -0.50
+  arousal: -0.45
+  tension: 0.35
+  bias: {retry_same: -0.20, explore: -0.10}
+  nearest: [frustration, disappointment, dejection]
+- id: resignation
+  name: Resignation
+  family: negative_low
+  definition: Acceptance of an unacceptable outcome, taken on rather than arrived at.
+  valence: -0.50
+  arousal: -0.60
+  tension: 0.30
+  bias: {persist: -0.25, explore: -0.15}
+  nearest: [letdown, defeat, capitulation]
+- id: defeat
+  name: Defeat
+  family: negative_low
+  definition: The felt end of a contest one believed was winnable.
+  valence: -0.65
+  arousal: -0.55
+  tension: 0.45
+  bias: {persist: -0.20, withdraw: 0.15}
+  nearest: [capitulation, resignation, dejection]
+- id: capitulation
+  name: Capitulation
+  family: negative_low
+  definition: The giving up of resistance, with relief mixed into the defeat.
+  valence: -0.70
+  arousal: -0.50
+  tension: 0.50
+  bias: {persist: -0.30, withdraw: 0.20}
+  nearest: [defeat, resignation, despondency]
+- id: dissatisfaction
+  name: Dissatisfaction
+  family: negative_low
+  definition: The steady sense that a result falls short of what was wanted, without drama.
+  valence: -0.40
+  arousal: -0.25
+  tension: 0.35
+  bias: {revise: 0.15, verify: 0.10}
+  nearest: [letdown, frustration, discouragement]
+- id: unrest
+  name: Unrest
+  family: negative_low
+  definition: A low, continuous agitation that has not found its cause.
+  valence: -0.30
+  arousal: 0.25
+  tension: 0.50
+  bias: {explore: 0.15}
+  nearest: [unease, agitation, doubt]
+- id: lethargy
+  name: Lethargy
+  family: negative_low
+  definition: Sluggishness of body and will, without any accompanying distress.
+  valence: -0.30
+  arousal: -0.85
+  tension: -0.05
+  bias: {persist: -0.20}
+  nearest: [fatigue, listlessness, weariness]
+- id: wistfulness
+  name: Wistfulness
+  family: negative_low
+  definition: A gentle longing for something absent, without the edge of loss.
+  valence: -0.10
+  arousal: 0.20
+  tension: 0.10
+  bias: {connect: 0.10}
+  nearest: [melancholy, sympathy, skepticism]
+- id: loneliness
+  name: Loneliness
+  family: negative_low
+  definition: The felt absence of connection, whether or not anyone is present.
+  valence: -0.65
+  arousal: -0.25
+  tension: 0.45
+  bias: {connect: 0.25, withdraw: 0.10}
+  nearest: [isolation, alienation, sadness]

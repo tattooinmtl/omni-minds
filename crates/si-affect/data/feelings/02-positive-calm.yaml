@@ -1,0 +1,208 @@
+# Positive calm — low-arousal pleasant states.
+- id: calm
+  name: Calm
+  family: positive_calm
+  definition: Undisturbed steadiness, with nothing urgently demanding attention.
+  valence: 0.35
+  arousal: -0.60
+  tension: -0.65
+  bias: {verify: 0.10, persist: 0.10}
+  nearest: [peace, serenity, ease]
+- id: peace
+  name: Peace
+  family: positive_calm
+  definition: The absence of disturbance that is itself felt as a presence.
+  valence: 0.45
+  arousal: -0.70
+  tension: -0.75
+  bias: {persist: 0.05}
+  nearest: [serenity, calm, safety]
+- id: serenity
+  name: Serenity
+  family: positive_calm
+  definition: Calm that has been thoroughly weathered, holding even under provocation.
+  valence: 0.45
+  arousal: -0.65
+  tension: -0.70
+  bias: {verify: 0.10}
+  nearest: [peace, calm, composure]
+- id: contentment
+  name: Contentment
+  family: positive_calm
+  definition: Being satisfied with the present arrangement, without a wish to change it.
+  valence: 0.50
+  arousal: -0.45
+  tension: -0.60
+  bias: {}
+  nearest: [satisfaction, peace, ease]
+- id: comfort
+  name: Comfort
+  family: positive_calm
+  definition: Physical or situational ease, the absence of any minor friction.
+  valence: 0.55
+  arousal: -0.55
+  tension: -0.65
+  bias: {}
+  nearest: [ease, safety, relaxation]
+- id: ease
+  name: Ease
+  family: positive_calm
+  definition: The feeling of a task proceeding without resistance or awkwardness.
+  valence: 0.45
+  arousal: -0.40
+  tension: -0.55
+  bias: {persist: 0.15}
+  nearest: [comfort, calm, fluency]
+- id: relaxation
+  name: Relaxation
+  family: positive_calm
+  definition: Deliberate release of held effort, with the body and attention unwinding.
+  valence: 0.45
+  arousal: -0.70
+  tension: -0.65
+  bias: {risk: -0.10}
+  nearest: [repose, rest, comfort]
+- id: repose
+  name: Repose
+  family: positive_calm
+  definition: Deep, effortless rest that requires nothing of the one resting.
+  valence: 0.45
+  arousal: -0.80
+  tension: -0.70
+  bias: {risk: -0.15}
+  nearest: [relaxation, rest, recovery]
+- id: safety
+  name: Safety
+  family: positive_calm
+  definition: The felt absence of threat, distinct from merely not feeling afraid.
+  valence: 0.45
+  arousal: -0.50
+  tension: -0.80
+  bias: {risk: -0.20, open: 0.15}
+  nearest: [security, peace, trust]
+- id: security
+  name: Security
+  family: positive_calm
+  definition: Confidence that one's footing will hold, whether or not it is currently tested.
+  valence: 0.45
+  arousal: -0.35
+  tension: -0.70
+  bias: {risk: -0.15, persist: 0.10}
+  nearest: [safety, stability, confidence]
+- id: groundedness
+  name: Groundedness
+  family: positive_calm
+  definition: The settled sense of being located, present, and connected to what is real.
+  valence: 0.40
+  arousal: -0.40
+  tension: -0.70
+  bias: {verify: 0.15}
+  nearest: [stability, composure, security]
+- id: stability
+  name: Stability
+  family: positive_calm
+  definition: The condition of holding steady, sensed as a property rather than an effort.
+  valence: 0.35
+  arousal: -0.45
+  tension: -0.65
+  bias: {persist: 0.15}
+  nearest: [steadiness, groundedness, balance]
+- id: steadiness
+  name: Steadiness
+  family: positive_calm
+  definition: The quality of not wobbling, felt when something or someone does not waver.
+  valence: 0.35
+  arousal: -0.40
+  tension: -0.60
+  bias: {persist: 0.15}
+  nearest: [stability, composure, balance]
+- id: balance
+  name: Balance
+  family: positive_calm
+  definition: Evenness of weight between competing demands, with nothing overbearing.
+  valence: 0.35
+  arousal: -0.35
+  tension: -0.55
+  bias: {verify: 0.10}
+  nearest: [harmony, steadiness, acceptance]
+- id: harmony
+  name: Harmony
+  family: positive_calm
+  definition: Parts fitting together without strain, whether in a system or in a self.
+  valence: 0.45
+  arousal: -0.30
+  tension: -0.60
+  bias: {}
+  nearest: [balance, coherence, peace]
+- id: trust
+  name: Trust
+  family: positive_calm
+  definition: Belief that another party will act as expected, without needing to verify it.
+  valence: 0.50
+  arousal: -0.25
+  tension: -0.55
+  bias: {open: 0.20, verify: -0.10}
+  nearest: [confidence, safety, openness]
+- id: confidence
+  name: Confidence
+  family: positive_calm
+  definition: Quiet assurance that the capability required is present.
+  valence: 0.55
+  arousal: 0.30
+  tension: -0.50
+  bias: {risk: -0.10, persist: 0.15}
+  nearest: [conviction, self-trust, certainty]
+- id: acceptance
+  name: Acceptance
+  family: positive_calm
+  definition: The absence of a need to change what is, arrived at without resignation.
+  valence: 0.40
+  arousal: -0.40
+  tension: -0.55
+  bias: {persist: 0.10}
+  nearest: [self-acceptance, tolerance, peace]
+- id: clarity
+  name: Clarity
+  family: positive_calm
+  definition: The state of seeing the situation as it is, without competing readings.
+  valence: 0.45
+  arousal: 0.15
+  tension: -0.60
+  bias: {verify: 0.20, decide: 0.15}
+  nearest: [comprehension, understanding, coherence]
+- id: tolerance
+  name: Tolerance
+  family: positive_calm
+  definition: Acceptance of a difference or an imperfection without strain.
+  valence: 0.25
+  arousal: -0.30
+  tension: -0.40
+  bias: {open: 0.15}
+  nearest: [acceptance, patience, equanimity]
+- id: reverence
+  name: Reverence
+  family: positive_calm
+  definition: Quiet regard for something held to be greater than oneself, without fear.
+  valence: 0.40
+  arousal: 0.20
+  tension: -0.55
+  bias: {humble: 0.25}
+  nearest: [awe, respect, gratitude]
+- id: rest
+  name: Rest
+  family: positive_calm
+  definition: A pause that restores rather than merely ceasing activity.
+  valence: 0.40
+  arousal: -0.85
+  tension: -0.55
+  bias: {risk: -0.15, urgency: -0.20}
+  nearest: [repose, recovery, relaxation]
+- id: renewal
+  name: Renewal
+  family: positive_calm
+  definition: The felt sense of being restored to capacity after depletion.
+  valence: 0.50
+  arousal: -0.20
+  tension: -0.55
+  bias: {persist: 0.20}
+  nearest: [recovery, growth, rest]

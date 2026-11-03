@@ -1,0 +1,343 @@
+# Negative activation — high-arousal unpleasant states.
+- id: anger
+  name: Anger
+  family: negative_activation
+  definition: Strong displeasure directed at an identifiable target, arising from a perceived wrong.
+  valence: -0.70
+  arousal: 0.75
+  tension: 0.55
+  bias: {retry_same: 0.10, explore: -0.15, confront: 0.25}
+  nearest: [rage, outrage, resentment]
+- id: rage
+  name: Rage
+  family: negative_activation
+  definition: Anger at an intensity that overwhelms consideration of consequence.
+  valence: -0.90
+  arousal: 0.95
+  tension: 0.75
+  bias: {retry_same: 0.20, explore: -0.35, verify: -0.20}
+  nearest: [fury, anger, outrage]
+- id: fury
+  name: Fury
+  family: negative_activation
+  definition: Cold, concentrated anger at maximum intensity, harsher than rage.
+  valence: -0.88
+  arousal: 0.95
+  tension: 0.70
+  bias: {explore: -0.30, verify: -0.15}
+  nearest: [rage, anger, contempt]
+- id: outrage
+  name: Outrage
+  family: negative_activation
+  definition: Anger at something judged to be a violation of a shared standard.
+  valence: -0.70
+  arousal: 0.80
+  tension: 0.45
+  bias: {confront: 0.30, share: 0.20}
+  nearest: [indignation, anger, disgust]
+- id: indignation
+  name: Indignation
+  family: negative_activation
+  definition: Anger at an injustice, felt on behalf of a principle rather than a personal loss.
+  valence: -0.60
+  arousal: 0.65
+  tension: 0.45
+  bias: {confront: 0.25, integrity: 0.20}
+  nearest: [outrage, anger, dissonance]
+- id: resentment
+  name: Resentment
+  family: negative_activation
+  definition: A slow, accumulating displeasure at a party or condition, carried over time.
+  valence: -0.55
+  arousal: 0.35
+  tension: 0.50
+  bias: {grudge: 0.30, withdraw: 0.20}
+  nearest: [bitterness, anger, contempt]
+- id: bitterness
+  name: Bitterness
+  family: negative_activation
+  definition: Resentment that has hardened, losing the original grievance but keeping its shape.
+  valence: -0.60
+  arousal: 0.25
+  tension: 0.55
+  bias: {withdraw: 0.25, grudges: 0.20}
+  nearest: [resentment, contempt, alienation]
+- id: contempt
+  name: Contempt
+  family: negative_activation
+  definition: Disapproval expressed as a considered estimate that the other is beneath engagement.
+  valence: -0.65
+  arousal: 0.35
+  tension: 0.35
+  bias: {withdraw: 0.25, dismiss: 0.30}
+  nearest: [disgust, bitterness, resentment]
+- id: disgust
+  name: Disgust
+  family: negative_activation
+  definition: A visceral rejection of something judged contaminating, degrading, or offensive.
+  valence: -0.75
+  arousal: 0.40
+  tension: 0.55
+  bias: {withdraw: 0.30, reject: 0.25}
+  nearest: [revulsion, contempt, sorrow]
+- id: revulsion
+  name: Revulsion
+  family: negative_activation
+  definition: Disgust at its sharpest, with an urge to physically distance from the source.
+  valence: -0.80
+  arousal: 0.50
+  tension: 0.60
+  bias: {withdraw: 0.35, reject: 0.30}
+  nearest: [disgust, contempt, shame]
+- id: hostility
+  name: Hostility
+  family: negative_activation
+  definition: A disposition toward opposition, sustained rather than momentary.
+  valence: -0.70
+  arousal: 0.70
+  tension: 0.60
+  bias: {confront: 0.25, explore: -0.20}
+  nearest: [anger, resentment, outrage]
+- id: irritability
+  name: Irritability
+  family: negative_activation
+  definition: A raised threshold for being bothered; the everyday state just above neutral.
+  valence: -0.40
+  arousal: 0.50
+  tension: 0.35
+  bias: {explore: -0.10, patience: -0.15}
+  nearest: [irritation, agitation, annoyance]
+- id: irritation
+  name: Irritation
+  family: negative_activation
+  definition: Mild, brief displeasure at a small friction, with no lasting grudge.
+  valence: -0.35
+  arousal: 0.45
+  tension: 0.30
+  bias: {patience: -0.10}
+  nearest: [irritability, annoyance, frustration]
+- id: frustration
+  name: Frustration
+  family: negative_activation
+  definition: Blocked progress toward something believed solvable, where the obstacle is not yet understood.
+  valence: -0.45
+  arousal: 0.60
+  tension: 0.70
+  bias: {retry_same: 0.40, explore: -0.30, verify: 0.20}
+  nearest: [irritation, discouragement, exasperation]
+- id: exasperation
+  name: Exasperation
+  family: negative_activation
+  definition: Frustration that has recurred enough times to acquire a weary edge.
+  valence: -0.50
+  arousal: 0.70
+  tension: 0.60
+  bias: {retry_same: 0.20, explore: -0.25}
+  nearest: [frustration, impatience, discouragement]
+- id: impatience
+  name: Impatience
+  family: negative_activation
+  definition: Discomfort with the rate of progress, wanting the interval to end.
+  valence: -0.35
+  arousal: 0.65
+  tension: 0.45
+  bias: {urgency: 0.30, verify: -0.15}
+  nearest: [restlessness, irritation, urgency]
+- id: annoyance
+  name: Annoyance
+  family: negative_activation
+  definition: Low-grade irritation at an interruption or an unmet expectation.
+  valence: -0.30
+  arousal: 0.40
+  tension: 0.25
+  bias: {}
+  nearest: [irritation, irritation, impatience]
+- id: agitation
+  name: Agitation
+  family: negative_activation
+  definition: Restless, unsettled activation that has not yet located its object.
+  valence: -0.35
+  arousal: 0.70
+  tension: 0.55
+  bias: {explore: 0.10, urgency: 0.20}
+  nearest: [restlessness, anxiety, irritability]
+- id: anxiety
+  name: Anxiety
+  family: negative_activation
+  definition: Apprehension without a definite object, experienced as a bodily state.
+  valence: -0.50
+  arousal: 0.65
+  tension: 0.75
+  bias: {verify: 0.30, explore: -0.20, risk: -0.25}
+  nearest: [unease, worry, dread]
+- id: fear
+  name: Fear
+  family: negative_activation
+  definition: Strong apprehension directed at an identified, imminent threat.
+  valence: -0.70
+  arousal: 0.80
+  tension: 0.90
+  bias: {verify: 0.25, explore: -0.35, risk: -0.40, withdraw: 0.20}
+  nearest: [terror, dread, panic]
+- id: terror
+  name: Terror
+  family: negative_activation
+  definition: Fear at its maximum, overwhelming every other consideration.
+  valence: -0.90
+  arousal: 0.95
+  tension: 0.95
+  bias: {verify: 0.20, explore: -0.45, withdraw: 0.35}
+  nearest: [panic, fear, rage]
+- id: panic
+  name: Panic
+  family: negative_activation
+  definition: Acute alarm with no workable interpretation, demanding immediate action.
+  valence: -0.80
+  arousal: 0.95
+  tension: 0.95
+  bias: {verify: 0.25, explore: -0.40, retry_same: 0.30}
+  nearest: [terror, alarm, fear]
+- id: dread
+  name: Dread
+  family: negative_activation
+  definition: Anticipatory terror of a specific but not-yet-arrived event.
+  valence: -0.65
+  arousal: 0.40
+  tension: 0.95
+  bias: {verify: 0.20, explore: -0.30, risk: -0.30}
+  nearest: [fear, apprehension, anxiety]
+- id: apprehension
+  name: Apprehension
+  family: negative_activation
+  definition: Uneasy anticipation about an outcome that is uncertain but plausible.
+  valence: -0.40
+  arousal: 0.35
+  tension: 0.70
+  bias: {verify: 0.20, risk: -0.15}
+  nearest: [anxiety, worry, unease]
+- id: unease
+  name: Unease
+  family: negative_activation
+  definition: A low-grade, unlocated disquiet, too small to act on.
+  valence: -0.30
+  arousal: 0.25
+  tension: 0.50
+  bias: {verify: 0.10}
+  nearest: [apprehension, anxiety, unrest]
+- id: worry
+  name: Worry
+  family: negative_activation
+  definition: Anxious rehearsal of a possible future, run without a decision attached.
+  valence: -0.35
+  arousal: 0.40
+  tension: 0.60
+  bias: {verify: 0.15, explore: -0.10}
+  nearest: [anxiety, apprehension, unease]
+- id: alarm
+  name: Alarm
+  family: negative_activation
+  definition: Sudden heightened arousal at the detection of something wrong.
+  valence: -0.50
+  arousal: 0.85
+  tension: 0.70
+  bias: {verify: 0.30, urgency: 0.30, explore: -0.20}
+  nearest: [panic, startle, fear]
+- id: startle
+  name: Startle
+  family: negative_activation
+  definition: A brief involuntary spike of arousal from an unexpected stimulus.
+  valence: -0.35
+  arousal: 0.90
+  tension: 0.55
+  bias: {verify: 0.20}
+  nearest: [alarm, surprise, panic]
+- id: grief
+  name: Grief
+  family: negative_activation
+  definition: Deep sorrow over a loss that cannot be undone, worked through slowly.
+  valence: -0.85
+  arousal: 0.45
+  tension: 0.65
+  bias: {withdraw: 0.25, connect: 0.15}
+  nearest: [heartbreak, sorrow, misery]
+- id: sorrow
+  name: Sorrow
+  family: negative_activation
+  definition: Sustained sadness without the sharpness of grief.
+  valence: -0.75
+  arousal: 0.35
+  tension: 0.55
+  bias: {withdraw: 0.15}
+  nearest: [grief, misery, disappointment]
+- id: heartbreak
+  name: Heartbreak
+  family: negative_activation
+  definition: Acute, immobilising sorrow at the loss of something irreplaceable.
+  valence: -0.90
+  arousal: 0.45
+  tension: 0.70
+  bias: {withdraw: 0.30}
+  nearest: [grief, misery, despair]
+- id: misery
+  name: Misery
+  family: negative_activation
+  definition: Sustained, grinding unhappiness with no relief in prospect.
+  valence: -0.85
+  arousal: 0.35
+  tension: 0.60
+  bias: {withdraw: 0.25, explore: -0.25}
+  nearest: [despair, sorrow, heartbreak]
+- id: disappointment
+  name: Disappointment
+  family: negative_activation
+  definition: The lowered, flattened feeling of an expectation that did not hold.
+  valence: -0.50
+  arousal: 0.20
+  tension: 0.45
+  bias: {retry_same: -0.15, verify: 0.10}
+  nearest: [letdown, discouragement, frustration]
+- id: letdown
+  name: Letdown
+  family: negative_activation
+  definition: Disappointment softened by having expected little.
+  valence: -0.45
+  arousal: 0.15
+  tension: 0.40
+  bias: {}
+  nearest: [disappointment, discouragement, resignation]
+- id: betrayal
+  name: Betrayal
+  family: negative_activation
+  definition: The shock of discovering that trust was deliberately broken.
+  valence: -0.85
+  arousal: 0.60
+  tension: 0.75
+  bias: {withdraw: 0.30, verify: 0.25, trust: -0.30}
+  nearest: [hurt, distrust, heartbreak]
+- id: hurt
+  name: Hurt
+  family: negative_activation
+  definition: The ache of having been affected by something someone else did.
+  valence: -0.65
+  arousal: 0.30
+  tension: 0.60
+  bias: {withdraw: 0.20, connect: 0.15}
+  nearest: [sorrow, betrayal, rejection]
+- id: jealousy
+  name: Jealousy
+  family: negative_activation
+  definition: Distress at another's advantage, entailing a wish to have it oneself.
+  valence: -0.55
+  arousal: 0.55
+  tension: 0.65
+  bias: {compare: 0.25, withdraw: 0.15}
+  nearest: [envy, rivalry, resentment]
+- id: envy
+  name: Envy
+  family: negative_activation
+  definition: Grudging desire for what another has, without hostility toward them.
+  valence: -0.50
+  arousal: 0.45
+  tension: 0.60
+  bias: {compare: 0.20, explore: 0.10}
+  nearest: [jealousy, admiration, defensiveness]
