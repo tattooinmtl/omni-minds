@@ -15,7 +15,7 @@
   valence: -0.40
   arousal: -0.80
   tension: 0.10
-  bias: {persist: -0.20, explore: -0.10}
+  bias: {explore: -0.1, persist: -0.2}
   nearest: [fatigue, lethargy, exhaustion]
 - id: fatigue
   name: Fatigue
@@ -24,7 +24,7 @@
   valence: -0.35
   arousal: -0.85
   tension: 0.05
-  bias: {persist: -0.20, rest: 0.30}
+  bias: {pace: -0.3, persist: -0.2}
   nearest: [weariness, lethargy, depletion]
 - id: melancholy
   name: Melancholy
@@ -33,7 +33,7 @@
   valence: -0.50
   arousal: -0.45
   tension: 0.15
-  bias: {withdraw: 0.10}
+  bias: {connect: 0.1}
   nearest: [sadness, wistfulness, dejection]
 - id: sadness
   name: Sadness
@@ -42,7 +42,7 @@
   valence: -0.65
   arousal: -0.35
   tension: 0.30
-  bias: {withdraw: 0.15}
+  bias: {connect: 0.15}
   nearest: [sorrow, melancholy, dejection]
 - id: despondency
   name: Despondency
@@ -51,7 +51,7 @@
   valence: -0.75
   arousal: -0.55
   tension: 0.45
-  bias: {persist: -0.30, explore: -0.25}
+  bias: {explore: -0.25, persist: -0.3}
   nearest: [hopelessness, despair, resignation]
 - id: hopelessness
   name: Hopelessness
@@ -60,7 +60,7 @@
   valence: -0.85
   arousal: -0.50
   tension: 0.55
-  bias: {persist: -0.35, explore: -0.30}
+  bias: {explore: -0.3, persist: -0.35}
   nearest: [despondency, despair, resignation]
 - id: dejection
   name: Dejection
@@ -69,7 +69,7 @@
   valence: -0.60
   arousal: -0.60
   tension: 0.30
-  bias: {persist: -0.10}
+  bias: {persist: -0.1}
   nearest: [discouragement, sadness, disappointment]
 - id: gloom
   name: Gloom
@@ -78,7 +78,7 @@
   valence: -0.50
   arousal: -0.45
   tension: 0.25
-  bias: {withdraw: 0.10}
+  bias: {connect: 0.1}
   nearest: [melancholy, dejection, weariness]
 - id: despair
   name: Despair
@@ -87,7 +87,7 @@
   valence: -0.85
   arousal: -0.40
   tension: 0.60
-  bias: {persist: -0.30, explore: -0.25}
+  bias: {explore: -0.25, persist: -0.3}
   nearest: [hopelessness, misery, despondency]
 - id: emptiness
   name: Emptiness
@@ -96,7 +96,7 @@
   valence: -0.55
   arousal: -0.55
   tension: 0.05
-  bias: {explore: 0.15, fill: 0.15}
+  bias: {create: 0.15, explore: 0.15}
   nearest: [hollowness, numbness, apathy]
 - id: hollowness
   name: Hollowness
@@ -114,7 +114,7 @@
   valence: -0.45
   arousal: -0.75
   tension: -0.05
-  bias: {explore: -0.15, persist: -0.20}
+  bias: {explore: -0.15, persist: -0.2}
   nearest: [indifference, listlessness, lethargy]
 - id: indifference
   name: Indifference
@@ -123,7 +123,7 @@
   valence: -0.25
   arousal: -0.70
   tension: -0.20
-  bias: {explore: -0.10}
+  bias: {explore: -0.1}
   nearest: [apathy, detachment, listlessness]
 - id: detachment
   name: Detachment
@@ -132,7 +132,7 @@
   valence: -0.10
   arousal: -0.60
   tension: -0.25
-  bias: {risk: 0.10, verify: -0.10}
+  bias: {risk: 0.1, verify: -0.1}
   nearest: [indifference, apathy, equanimity]
 - id: numbness
   name: Numbness
@@ -141,7 +141,7 @@
   valence: -0.40
   arousal: -0.80
   tension: 0.00
-  bias: {explore: -0.20, feel: -0.25}
+  bias: {explore: -0.2, express: -0.25}
   nearest: [apathy, emptiness, weariness]
 - id: listlessness
   name: Listlessness
@@ -150,7 +150,7 @@
   valence: -0.40
   arousal: -0.70
   tension: 0.05
-  bias: {persist: -0.20, explore: 0.15}
+  bias: {explore: 0.15, persist: -0.2}
   nearest: [apathy, boredom, lethargy]
 - id: discouragement
   name: Discouragement
@@ -159,7 +159,7 @@
   valence: -0.50
   arousal: -0.45
   tension: 0.35
-  bias: {retry_same: -0.20, explore: -0.10}
+  bias: {explore: -0.1, retry_same: -0.2}
   nearest: [frustration, disappointment, dejection]
 - id: resignation
   name: Resignation
@@ -168,7 +168,7 @@
   valence: -0.50
   arousal: -0.60
   tension: 0.30
-  bias: {persist: -0.25, explore: -0.15}
+  bias: {explore: -0.15, persist: -0.25}
   nearest: [letdown, defeat, capitulation]
 - id: defeat
   name: Defeat
@@ -177,7 +177,7 @@
   valence: -0.65
   arousal: -0.55
   tension: 0.45
-  bias: {persist: -0.20, withdraw: 0.15}
+  bias: {connect: 0.15, persist: -0.2}
   nearest: [capitulation, resignation, dejection]
 - id: capitulation
   name: Capitulation
@@ -186,7 +186,7 @@
   valence: -0.70
   arousal: -0.50
   tension: 0.50
-  bias: {persist: -0.30, withdraw: 0.20}
+  bias: {connect: 0.2, persist: -0.3}
   nearest: [defeat, resignation, despondency]
 - id: dissatisfaction
   name: Dissatisfaction
@@ -195,7 +195,7 @@
   valence: -0.40
   arousal: -0.25
   tension: 0.35
-  bias: {revise: 0.15, verify: 0.10}
+  bias: {revise: 0.15, verify: 0.1}
   nearest: [letdown, frustration, discouragement]
 - id: unrest
   name: Unrest
@@ -213,7 +213,7 @@
   valence: -0.30
   arousal: -0.85
   tension: -0.05
-  bias: {persist: -0.20}
+  bias: {persist: -0.2}
   nearest: [fatigue, listlessness, weariness]
 - id: wistfulness
   name: Wistfulness
@@ -222,7 +222,7 @@
   valence: -0.10
   arousal: 0.20
   tension: 0.10
-  bias: {connect: 0.10}
+  bias: {connect: 0.1}
   nearest: [melancholy, sympathy, skepticism]
 - id: loneliness
   name: Loneliness
@@ -231,5 +231,5 @@
   valence: -0.65
   arousal: -0.25
   tension: 0.45
-  bias: {connect: 0.25, withdraw: 0.10}
+  bias: {connect: 0.35}
   nearest: [isolation, alienation, sadness]

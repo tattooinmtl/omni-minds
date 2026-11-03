@@ -7,7 +7,7 @@
   valence: 0.35
   arousal: 0.55
   tension: -0.10
-  bias: {explore: 0.40, pursue: 0.30, risk: 0.15}
+  bias: {explore: 0.7, risk: 0.15}
   nearest: [interest, inquiry, fascination]
 - id: interest
   name: Interest
@@ -16,7 +16,7 @@
   valence: 0.30
   arousal: 0.40
   tension: -0.15
-  bias: {explore: 0.25, pursue: 0.20}
+  bias: {explore: 0.45}
   nearest: [curiosity, fascination, attentiveness]
 - id: inquiry
   name: Inquiry
@@ -34,7 +34,7 @@
   valence: 0.45
   arousal: 0.60
   tension: -0.25
-  bias: {explore: 0.35, pursue: 0.30}
+  bias: {explore: 0.65}
   nearest: [curiosity, interest, absorption]
 - id: attention
   name: Attention
@@ -43,7 +43,7 @@
   valence: 0.15
   arousal: 0.55
   tension: -0.15
-  bias: {focus: 0.30, explore: -0.15}
+  bias: {explore: -0.15, persist: 0.3}
   nearest: [attentiveness, focus, concentration]
 - id: attentiveness
   name: Attentiveness
@@ -52,7 +52,7 @@
   valence: 0.25
   arousal: 0.50
   tension: -0.25
-  bias: {explore: 0.20, notice: 0.20}
+  bias: {explore: 0.2, verify: 0.2}
   nearest: [attention, curiosity, vigilance]
 - id: vigilance
   name: Vigilance
@@ -61,7 +61,7 @@
   valence: 0.05
   arousal: 0.70
   tension: 0.55
-  bias: {verify: 0.35, risk: -0.20}
+  bias: {risk: -0.2, verify: 0.35}
   nearest: [scrutiny, alarm, attentiveness]
 - id: scrutiny
   name: Scrutiny
@@ -70,7 +70,7 @@
   valence: -0.10
   arousal: 0.50
   tension: 0.40
-  bias: {verify: 0.30, skepticism: 0.25}
+  bias: {verify: 0.55}
   nearest: [vigilance, skepticism, doubt]
 - id: surprise
   name: Surprise
@@ -79,7 +79,7 @@
   valence: 0.05
   arousal: 0.80
   tension: 0.20
-  bias: {notice: 0.30, revise: 0.20}
+  bias: {revise: 0.2, verify: 0.3}
   nearest: [astonishment, startle, bewilderment]
 - id: astonishment
   name: Astonishment
@@ -88,7 +88,7 @@
   valence: 0.25
   arousal: 0.85
   tension: 0.25
-  bias: {explore: 0.20, revise: 0.15}
+  bias: {explore: 0.2, revise: 0.15}
   nearest: [amazement, surprise, shock]
 - id: shock
   name: Shock
@@ -97,7 +97,7 @@
   valence: -0.25
   arousal: 0.90
   tension: 0.55
-  bias: {verify: 0.30, revise: 0.30}
+  bias: {revise: 0.3, verify: 0.3}
   nearest: [surprise, astonishment, alarm]
 - id: confusion
   name: Confusion
@@ -106,7 +106,7 @@
   valence: -0.25
   arousal: 0.45
   tension: 0.55
-  bias: {ask: 0.25, verify: 0.25, retry_same: 0.10}
+  bias: {ask: 0.25, retry_same: 0.1, verify: 0.25}
   nearest: [bewilderment, puzzlement, uncertainty]
 - id: bewilderment
   name: Bewilderment
@@ -115,7 +115,7 @@
   valence: -0.35
   arousal: 0.40
   tension: 0.75
-  bias: {ask: 0.30, verify: 0.30, explore: 0.10}
+  bias: {ask: 0.3, explore: 0.1, verify: 0.3}
   nearest: [confusion, disorientation, puzzlement]
 - id: disorientation
   name: Disorientation
@@ -124,7 +124,7 @@
   valence: -0.45
   arousal: 0.35
   tension: 0.80
-  bias: {reorient: 0.35, verify: 0.20}
+  bias: {verify: 0.55}
   nearest: [bewilderment, confusion, uncertainty]
 - id: puzzlement
   name: Puzzlement
@@ -133,7 +133,7 @@
   valence: -0.20
   arousal: 0.40
   tension: 0.50
-  bias: {ask: 0.30, pursue: 0.20}
+  bias: {ask: 0.3, explore: 0.2}
   nearest: [confusion, curiosity, doubt]
 - id: uncertainty
   name: Uncertainty
@@ -142,7 +142,7 @@
   valence: -0.20
   arousal: 0.25
   tension: 0.65
-  bias: {verify: 0.30, decide: -0.20}
+  bias: {persist: -0.2, verify: 0.3}
   nearest: [doubt, ambiguity, misgiving]
 - id: ambiguity
   name: Ambiguity
@@ -151,7 +151,7 @@
   valence: -0.15
   arousal: 0.30
   tension: 0.60
-  bias: {ask: 0.20, decide: -0.15}
+  bias: {ask: 0.2, persist: -0.15}
   nearest: [uncertainty, vagueness, doubt]
 - id: vagueness
   name: Vagueness
@@ -160,7 +160,7 @@
   valence: -0.10
   arousal: 0.20
   tension: 0.45
-  bias: {clarify: 0.25}
+  bias: {ask: 0.25}
   nearest: [ambiguity, uncertainty, confusion]
 - id: doubt
   name: Doubt
@@ -169,7 +169,7 @@
   valence: -0.25
   arousal: 0.20
   tension: 0.60
-  bias: {verify: 0.35, revise: 0.20}
+  bias: {revise: 0.2, verify: 0.35}
   nearest: [skepticism, uncertainty, misgiving]
 - id: skepticism
   name: Skepticism
@@ -178,7 +178,7 @@
   valence: -0.15
   arousal: 0.30
   tension: 0.35
-  bias: {verify: 0.30, skeptic: 0.25}
+  bias: {verify: 0.55}
   nearest: [doubt, scrutiny, disbelief]
 - id: disbelief
   name: Disbelief
@@ -187,7 +187,7 @@
   valence: -0.35
   arousal: 0.45
   tension: 0.55
-  bias: {revise: 0.30, confront: 0.15}
+  bias: {express: 0.15, revise: 0.3}
   nearest: [doubt, shock, skepticism]
 - id: questioning
   name: Questioning
@@ -196,7 +196,7 @@
   valence: 0.10
   arousal: 0.35
   tension: 0.30
-  bias: {ask: 0.30, pursue: 0.20}
+  bias: {ask: 0.3, explore: 0.2}
   nearest: [inquiry, curiosity, doubt]
 - id: misgiving
   name: Misgiving
@@ -205,7 +205,7 @@
   valence: -0.30
   arousal: 0.25
   tension: 0.65
-  bias: {verify: 0.25, persist: -0.10}
+  bias: {persist: -0.1, verify: 0.25}
   nearest: [doubt, unease, uncertainty]
 - id: realization
   name: Realization
@@ -214,7 +214,7 @@
   valence: 0.50
   arousal: 0.60
   tension: -0.30
-  bias: {revise: 0.25, pursue: 0.20}
+  bias: {explore: 0.2, revise: 0.25}
   nearest: [insight, epiphany, understanding]
 - id: insight
   name: Insight
@@ -223,7 +223,7 @@
   valence: 0.55
   arousal: 0.60
   tension: -0.35
-  bias: {create: 0.25, pursue: 0.25}
+  bias: {create: 0.25, explore: 0.25}
   nearest: [realization, epiphany, illumination]
 - id: epiphany
   name: Epiphany
@@ -232,7 +232,7 @@
   valence: 0.80
   arousal: 0.70
   tension: -0.20
-  bias: {create: 0.30, share: 0.15}
+  bias: {create: 0.3, express: 0.15}
   nearest: [insight, realization, amazement]
 - id: illumination
   name: Illumination
@@ -241,7 +241,7 @@
   valence: 0.60
   arousal: 0.55
   tension: -0.35
-  bias: {pursue: 0.20, share: 0.15}
+  bias: {explore: 0.2, express: 0.15}
   nearest: [insight, comprehension, clarity]
 - id: understanding
   name: Understanding
@@ -250,7 +250,7 @@
   valence: 0.45
   arousal: 0.20
   tension: -0.50
-  bias: {persist: 0.15, revise: -0.10}
+  bias: {persist: 0.15, revise: -0.1}
   nearest: [comprehension, knowing, fluency]
 - id: comprehension
   name: Comprehension
@@ -259,7 +259,7 @@
   valence: 0.45
   arousal: 0.25
   tension: -0.45
-  bias: {learn: 0.20}
+  bias: {create: 0.2}
   nearest: [understanding, clarity, learning]
 - id: coherence
   name: Coherence
@@ -268,7 +268,7 @@
   valence: 0.40
   arousal: 0.20
   tension: -0.55
-  bias: {organize: 0.20}
+  bias: {revise: 0.2}
   nearest: [harmony, clarity, understanding]
 - id: conviction
   name: Conviction
@@ -277,7 +277,7 @@
   valence: 0.45
   arousal: 0.45
   tension: -0.45
-  bias: {persist: 0.20, decide: 0.15}
+  bias: {persist: 0.35}
   nearest: [certainty, confidence, belief]
 - id: certainty
   name: Certainty
@@ -286,7 +286,7 @@
   valence: 0.40
   arousal: 0.40
   tension: -0.55
-  bias: {decide: 0.20}
+  bias: {persist: 0.2}
   nearest: [conviction, confidence, confidence]
 - id: belief
   name: Belief
@@ -295,7 +295,7 @@
   valence: 0.25
   arousal: 0.30
   tension: -0.35
-  bias: {persist: 0.10}
+  bias: {persist: 0.1}
   nearest: [conviction, certainty, understanding]
 - id: discovery
   name: Discovery
@@ -304,7 +304,7 @@
   valence: 0.55
   arousal: 0.55
   tension: -0.30
-  bias: {explore: 0.30, pursue: 0.20}
+  bias: {explore: 0.5}
   nearest: [insight, learning, realization]
 - id: learning
   name: Learning
@@ -313,7 +313,7 @@
   valence: 0.45
   arousal: 0.45
   tension: -0.35
-  bias: {learn: 0.30, pursue: 0.15}
+  bias: {create: 0.3, explore: 0.15}
   nearest: [discovery, comprehension, curiosity]
 - id: pattern
   name: Pattern
@@ -322,7 +322,7 @@
   valence: 0.45
   arousal: 0.50
   tension: -0.40
-  bias: {generalize: 0.30, create: 0.20}
+  bias: {create: 0.5}
   nearest: [insight, discovery, coherence]
 - id: fluency
   name: Fluency
@@ -331,7 +331,7 @@
   valence: 0.50
   arousal: 0.30
   tension: -0.45
-  bias: {persist: 0.20}
+  bias: {persist: 0.2}
   nearest: [ease, understanding, self-trust]
 - id: knowing
   name: Knowing
@@ -340,7 +340,7 @@
   valence: 0.35
   arousal: 0.25
   tension: -0.45
-  bias: {decide: 0.15}
+  bias: {persist: 0.15}
   nearest: [understanding, certainty, fluency]
 - id: open-mindedness
   name: Open-mindedness
@@ -349,7 +349,7 @@
   valence: 0.35
   arousal: 0.30
   tension: -0.35
-  bias: {revise: 0.25, explore: 0.15}
+  bias: {explore: 0.15, revise: 0.25}
   nearest: [curiosity, humility, honesty]
 - id: closed-mindedness
   name: Closed-mindedness

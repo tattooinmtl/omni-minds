@@ -91,6 +91,13 @@ overcome).
 The lexicon is **neutral by construction** — all 250 available at all times,
 none weighted, none seeded. Which one he feels is a result, not an input.
 
+Each feeling carries a `bias` map onto a **closed registry of 13 cognition
+parameters** the loop actually reads (`explore`, `retry_same`, `verify`,
+`persist`, `abandon`, `risk`, `ask`, `connect`, `create`, `revise`, `express`,
+`refuse`, `pace`). A bias key outside that registry would be a no-op, so the
+validator rejects it — and a feeling with an empty bias is rejected too,
+because a feeling that cannot move behaviour is a label, not a feeling.
+
 ```bash
 python tools/validate_lexicon.py          # check schema, dupes, count, refs
 python tools/validate_lexicon.py --fix    # repair dangling `nearest` refs

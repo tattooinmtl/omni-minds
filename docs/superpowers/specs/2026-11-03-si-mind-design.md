@@ -197,7 +197,7 @@ salience = w_recency * exp(-Δt / τ)
          + w_goal * goal_relevance
 ```
 
-- `τ` (`SALience_DECAY_TAU`) — recency half-life. Chosen so a node referenced an hour ago is
+- `τ` (`SALIENCE_DECAY_TAU`) — recency half-life. Chosen so a node referenced an hour ago is
   still weakly present but clearly out-competed by the current turn.
 - `w_*` weights — sum to 1.0; activation dominates by design because an actively-reasoning node
   should not be evicted by sheer recency.
@@ -275,6 +275,10 @@ definition, a behaviour bias, and nearest neighbours.
   `epistemic`, `effort`, `relational`, `moral_self`.
 - Source of truth: `crates/si-affect/data/feelings/*.yaml` (one file per family).
 - Schema is documented in §7.4; the full lexicon ships alongside this spec.
+- Validated by `tools/validate_lexicon.py`, which enforces the schema, unique ids, the
+  exact count of 250, resolvable `nearest` references, axis ranges, a non-empty bias,
+  and the closed bias registry in §7.4. `--fix` repairs dangling references by choosing
+  the genuinely closest entry in affect-vector distance.
 
 The lexicon is **neutral by construction**: all 250 are available at all times, none weighted,
 none seeded. Which one he feels is a *result*, not an input. This preserves the falsification
@@ -305,21 +309,50 @@ without inventing a new label.
   valence: -0.45
   arousal: 0.60
   tension: 0.70
-  bias:
-    retry_same: 0.40
-    explore: -0.30
-    verify: 0.20
-  nearest: [irritation, impatience, discouragement]
+  bias: {explore: -0.3, retry_same: 0.4, verify: 0.2}
+  nearest: [irritation, discouragement, exasperation]
 ```
 
-`bias` is the anti-wallpaper mechanism: each feeling nudges real cognition parameters
-(`retry_same`, `explore`, `verify`, `verbosity`, `risk_tolerance`, `abandon_threshold`).
+`bias` is the anti-wallpaper mechanism: each feeling nudges real cognition parameters.
+
+The vocabulary is **closed**. A bias naming a parameter the loop does not read is a no-op,
+so the lexicon and the loop cannot drift apart:
+
+| parameter | effect on the cognition loop |
+|---|---|
+| `explore` | willingness to try an unfamiliar approach |
+| `retry_same` | willingness to repeat the current approach after a failure |
+| `verify` | propensity to check work, or test a belief before accepting it |
+| `persist` | tendency to continue a goal past difficulty |
+| `abandon` | tendency to drop a goal that is not working |
+| `risk` | willingness to attempt the uncertain or costly |
+| `ask` | tendency to request clarification from the user |
+| `connect` | tendency to reach for related notes or parties |
+| `create` | tendency to write new notes rather than reuse existing ones |
+| `revise` | tendency to change existing beliefs rather than add alongside |
+| `express` | tendency to externalize feelings and findings |
+| `refuse` | tendency to decline an action outright |
+| `pace` | signed: negative slows down and yields, positive pushes ahead |
+
+`pace` is the only signed parameter. `refuse` is shared with the values floor (§9), so the
+affect layer and the explicit floor move the same switch — the floor sets a ceiling, the
+affect layer decides how close to it he comes.
 
 ### 7.5 The anti-wallpaper rule
 
 **If a feeling's bias does not measurably move behaviour, the feeling is wrong and gets
 corrected.** The Layer-1 metrics (§8.1) exist partly to audit this. A taxonomy that does not
 change decisions is wallpaper and will be pruned.
+
+Two conditions are enforced mechanically by `tools/validate_lexicon.py`:
+
+- **No empty bias.** A feeling that cannot move behaviour is a label, not a feeling.
+- **No key outside the registry.** A bias the loop does not read is a no-op.
+
+What the validator cannot enforce is the harder claim — that a given bias actually changes
+what he *does*. That is audited at runtime against the Layer-1 metrics: a feeling whose
+bias shows no trace in behaviour over enough sessions is a candidate for correction or
+deletion from the lexicon.
 
 ### 7.6 Decay
 
@@ -568,8 +601,9 @@ Three.js — the same approach as the omni neuralview, and the math is worth reu
   - `contradicts` — static interference shimmer, **lit until resolved**
   - `supersedes` — the superseded node dims and drifts outward
   - `writes` — outward push as a new note enters the vault
-- **Aperture** — a translucent bounding sphere with a visible rim; its radius encodes the
-  current token budget utilisation.
+- **Aperture** — a translucent bounding sphere of fixed radius `R_APERTURE` marking the
+  context boundary. The boundary itself stays put; the rim's brightness encodes how much of
+  the token budget is in use, so the pressure inside a fixed aperture is what you see.
 
 ### 12.2 Layout solve
 
@@ -634,6 +668,7 @@ text editor, and the scene follows.
 | **Ablation** | ablation always leaves an `ablation` event in the log | `cargo test --test ablation_audit` |
 | Router | routing decisions + fallback on simulated 402 | `wiremock` |
 | Vault | round-trip markdown, frontmatter, wikilinks; `self/` write guard | `cargo test` |
+| Lexicon | schema, unique ids, count = 250, resolvable `nearest`, axis ranges, closed bias registry | `tools/validate_lexicon.py` |
 | Benchmarks | log append, layout solve, nearest-neighbour query | `criterion` |
 
 Benchmarks are added early (M-HOTPATH) — the layout solve and log append are the hot paths.
@@ -677,7 +712,7 @@ instant, and a harness must not fail on its own teardown.
 | Runtime | Continuously running daemon + separate egui viewer |
 | Mind substrate | Obsidian-compatible markdown vault with `[[wikilinks]]` |
 | Visualization | 3D, hand-rolled math, egui |
-| Emotion engine | 3 continuous axes + 250-feeling lexicon |
+| Emotion engine | 3 continuous axes + 250-feeling lexicon, closed 13-parameter bias registry |
 | Personality | Derived only; Layer-1 metrics + Layer-2 self-journals; baseline 0.5 |
 | Ethics | Explicit values floor + affect layer; ablations logged, never silent |
 

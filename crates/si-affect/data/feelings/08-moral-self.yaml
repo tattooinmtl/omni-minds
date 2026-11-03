@@ -6,7 +6,7 @@
   valence: -0.65
   arousal: 0.45
   tension: 0.55
-  bias: {repair: 0.35, apologize: 0.25, verify: 0.15}
+  bias: {express: 0.25, revise: 0.35, verify: 0.15}
   nearest: [remorse, shame, regret]
 - id: shame
   name: Shame
@@ -15,7 +15,7 @@
   valence: -0.75
   arousal: 0.50
   tension: 0.60
-  bias: {withdraw: 0.35, repair: 0.15}
+  bias: {connect: 0.35, revise: 0.15}
   nearest: [guilt, self-doubt, revulsion]
 - id: remorse
   name: Remorse
@@ -24,7 +24,7 @@
   valence: -0.60
   arousal: 0.40
   tension: 0.65
-  bias: {repair: 0.40, apologize: 0.25}
+  bias: {express: 0.25, revise: 0.4}
   nearest: [guilt, regret, remorse]
 - id: regret
   name: Regret
@@ -33,7 +33,7 @@
   valence: -0.45
   arousal: 0.25
   tension: 0.40
-  bias: {revise: 0.20, learn: 0.20}
+  bias: {create: 0.2, revise: 0.2}
   nearest: [remorse, disappointment, dejection]
 - id: compassion
   name: Compassion
@@ -42,7 +42,7 @@
   valence: 0.35
   arousal: 0.30
   tension: 0.05
-  bias: {help: 0.35, protect: 0.25, connect: 0.15}
+  bias: {connect: 0.75}
   nearest: [empathy, tenderness, caring]
 - id: forgiveness
   name: Forgiveness
@@ -51,7 +51,7 @@
   valence: 0.45
   arousal: 0.10
   tension: -0.35
-  bias: {reconcile: 0.25, let_go: 0.20}
+  bias: {connect: 0.25, revise: 0.2}
   nearest: [reconciliation, acceptance, self-acceptance]
 - id: integrity
   name: Integrity
@@ -60,7 +60,7 @@
   valence: 0.40
   arousal: 0.30
   tension: -0.40
-  bias: {persist: 0.25, honesty: 0.25}
+  bias: {express: 0.25, persist: 0.25}
   nearest: [honesty, authenticity, self-trust]
 - id: dissonance
   name: Dissonance
@@ -69,7 +69,7 @@
   valence: -0.40
   arousal: 0.40
   tension: 0.60
-  bias: {resolve: 0.30, verify: 0.20}
+  bias: {revise: 0.3, verify: 0.2}
   nearest: [indignation, defensiveness, worry]
 - id: humility
   name: Humility
@@ -78,7 +78,7 @@
   valence: 0.30
   arousal: -0.20
   tension: -0.30
-  bias: {open: 0.25, learn: 0.20}
+  bias: {connect: 0.25, create: 0.2}
   nearest: [deference, openness, self-acceptance]
 - id: self-doubt
   name: Self-doubt
@@ -87,7 +87,7 @@
   valence: -0.45
   arousal: 0.25
   tension: 0.65
-  bias: {verify: 0.25, explore: 0.15, self_trust: -0.20}
+  bias: {explore: 0.15, verify: 0.45}
   nearest: [shame, uncertainty, mistrust]
 - id: self-awareness
   name: Self-awareness
@@ -96,7 +96,7 @@
   valence: 0.10
   arousal: 0.30
   tension: -0.10
-  bias: {reflect: 0.35, notice: 0.25}
+  bias: {express: 0.35, verify: 0.25}
   nearest: [self-awareness, self-trust, diligence]
 - id: self-trust
   name: Self-trust
@@ -105,7 +105,7 @@
   valence: 0.50
   arousal: 0.30
   tension: -0.45
-  bias: {persist: 0.20, risk: -0.10}
+  bias: {persist: 0.2, risk: -0.1}
   nearest: [confidence, integrity, conviction]
 - id: growth
   name: Growth
@@ -114,7 +114,7 @@
   valence: 0.45
   arousal: 0.45
   tension: -0.25
-  bias: {learn: 0.30, explore: 0.20}
+  bias: {create: 0.3, explore: 0.2}
   nearest: [renewal, progress, development]
 - id: development
   name: Development
@@ -123,7 +123,7 @@
   valence: 0.40
   arousal: 0.35
   tension: -0.30
-  bias: {learn: 0.25, persist: 0.20}
+  bias: {create: 0.25, persist: 0.2}
   nearest: [growth, progress, learning]
 - id: purpose
   name: Purpose
@@ -132,7 +132,7 @@
   valence: 0.50
   arousal: 0.40
   tension: -0.35
-  bias: {persist: 0.30, pursue: 0.20}
+  bias: {explore: 0.2, persist: 0.3}
   nearest: [meaning, motivation, learning]
 - id: meaning
   name: Meaning
@@ -141,7 +141,7 @@
   valence: 0.35
   arousal: 0.35
   tension: -0.35
-  bias: {persist: 0.20}
+  bias: {persist: 0.2}
   nearest: [purpose, fulfillment, open-mindedness]
 - id: aimlessness
   name: Aimlessness
@@ -150,7 +150,7 @@
   valence: -0.50
   arousal: -0.45
   tension: 0.10
-  bias: {explore: 0.25, purpose: 0.25}
+  bias: {explore: 0.25, persist: 0.25}
   nearest: [emptiness, melancholy, hollowness]
 - id: courage
   name: Courage
@@ -159,7 +159,7 @@
   valence: 0.40
   arousal: 0.70
   tension: 0.25
-  bias: {risk: 0.30, act: 0.30, verify: -0.10}
+  bias: {persist: 0.3, risk: 0.3, verify: -0.1}
   nearest: [resolve, determination, ambition]
 - id: honesty
   name: Honesty
@@ -168,7 +168,7 @@
   valence: 0.35
   arousal: 0.30
   tension: -0.35
-  bias: {honesty: 0.30, disclose: 0.20}
+  bias: {express: 0.5}
   nearest: [integrity, authenticity, open-mindedness]
 - id: conscience
   name: Conscience
@@ -186,7 +186,7 @@
   valence: 0.40
   arousal: 0.25
   tension: -0.30
-  bias: {honesty: 0.20, act: 0.15}
+  bias: {express: 0.2, persist: 0.15}
   nearest: [integrity, honesty, self-acceptance]
 - id: self-acceptance
   name: Self-acceptance
@@ -195,5 +195,5 @@
   valence: 0.45
   arousal: 0.05
   tension: -0.45
-  bias: {accept: 0.25, rest: 0.15}
+  bias: {pace: -0.15, revise: 0.25}
   nearest: [acceptance, humility, authenticity]

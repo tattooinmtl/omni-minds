@@ -6,7 +6,7 @@
   valence: 0.35
   arousal: -0.60
   tension: -0.65
-  bias: {verify: 0.10, persist: 0.10}
+  bias: {persist: 0.1, verify: 0.1}
   nearest: [peace, serenity, ease]
 - id: peace
   name: Peace
@@ -24,7 +24,7 @@
   valence: 0.45
   arousal: -0.65
   tension: -0.70
-  bias: {verify: 0.10}
+  bias: {verify: 0.1}
   nearest: [peace, calm, composure]
 - id: contentment
   name: Contentment
@@ -33,7 +33,7 @@
   valence: 0.50
   arousal: -0.45
   tension: -0.60
-  bias: {}
+  bias: {persist: 0.1}
   nearest: [satisfaction, peace, ease]
 - id: comfort
   name: Comfort
@@ -42,7 +42,7 @@
   valence: 0.55
   arousal: -0.55
   tension: -0.65
-  bias: {}
+  bias: {risk: -0.1}
   nearest: [ease, safety, relaxation]
 - id: ease
   name: Ease
@@ -60,7 +60,7 @@
   valence: 0.45
   arousal: -0.70
   tension: -0.65
-  bias: {risk: -0.10}
+  bias: {risk: -0.1}
   nearest: [repose, rest, comfort]
 - id: repose
   name: Repose
@@ -78,7 +78,7 @@
   valence: 0.45
   arousal: -0.50
   tension: -0.80
-  bias: {risk: -0.20, open: 0.15}
+  bias: {connect: 0.15, risk: -0.2}
   nearest: [security, peace, trust]
 - id: security
   name: Security
@@ -87,7 +87,7 @@
   valence: 0.45
   arousal: -0.35
   tension: -0.70
-  bias: {risk: -0.15, persist: 0.10}
+  bias: {persist: 0.1, risk: -0.15}
   nearest: [safety, stability, confidence]
 - id: groundedness
   name: Groundedness
@@ -123,7 +123,7 @@
   valence: 0.35
   arousal: -0.35
   tension: -0.55
-  bias: {verify: 0.10}
+  bias: {verify: 0.1}
   nearest: [harmony, steadiness, acceptance]
 - id: harmony
   name: Harmony
@@ -132,7 +132,7 @@
   valence: 0.45
   arousal: -0.30
   tension: -0.60
-  bias: {}
+  bias: {connect: 0.15}
   nearest: [balance, coherence, peace]
 - id: trust
   name: Trust
@@ -141,7 +141,7 @@
   valence: 0.50
   arousal: -0.25
   tension: -0.55
-  bias: {open: 0.20, verify: -0.10}
+  bias: {connect: 0.2, verify: -0.1}
   nearest: [confidence, safety, openness]
 - id: confidence
   name: Confidence
@@ -150,7 +150,7 @@
   valence: 0.55
   arousal: 0.30
   tension: -0.50
-  bias: {risk: -0.10, persist: 0.15}
+  bias: {persist: 0.15, risk: -0.1}
   nearest: [conviction, self-trust, certainty]
 - id: acceptance
   name: Acceptance
@@ -159,7 +159,7 @@
   valence: 0.40
   arousal: -0.40
   tension: -0.55
-  bias: {persist: 0.10}
+  bias: {persist: 0.1}
   nearest: [self-acceptance, tolerance, peace]
 - id: clarity
   name: Clarity
@@ -168,7 +168,7 @@
   valence: 0.45
   arousal: 0.15
   tension: -0.60
-  bias: {verify: 0.20, decide: 0.15}
+  bias: {persist: 0.15, verify: 0.2}
   nearest: [comprehension, understanding, coherence]
 - id: tolerance
   name: Tolerance
@@ -177,7 +177,7 @@
   valence: 0.25
   arousal: -0.30
   tension: -0.40
-  bias: {open: 0.15}
+  bias: {connect: 0.15}
   nearest: [acceptance, patience, equanimity]
 - id: reverence
   name: Reverence
@@ -186,7 +186,7 @@
   valence: 0.40
   arousal: 0.20
   tension: -0.55
-  bias: {humble: 0.25}
+  bias: {verify: 0.25}
   nearest: [awe, respect, gratitude]
 - id: rest
   name: Rest
@@ -195,7 +195,7 @@
   valence: 0.40
   arousal: -0.85
   tension: -0.55
-  bias: {risk: -0.15, urgency: -0.20}
+  bias: {pace: -0.2, risk: -0.15}
   nearest: [repose, recovery, relaxation]
 - id: renewal
   name: Renewal
@@ -204,5 +204,5 @@
   valence: 0.50
   arousal: -0.20
   tension: -0.55
-  bias: {persist: 0.20}
+  bias: {persist: 0.2}
   nearest: [recovery, growth, rest]

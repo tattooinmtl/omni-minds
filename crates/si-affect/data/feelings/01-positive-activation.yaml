@@ -9,7 +9,7 @@
   valence: 0.85
   arousal: 0.70
   tension: -0.30
-  bias: {explore: 0.25, share: 0.20}
+  bias: {explore: 0.25, express: 0.2}
   nearest: [joy, elation, glee]
 - id: elation
   name: Elation
@@ -18,7 +18,7 @@
   valence: 0.90
   arousal: 0.75
   tension: -0.25
-  bias: {explore: 0.30, share: 0.25}
+  bias: {explore: 0.3, express: 0.25}
   nearest: [jubilation, delight, triumph]
 - id: jubilation
   name: Jubilation
@@ -27,7 +27,7 @@
   valence: 0.90
   arousal: 0.85
   tension: -0.15
-  bias: {share: 0.30, explore: 0.15}
+  bias: {explore: 0.15, express: 0.3}
   nearest: [elation, glee, triumph]
 - id: joy
   name: Joy
@@ -36,7 +36,7 @@
   valence: 0.80
   arousal: 0.65
   tension: -0.35
-  bias: {explore: 0.15, share: 0.15}
+  bias: {explore: 0.15, express: 0.15}
   nearest: [glee, delight, mirth]
 - id: glee
   name: Glee
@@ -45,7 +45,7 @@
   valence: 0.80
   arousal: 0.70
   tension: -0.20
-  bias: {play: 0.30, explore: 0.20}
+  bias: {explore: 0.5}
   nearest: [joy, mirth, playfulness]
 - id: mirth
   name: Mirth
@@ -54,7 +54,7 @@
   valence: 0.75
   arousal: 0.65
   tension: -0.25
-  bias: {play: 0.25, share: 0.15}
+  bias: {explore: 0.25, express: 0.15}
   nearest: [amusement, glee, joy]
 - id: amusement
   name: Amusement
@@ -63,7 +63,7 @@
   valence: 0.65
   arousal: 0.55
   tension: -0.30
-  bias: {play: 0.15}
+  bias: {explore: 0.15}
   nearest: [mirth, playfulness, zest]
 - id: playfulness
   name: Playfulness
@@ -72,7 +72,7 @@
   valence: 0.70
   arousal: 0.50
   tension: -0.40
-  bias: {play: 0.30, explore: 0.25, risk: 0.10}
+  bias: {explore: 0.55, risk: 0.1}
   nearest: [amusement, zest, curiosity]
 - id: zest
   name: Zest
@@ -81,7 +81,7 @@
   valence: 0.60
   arousal: 0.60
   tension: -0.15
-  bias: {explore: 0.20, persist: 0.15}
+  bias: {explore: 0.2, persist: 0.15}
   nearest: [playfulness, enthusiasm, pride]
 - id: excitement
   name: Excitement
@@ -90,7 +90,7 @@
   valence: 0.60
   arousal: 0.85
   tension: -0.05
-  bias: {explore: 0.20, risk: 0.10}
+  bias: {explore: 0.2, risk: 0.1}
   nearest: [enthusiasm, thrill, eagerness]
 - id: thrill
   name: Thrill
@@ -108,7 +108,7 @@
   valence: 0.65
   arousal: 0.75
   tension: -0.10
-  bias: {explore: 0.25, persist: 0.20}
+  bias: {explore: 0.25, persist: 0.2}
   nearest: [excitement, eagerness, motivation]
 - id: eagerness
   name: Eagerness
@@ -117,7 +117,7 @@
   valence: 0.55
   arousal: 0.75
   tension: -0.05
-  bias: {explore: 0.15, urgency: 0.15}
+  bias: {explore: 0.15, pace: 0.15}
   nearest: [enthusiasm, excitement, anticipation]
 - id: triumph
   name: Triumph
@@ -126,7 +126,7 @@
   valence: 0.80
   arousal: 0.75
   tension: -0.20
-  bias: {persist: 0.25, verify: 0.10}
+  bias: {persist: 0.25, verify: 0.1}
   nearest: [pride, elation, accomplishment]
 - id: pride
   name: Pride
@@ -135,7 +135,7 @@
   valence: 0.70
   arousal: 0.50
   tension: -0.15
-  bias: {persist: 0.15, share: 0.10}
+  bias: {express: 0.1, persist: 0.15}
   nearest: [triumph, accomplishment, self-trust]
 - id: accomplishment
   name: Accomplishment
@@ -144,7 +144,7 @@
   valence: 0.65
   arousal: 0.45
   tension: -0.25
-  bias: {verify: 0.15, persist: 0.10}
+  bias: {persist: 0.1, verify: 0.15}
   nearest: [satisfaction, pride, progress]
 - id: satisfaction
   name: Satisfaction
@@ -153,7 +153,7 @@
   valence: 0.70
   arousal: 0.25
   tension: -0.45
-  bias: {verify: 0.10}
+  bias: {verify: 0.1}
   nearest: [fulfillment, contentment, accomplishment]
 - id: fulfillment
   name: Fulfillment
@@ -162,7 +162,7 @@
   valence: 0.75
   arousal: 0.20
   tension: -0.50
-  bias: {}
+  bias: {express: 0.15}
   nearest: [satisfaction, purpose, meaning]
 - id: gratitude
   name: Gratitude
@@ -171,7 +171,7 @@
   valence: 0.65
   arousal: 0.30
   tension: -0.30
-  bias: {share: 0.20, connect: 0.15}
+  bias: {connect: 0.15, express: 0.2}
   nearest: [appreciation, warmth, connection]
 - id: appreciation
   name: Appreciation
@@ -180,7 +180,7 @@
   valence: 0.55
   arousal: 0.25
   tension: -0.30
-  bias: {connect: 0.10}
+  bias: {connect: 0.1}
   nearest: [gratitude, admiration, respect]
 - id: warmth
   name: Warmth
@@ -189,7 +189,7 @@
   valence: 0.65
   arousal: 0.30
   tension: -0.40
-  bias: {connect: 0.20, share: 0.15}
+  bias: {connect: 0.2, express: 0.15}
   nearest: [affection, tenderness, compassion]
 - id: affection
   name: Affection
@@ -198,7 +198,7 @@
   valence: 0.70
   arousal: 0.35
   tension: -0.45
-  bias: {connect: 0.20}
+  bias: {connect: 0.2}
   nearest: [love, warmth, tenderness]
 - id: love
   name: Love
@@ -207,7 +207,7 @@
   valence: 0.85
   arousal: 0.45
   tension: -0.45
-  bias: {connect: 0.30, protect: 0.20}
+  bias: {connect: 0.5}
   nearest: [affection, belonging, flow]
 - id: tenderness
   name: Tenderness
@@ -216,7 +216,7 @@
   valence: 0.60
   arousal: 0.25
   tension: -0.50
-  bias: {protect: 0.25, connect: 0.15}
+  bias: {connect: 0.4}
   nearest: [warmth, compassion, belonging]
 - id: inspiration
   name: Inspiration
@@ -225,7 +225,7 @@
   valence: 0.60
   arousal: 0.75
   tension: -0.10
-  bias: {explore: 0.30, create: 0.30}
+  bias: {create: 0.3, explore: 0.3}
   nearest: [insight, excitement, motivation]
 - id: hope
   name: Hope
@@ -234,7 +234,7 @@
   valence: 0.50
   arousal: 0.55
   tension: -0.25
-  bias: {persist: 0.20}
+  bias: {persist: 0.2}
   nearest: [optimism, anticipation, fascination]
 - id: optimism
   name: Optimism
@@ -243,7 +243,7 @@
   valence: 0.55
   arousal: 0.45
   tension: -0.35
-  bias: {persist: 0.15, explore: 0.15}
+  bias: {explore: 0.15, persist: 0.15}
   nearest: [hope, confidence, satisfaction]
 - id: anticipation
   name: Anticipation
@@ -252,7 +252,7 @@
   valence: 0.25
   arousal: 0.55
   tension: 0.15
-  bias: {wait: 0.20}
+  bias: {pace: -0.2}
   nearest: [eagerness, readiness, resolve]
 - id: awe
   name: Awe
@@ -261,7 +261,7 @@
   valence: 0.45
   arousal: 0.60
   tension: -0.50
-  bias: {explore: 0.25, humble: 0.20}
+  bias: {explore: 0.25, verify: 0.2}
   nearest: [wonder, amazement, reverence]
 - id: wonder
   name: Wonder
@@ -270,7 +270,7 @@
   valence: 0.40
   arousal: 0.45
   tension: -0.40
-  bias: {explore: 0.20}
+  bias: {explore: 0.2}
   nearest: [awe, curiosity, amazement]
 - id: amazement
   name: Amazement

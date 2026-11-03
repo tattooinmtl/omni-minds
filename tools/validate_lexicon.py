@@ -25,6 +25,25 @@ from pathlib import Path
 EXPECTED_TOTAL = 250
 DATA_DIR = Path(__file__).resolve().parent.parent / "crates" / "si-affect" / "data" / "feelings"
 
+# The closed set of cognition parameters the loop actually reads. A bias naming
+# anything outside this registry is a no-op, so the lexicon and the loop cannot
+# drift apart. `pace` is signed: negative slows down and yields, positive pushes on.
+BIAS_REGISTRY = {
+    "explore": "willingness to try an unfamiliar approach",
+    "retry_same": "willingness to repeat the current approach after a failure",
+    "verify": "propensity to check work or test a belief before accepting it",
+    "persist": "tendency to continue a goal past difficulty",
+    "abandon": "tendency to drop a goal that is not working",
+    "risk": "willingness to attempt the uncertain or costly",
+    "ask": "tendency to request clarification from the user",
+    "connect": "tendency to reach for related notes or parties",
+    "create": "tendency to write new notes rather than reuse existing ones",
+    "revise": "tendency to change existing beliefs rather than add alongside",
+    "express": "tendency to externalize feelings and findings",
+    "refuse": "tendency to decline an action outright",
+    "pace": "signed pacing: negative slows down and yields, positive pushes ahead",
+}
+
 REQUIRED_FIELDS = ("id", "name", "family", "definition", "valence", "arousal", "tension", "bias", "nearest")
 
 ENTRY_RE = re.compile(r"^- id: (?P<id>.+)$")
@@ -42,6 +61,7 @@ class Entry:
         self.line_no = line_no
         self.fields: dict[str, str] = {}
         self.nearest: list[str] = []
+        self.bias: dict[str, float] = {}
 
     @property
     def location(self) -> str:
@@ -84,6 +104,15 @@ def parse_files(paths: list[Path]) -> list[Entry]:
                         current.nearest = [
                             item.strip() for item in nearest_match.group("items").split(",") if item.strip()
                         ]
+                if key == "bias":
+                    for pair in value.strip("{}").split(","):
+                        if ":" not in pair:
+                            continue
+                        name, _, amount = pair.partition(":")
+                        try:
+                            current.bias[name.strip()] = float(amount.strip())
+                        except ValueError:
+                            pass
     return entries
 
 
@@ -102,6 +131,19 @@ def validate(entries: list[Entry], fix: bool) -> list[str]:
                 problems.append(f"{entry.location}: axis '{axis}' is not a number (id={entry.id})")
             elif not -1.0 <= value <= 1.0:
                 problems.append(f"{entry.location}: axis '{axis}'={value} outside [-1, 1] (id={entry.id})")
+
+        # The anti-wallpaper rule, enforced: a feeling must be able to move behaviour,
+        # and it may only move parameters the cognition loop actually reads.
+        if not entry.bias:
+            problems.append(
+                f"{entry.location}: empty bias - a feeling that cannot move behaviour is a label, "
+                f"not a feeling (id={entry.id})"
+            )
+        unknown = sorted(set(entry.bias) - set(BIAS_REGISTRY))
+        if unknown:
+            problems.append(
+                f"{entry.location}: bias key(s) {unknown} outside the registry (id={entry.id})"
+            )
 
     seen: dict[str, Entry] = {}
     for entry in entries:

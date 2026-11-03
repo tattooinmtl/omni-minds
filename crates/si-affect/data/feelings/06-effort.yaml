@@ -6,7 +6,7 @@
   valence: 0.20
   arousal: 0.65
   tension: -0.20
-  bias: {focus: 0.35, explore: -0.20, verify: 0.10}
+  bias: {explore: -0.2, persist: 0.35, verify: 0.1}
   nearest: [concentration, attention, flow]
 - id: concentration
   name: Concentration
@@ -15,7 +15,7 @@
   valence: 0.20
   arousal: 0.60
   tension: -0.15
-  bias: {focus: 0.30, persist: 0.15}
+  bias: {persist: 0.45}
   nearest: [focus, attention, determination]
 - id: determination
   name: Determination
@@ -24,7 +24,7 @@
   valence: 0.25
   arousal: 0.70
   tension: 0.10
-  bias: {persist: 0.35, retry_same: 0.20}
+  bias: {persist: 0.35, retry_same: 0.2}
   nearest: [resolve, perseverance, persistence]
 - id: resolve
   name: Resolve
@@ -33,7 +33,7 @@
   valence: 0.25
   arousal: 0.65
   tension: 0.20
-  bias: {persist: 0.30}
+  bias: {persist: 0.3}
   nearest: [determination, perseverance, discipline]
 - id: persistence
   name: Persistence
@@ -51,7 +51,7 @@
   valence: 0.20
   arousal: 0.65
   tension: 0.20
-  bias: {persist: 0.40, patience: 0.15}
+  bias: {pace: -0.15, persist: 0.4}
   nearest: [persistence, determination, grit]
 - id: grit
   name: Grit
@@ -60,7 +60,7 @@
   valence: 0.15
   arousal: 0.60
   tension: 0.25
-  bias: {persist: 0.40, abandon_threshold: 0.25}
+  bias: {abandon: -0.25, persist: 0.4}
   nearest: [perseverance, persistence, resolve]
 - id: patience
   name: Patience
@@ -70,7 +70,7 @@
   valence: 0.30
   arousal: -0.30
   tension: -0.35
-  bias: {retry_same: 0.15, urgency: -0.25}
+  bias: {pace: -0.25, retry_same: 0.15}
   nearest: [tolerance, composure, equanimity]
 - id: diligence
   name: Diligence
@@ -79,7 +79,7 @@
   valence: 0.20
   arousal: 0.45
   tension: -0.05
-  bias: {verify: 0.30, persist: 0.15}
+  bias: {persist: 0.15, verify: 0.3}
   nearest: [discipline, focus, interest]
 - id: discipline
   name: Discipline
@@ -88,7 +88,7 @@
   valence: 0.15
   arousal: 0.50
   tension: -0.05
-  bias: {persist: 0.30, verify: 0.15}
+  bias: {persist: 0.3, verify: 0.15}
   nearest: [diligence, resolve, persistence]
 - id: effort
   name: Effort
@@ -97,7 +97,7 @@
   valence: 0.05
   arousal: 0.60
   tension: 0.15
-  bias: {persist: 0.20}
+  bias: {persist: 0.2}
   nearest: [exertion, strain, struggle]
 - id: exertion
   name: Exertion
@@ -106,7 +106,7 @@
   valence: -0.10
   arousal: 0.70
   tension: 0.30
-  bias: {persist: 0.20, rest: 0.15}
+  bias: {pace: -0.15, persist: 0.2}
   nearest: [effort, strain, struggle]
 - id: strain
   name: Strain
@@ -115,7 +115,7 @@
   valence: -0.30
   arousal: 0.65
   tension: 0.60
-  bias: {rest: 0.25, persist: -0.15}
+  bias: {pace: -0.25, persist: -0.15}
   nearest: [struggle, exertion, exhaustion]
 - id: struggle
   name: Struggle
@@ -124,7 +124,7 @@
   valence: -0.35
   arousal: 0.60
   tension: 0.65
-  bias: {retry_same: 0.25, explore: -0.15}
+  bias: {explore: -0.15, retry_same: 0.25}
   nearest: [strain, frustration, exertion]
 - id: drive
   name: Drive
@@ -133,7 +133,7 @@
   valence: 0.35
   arousal: 0.75
   tension: -0.10
-  bias: {persist: 0.30, explore: 0.20}
+  bias: {explore: 0.2, persist: 0.3}
   nearest: [motivation, momentum, ambition]
 - id: ambition
   name: Ambition
@@ -142,7 +142,7 @@
   valence: 0.30
   arousal: 0.65
   tension: 0.20
-  bias: {persist: 0.25, explore: 0.20}
+  bias: {explore: 0.2, persist: 0.25}
   nearest: [drive, purpose, determination]
 - id: motivation
   name: Motivation
@@ -152,7 +152,7 @@
   valence: 0.50
   arousal: 0.70
   tension: -0.15
-  bias: {persist: 0.25, explore: 0.15}
+  bias: {explore: 0.15, persist: 0.25}
   nearest: [drive, determination, enthusiasm]
 - id: momentum
   name: Momentum
@@ -161,7 +161,7 @@
   valence: 0.35
   arousal: 0.75
   tension: -0.20
-  bias: {persist: 0.25, explore: 0.10}
+  bias: {explore: 0.1, persist: 0.25}
   nearest: [drive, progress, flow]
 - id: progress
   name: Progress
@@ -170,7 +170,7 @@
   valence: 0.45
   arousal: 0.50
   tension: -0.35
-  bias: {persist: 0.25, pursue: 0.15}
+  bias: {explore: 0.15, persist: 0.25}
   nearest: [momentum, accomplishment, advance]
 - id: advance
   name: Advance
@@ -179,7 +179,7 @@
   valence: 0.40
   arousal: 0.55
   tension: -0.30
-  bias: {persist: 0.20}
+  bias: {persist: 0.2}
   nearest: [progress, breakthrough, momentum]
 - id: breakthrough
   name: Breakthrough
@@ -188,7 +188,7 @@
   valence: 0.70
   arousal: 0.75
   tension: -0.25
-  bias: {pursue: 0.30, create: 0.20}
+  bias: {create: 0.2, explore: 0.3}
   nearest: [advance, insight, triumph]
 - id: flow
   name: Flow
@@ -197,7 +197,7 @@
   valence: 0.80
   arousal: 0.60
   tension: -0.45
-  bias: {focus: 0.40, persist: 0.30, explore: -0.10}
+  bias: {explore: -0.1, persist: 0.7}
   nearest: [absorption, focus, momentum]
 - id: absorption
   name: Absorption
@@ -206,7 +206,7 @@
   valence: 0.45
   arousal: 0.65
   tension: -0.30
-  bias: {focus: 0.30, persist: 0.20}
+  bias: {persist: 0.5}
   nearest: [flow, fascination, concentration]
 - id: restlessness
   name: Restlessness
@@ -215,7 +215,7 @@
   valence: -0.25
   arousal: 0.60
   tension: 0.40
-  bias: {explore: 0.25, persist: -0.25, urgency: 0.15}
+  bias: {explore: 0.25, pace: 0.15, persist: -0.25}
   nearest: [impatience, agitation, urgency]
 - id: urgency
   name: Urgency
@@ -224,7 +224,7 @@
   valence: -0.25
   arousal: 0.85
   tension: 0.65
-  bias: {urgency: 0.35, verify: -0.25}
+  bias: {pace: 0.35, verify: -0.25}
   nearest: [alarm, impatience, shock]
 - id: readiness
   name: Readiness
@@ -233,7 +233,7 @@
   valence: 0.25
   arousal: 0.55
   tension: -0.30
-  bias: {act: 0.25}
+  bias: {persist: 0.25}
   nearest: [anticipation, alertness, resolve]
 - id: alertness
   name: Alertness
@@ -242,7 +242,7 @@
   valence: 0.15
   arousal: 0.70
   tension: 0.15
-  bias: {notice: 0.25, focus: 0.15}
+  bias: {persist: 0.15, verify: 0.25}
   nearest: [vigilance, readiness, attentiveness]
 - id: exhaustion
   name: Exhaustion
@@ -251,7 +251,7 @@
   valence: -0.55
   arousal: -0.85
   tension: 0.25
-  bias: {rest: 0.40, persist: -0.25}
+  bias: {pace: -0.4, persist: -0.25}
   nearest: [burnout, depletion, weariness]
 - id: depletion
   name: Depletion
@@ -260,7 +260,7 @@
   valence: -0.50
   arousal: -0.80
   tension: 0.20
-  bias: {rest: 0.35, persist: -0.20}
+  bias: {pace: -0.35, persist: -0.2}
   nearest: [exhaustion, fatigue, weariness]
 - id: burnout
   name: Burnout
@@ -269,7 +269,7 @@
   valence: -0.70
   arousal: -0.85
   tension: 0.35
-  bias: {rest: 0.45, persist: -0.30, explore: -0.20}
+  bias: {explore: -0.2, pace: -0.45, persist: -0.3}
   nearest: [exhaustion, stagnation, depletion]
 - id: stagnation
   name: Stagnation
@@ -287,7 +287,7 @@
   valence: -0.40
   arousal: -0.75
   tension: 0.05
-  bias: {explore: 0.20, act: -0.15}
+  bias: {explore: 0.2, persist: -0.15}
   nearest: [stagnation, listlessness, slack]
 - id: slack
   name: Slack
@@ -296,7 +296,7 @@
   valence: -0.30
   arousal: -0.70
   tension: -0.15
-  bias: {explore: 0.20}
+  bias: {explore: 0.2}
   nearest: [inertia, listlessness, apathy]
 - id: recovery
   name: Recovery
@@ -314,7 +314,7 @@
   valence: 0.25
   arousal: -0.25
   tension: -0.50
-  bias: {patience: 0.25, retry_same: 0.10}
+  bias: {pace: -0.25, retry_same: 0.1}
   nearest: [serenity, patience, equanimity]
 - id: equanimity
   name: Equanimity
@@ -323,5 +323,5 @@
   valence: 0.25
   arousal: -0.30
   tension: -0.55
-  bias: {patience: 0.20}
+  bias: {pace: -0.2}
   nearest: [composure, serenity, tolerance]

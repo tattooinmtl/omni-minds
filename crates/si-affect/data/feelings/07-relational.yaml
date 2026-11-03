@@ -6,7 +6,7 @@
   valence: 0.25
   arousal: 0.35
   tension: 0.10
-  bias: {connect: 0.30, care: 0.25}
+  bias: {connect: 0.55}
   nearest: [sympathy, compassion, tenderness]
 - id: sympathy
   name: Sympathy
@@ -15,7 +15,7 @@
   valence: 0.15
   arousal: 0.25
   tension: 0.15
-  bias: {connect: 0.20, help: 0.20}
+  bias: {connect: 0.4}
   nearest: [empathy, compassion, caring]
 - id: connection
   name: Connection
@@ -25,7 +25,7 @@
   valence: 0.60
   arousal: 0.30
   tension: -0.40
-  bias: {connect: 0.25, share: 0.15}
+  bias: {connect: 0.25, express: 0.15}
   nearest: [closeness, belonging, companionship]
 - id: closeness
   name: Closeness
@@ -35,7 +35,7 @@
   valence: 0.70
   arousal: 0.35
   tension: -0.45
-  bias: {connect: 0.25, open: 0.20}
+  bias: {connect: 0.45}
   nearest: [connection, belonging, warmth]
 - id: caring
   name: Caring
@@ -44,7 +44,7 @@
   valence: 0.50
   arousal: 0.30
   tension: -0.30
-  bias: {protect: 0.25, connect: 0.20}
+  bias: {connect: 0.45}
   nearest: [warmth, compassion, respect]
 - id: openness
   name: Openness
@@ -53,7 +53,7 @@
   valence: 0.40
   arousal: 0.40
   tension: -0.30
-  bias: {open: 0.30, trust: 0.20}
+  bias: {connect: 0.5}
   nearest: [vulnerability, trust, loyalty]
 - id: vulnerability
   name: Vulnerability
@@ -62,7 +62,7 @@
   valence: -0.10
   arousal: 0.35
   tension: 0.55
-  bias: {open: 0.30, connect: 0.25, risk: 0.15}
+  bias: {connect: 0.55, risk: 0.15}
   nearest: [openness, guardedness, ambiguity]
 - id: guardedness
   name: Guardedness
@@ -71,7 +71,7 @@
   valence: -0.25
   arousal: 0.10
   tension: 0.50
-  bias: {open: -0.30, verify: 0.20}
+  bias: {connect: -0.3, verify: 0.2}
   nearest: [defensiveness, distrust, doubt]
 - id: defensiveness
   name: Defensiveness
@@ -80,7 +80,7 @@
   valence: -0.40
   arousal: 0.45
   tension: 0.60
-  bias: {defend: 0.30, open: -0.25}
+  bias: {connect: -0.25, express: 0.3}
   nearest: [guardedness, closed-mindedness, dissonance]
 - id: mistrust
   name: Mistrust
@@ -89,7 +89,7 @@
   valence: -0.50
   arousal: 0.30
   tension: 0.65
-  bias: {verify: 0.30, open: -0.30}
+  bias: {connect: -0.3, verify: 0.3}
   nearest: [distrust, suspicion, guardedness]
 - id: distrust
   name: Distrust
@@ -98,7 +98,7 @@
   valence: -0.45
   arousal: 0.35
   tension: 0.60
-  bias: {verify: 0.25, open: -0.25}
+  bias: {connect: -0.25, verify: 0.25}
   nearest: [mistrust, skepticism, suspicion]
 - id: suspicion
   name: Suspicion
@@ -107,7 +107,7 @@
   valence: -0.40
   arousal: 0.45
   tension: 0.65
-  bias: {verify: 0.30, confront: 0.15}
+  bias: {express: 0.15, verify: 0.3}
   nearest: [mistrust, doubt, defensiveness]
 - id: respect
   name: Respect
@@ -117,7 +117,7 @@
   valence: 0.50
   arousal: 0.30
   tension: -0.35
-  bias: {connect: 0.15, learn: 0.15}
+  bias: {connect: 0.15, create: 0.15}
   nearest: [admiration, appreciation, deference]
 - id: admiration
   name: Admiration
@@ -126,7 +126,7 @@
   valence: 0.60
   arousal: 0.45
   tension: -0.20
-  bias: {learn: 0.20, share: 0.10}
+  bias: {create: 0.2, express: 0.1}
   nearest: [respect, appreciation, envy]
 - id: deference
   name: Deference
@@ -135,7 +135,7 @@
   valence: 0.30
   arousal: -0.30
   tension: 0.25
-  bias: {comply: 0.25, verify: -0.10}
+  bias: {refuse: -0.25, verify: -0.1}
   nearest: [respect, humility, sympathy]
 - id: rejection
   name: Rejection
@@ -144,7 +144,7 @@
   valence: -0.70
   arousal: 0.45
   tension: 0.60
-  bias: {withdraw: 0.30, protect: 0.20}
+  bias: {connect: 0.5}
   nearest: [abandonment, exclusion, hurt]
 - id: abandonment
   name: Abandonment
@@ -153,7 +153,7 @@
   valence: -0.75
   arousal: 0.35
   tension: 0.70
-  bias: {withdraw: 0.30, seek: 0.25}
+  bias: {connect: 0.55}
   nearest: [rejection, loneliness, grief]
 - id: exclusion
   name: Exclusion
@@ -162,7 +162,7 @@
   valence: -0.65
   arousal: 0.40
   tension: 0.60
-  bias: {withdraw: 0.25, connect: 0.20}
+  bias: {connect: 0.45}
   nearest: [rejection, isolation, alienation]
 - id: isolation
   name: Isolation
@@ -171,7 +171,7 @@
   valence: -0.60
   arousal: 0.15
   tension: 0.55
-  bias: {connect: 0.25, withdraw: 0.10}
+  bias: {connect: 0.35}
   nearest: [loneliness, exclusion, alienation]
 - id: alienation
   name: Alienation
@@ -180,7 +180,7 @@
   valence: -0.60
   arousal: 0.25
   tension: 0.55
-  bias: {connect: 0.20, withdraw: 0.15}
+  bias: {connect: 0.35}
   nearest: [isolation, exclusion, loneliness]
 - id: belonging
   name: Belonging
@@ -190,7 +190,7 @@
   valence: 0.60
   arousal: 0.20
   tension: -0.50
-  bias: {connect: 0.20, share: 0.15}
+  bias: {connect: 0.2, express: 0.15}
   nearest: [connection, companionship, acceptance]
 - id: companionship
   name: Companionship
@@ -199,7 +199,7 @@
   valence: 0.55
   arousal: 0.30
   tension: -0.45
-  bias: {connect: 0.20}
+  bias: {connect: 0.2}
   nearest: [connection, closeness, belonging]
 - id: rivalry
   name: Rivalry
@@ -208,7 +208,7 @@
   valence: -0.35
   arousal: 0.65
   tension: 0.55
-  bias: {compete: 0.30, verify: 0.15}
+  bias: {persist: 0.3, verify: 0.15}
   nearest: [competition, jealousy, agitation]
 - id: competition
   name: Competition
@@ -217,7 +217,7 @@
   valence: -0.25
   arousal: 0.60
   tension: 0.45
-  bias: {compete: 0.25, persist: 0.20}
+  bias: {persist: 0.45}
   nearest: [rivalry, drive, rivalry]
 - id: cooperation
   name: Cooperation
@@ -226,7 +226,7 @@
   valence: 0.45
   arousal: 0.35
   tension: -0.35
-  bias: {collaborate: 0.30, connect: 0.20}
+  bias: {connect: 0.5}
   nearest: [collaboration, coordination, partnership]
 - id: collaboration
   name: Collaboration
@@ -235,7 +235,7 @@
   valence: 0.45
   arousal: 0.40
   tension: -0.30
-  bias: {collaborate: 0.30}
+  bias: {connect: 0.3}
   nearest: [cooperation, coordination, connection]
 - id: coordination
   name: Coordination
@@ -244,7 +244,7 @@
   valence: 0.35
   arousal: 0.35
   tension: -0.30
-  bias: {collaborate: 0.20, organize: 0.15}
+  bias: {connect: 0.2, revise: 0.15}
   nearest: [cooperation, collaboration, coherence]
 - id: partnership
   name: Partnership
@@ -253,7 +253,7 @@
   valence: 0.45
   arousal: 0.25
   tension: -0.40
-  bias: {collaborate: 0.20, persist: 0.15}
+  bias: {connect: 0.2, persist: 0.15}
   nearest: [cooperation, companionship, comprehension]
 - id: reconciliation
   name: Reconciliation
@@ -262,7 +262,7 @@
   valence: 0.55
   arousal: 0.35
   tension: -0.45
-  bias: {connect: 0.30, forgive: 0.20}
+  bias: {connect: 0.3, revise: 0.2}
   nearest: [forgiveness, connection, companionship]
 - id: deception
   name: Deception
@@ -271,7 +271,7 @@
   valence: -0.65
   arousal: 0.35
   tension: 0.55
-  bias: {verify: 0.30, withdraw: 0.20}
+  bias: {connect: 0.2, verify: 0.3}
   nearest: [breach, betrayal, distrust]
 - id: breach
   name: Breach
@@ -280,7 +280,7 @@
   valence: -0.60
   arousal: 0.45
   tension: 0.60
-  bias: {reconcile: 0.20, verify: 0.20}
+  bias: {connect: 0.2, verify: 0.2}
   nearest: [deception, betrayal, guilt]
 - id: loyalty
   name: Loyalty
@@ -289,7 +289,7 @@
   valence: 0.40
   arousal: 0.40
   tension: -0.30
-  bias: {protect: 0.25, persist: 0.15}
+  bias: {connect: 0.25, persist: 0.15}
   nearest: [trust, openness, collaboration]
 - id: recognition
   name: Recognition
@@ -298,7 +298,7 @@
   valence: 0.55
   arousal: 0.35
   tension: -0.25
-  bias: {connect: 0.25, open: 0.15}
+  bias: {connect: 0.4}
   nearest: [validation, respect, belonging]
 - id: validation
   name: Validation
@@ -307,5 +307,5 @@
   valence: 0.50
   arousal: 0.30
   tension: -0.40
-  bias: {relieve: 0.20, connect: 0.15}
+  bias: {connect: 0.15, revise: 0.2}
   nearest: [recognition, fluency, self-trust]

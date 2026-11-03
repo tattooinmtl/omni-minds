@@ -6,7 +6,7 @@
   valence: -0.70
   arousal: 0.75
   tension: 0.55
-  bias: {retry_same: 0.10, explore: -0.15, confront: 0.25}
+  bias: {explore: -0.15, express: 0.25, retry_same: 0.1}
   nearest: [rage, outrage, resentment]
 - id: rage
   name: Rage
@@ -15,7 +15,7 @@
   valence: -0.90
   arousal: 0.95
   tension: 0.75
-  bias: {retry_same: 0.20, explore: -0.35, verify: -0.20}
+  bias: {explore: -0.35, retry_same: 0.2, verify: -0.2}
   nearest: [fury, anger, outrage]
 - id: fury
   name: Fury
@@ -24,7 +24,7 @@
   valence: -0.88
   arousal: 0.95
   tension: 0.70
-  bias: {explore: -0.30, verify: -0.15}
+  bias: {explore: -0.3, verify: -0.15}
   nearest: [rage, anger, contempt]
 - id: outrage
   name: Outrage
@@ -33,7 +33,7 @@
   valence: -0.70
   arousal: 0.80
   tension: 0.45
-  bias: {confront: 0.30, share: 0.20}
+  bias: {express: 0.5}
   nearest: [indignation, anger, disgust]
 - id: indignation
   name: Indignation
@@ -42,7 +42,7 @@
   valence: -0.60
   arousal: 0.65
   tension: 0.45
-  bias: {confront: 0.25, integrity: 0.20}
+  bias: {express: 0.25, verify: 0.2}
   nearest: [outrage, anger, dissonance]
 - id: resentment
   name: Resentment
@@ -51,7 +51,7 @@
   valence: -0.55
   arousal: 0.35
   tension: 0.50
-  bias: {grudge: 0.30, withdraw: 0.20}
+  bias: {connect: 0.5}
   nearest: [bitterness, anger, contempt]
 - id: bitterness
   name: Bitterness
@@ -60,7 +60,7 @@
   valence: -0.60
   arousal: 0.25
   tension: 0.55
-  bias: {withdraw: 0.25, grudges: 0.20}
+  bias: {connect: 0.45}
   nearest: [resentment, contempt, alienation]
 - id: contempt
   name: Contempt
@@ -69,7 +69,7 @@
   valence: -0.65
   arousal: 0.35
   tension: 0.35
-  bias: {withdraw: 0.25, dismiss: 0.30}
+  bias: {connect: 0.55}
   nearest: [disgust, bitterness, resentment]
 - id: disgust
   name: Disgust
@@ -78,7 +78,7 @@
   valence: -0.75
   arousal: 0.40
   tension: 0.55
-  bias: {withdraw: 0.30, reject: 0.25}
+  bias: {connect: 0.55}
   nearest: [revulsion, contempt, sorrow]
 - id: revulsion
   name: Revulsion
@@ -87,7 +87,7 @@
   valence: -0.80
   arousal: 0.50
   tension: 0.60
-  bias: {withdraw: 0.35, reject: 0.30}
+  bias: {connect: 0.65}
   nearest: [disgust, contempt, shame]
 - id: hostility
   name: Hostility
@@ -96,7 +96,7 @@
   valence: -0.70
   arousal: 0.70
   tension: 0.60
-  bias: {confront: 0.25, explore: -0.20}
+  bias: {explore: -0.2, express: 0.25}
   nearest: [anger, resentment, outrage]
 - id: irritability
   name: Irritability
@@ -105,7 +105,7 @@
   valence: -0.40
   arousal: 0.50
   tension: 0.35
-  bias: {explore: -0.10, patience: -0.15}
+  bias: {explore: -0.1, pace: 0.15}
   nearest: [irritation, agitation, annoyance]
 - id: irritation
   name: Irritation
@@ -114,7 +114,7 @@
   valence: -0.35
   arousal: 0.45
   tension: 0.30
-  bias: {patience: -0.10}
+  bias: {pace: 0.1}
   nearest: [irritability, annoyance, frustration]
 - id: frustration
   name: Frustration
@@ -123,7 +123,7 @@
   valence: -0.45
   arousal: 0.60
   tension: 0.70
-  bias: {retry_same: 0.40, explore: -0.30, verify: 0.20}
+  bias: {explore: -0.3, retry_same: 0.4, verify: 0.2}
   nearest: [irritation, discouragement, exasperation]
 - id: exasperation
   name: Exasperation
@@ -132,7 +132,7 @@
   valence: -0.50
   arousal: 0.70
   tension: 0.60
-  bias: {retry_same: 0.20, explore: -0.25}
+  bias: {explore: -0.25, retry_same: 0.2}
   nearest: [frustration, impatience, discouragement]
 - id: impatience
   name: Impatience
@@ -141,7 +141,7 @@
   valence: -0.35
   arousal: 0.65
   tension: 0.45
-  bias: {urgency: 0.30, verify: -0.15}
+  bias: {pace: 0.3, verify: -0.15}
   nearest: [restlessness, irritation, urgency]
 - id: annoyance
   name: Annoyance
@@ -150,7 +150,7 @@
   valence: -0.30
   arousal: 0.40
   tension: 0.25
-  bias: {}
+  bias: {pace: 0.1}
   nearest: [irritation, irritation, impatience]
 - id: agitation
   name: Agitation
@@ -159,7 +159,7 @@
   valence: -0.35
   arousal: 0.70
   tension: 0.55
-  bias: {explore: 0.10, urgency: 0.20}
+  bias: {explore: 0.1, pace: 0.2}
   nearest: [restlessness, anxiety, irritability]
 - id: anxiety
   name: Anxiety
@@ -168,7 +168,7 @@
   valence: -0.50
   arousal: 0.65
   tension: 0.75
-  bias: {verify: 0.30, explore: -0.20, risk: -0.25}
+  bias: {explore: -0.2, risk: -0.25, verify: 0.3}
   nearest: [unease, worry, dread]
 - id: fear
   name: Fear
@@ -177,7 +177,7 @@
   valence: -0.70
   arousal: 0.80
   tension: 0.90
-  bias: {verify: 0.25, explore: -0.35, risk: -0.40, withdraw: 0.20}
+  bias: {connect: 0.2, explore: -0.35, risk: -0.4, verify: 0.25}
   nearest: [terror, dread, panic]
 - id: terror
   name: Terror
@@ -186,7 +186,7 @@
   valence: -0.90
   arousal: 0.95
   tension: 0.95
-  bias: {verify: 0.20, explore: -0.45, withdraw: 0.35}
+  bias: {connect: 0.35, explore: -0.45, verify: 0.2}
   nearest: [panic, fear, rage]
 - id: panic
   name: Panic
@@ -195,7 +195,7 @@
   valence: -0.80
   arousal: 0.95
   tension: 0.95
-  bias: {verify: 0.25, explore: -0.40, retry_same: 0.30}
+  bias: {explore: -0.4, retry_same: 0.3, verify: 0.25}
   nearest: [terror, alarm, fear]
 - id: dread
   name: Dread
@@ -204,7 +204,7 @@
   valence: -0.65
   arousal: 0.40
   tension: 0.95
-  bias: {verify: 0.20, explore: -0.30, risk: -0.30}
+  bias: {explore: -0.3, risk: -0.3, verify: 0.2}
   nearest: [fear, apprehension, anxiety]
 - id: apprehension
   name: Apprehension
@@ -213,7 +213,7 @@
   valence: -0.40
   arousal: 0.35
   tension: 0.70
-  bias: {verify: 0.20, risk: -0.15}
+  bias: {risk: -0.15, verify: 0.2}
   nearest: [anxiety, worry, unease]
 - id: unease
   name: Unease
@@ -222,7 +222,7 @@
   valence: -0.30
   arousal: 0.25
   tension: 0.50
-  bias: {verify: 0.10}
+  bias: {verify: 0.1}
   nearest: [apprehension, anxiety, unrest]
 - id: worry
   name: Worry
@@ -231,7 +231,7 @@
   valence: -0.35
   arousal: 0.40
   tension: 0.60
-  bias: {verify: 0.15, explore: -0.10}
+  bias: {explore: -0.1, verify: 0.15}
   nearest: [anxiety, apprehension, unease]
 - id: alarm
   name: Alarm
@@ -240,7 +240,7 @@
   valence: -0.50
   arousal: 0.85
   tension: 0.70
-  bias: {verify: 0.30, urgency: 0.30, explore: -0.20}
+  bias: {explore: -0.2, pace: 0.3, verify: 0.3}
   nearest: [panic, startle, fear]
 - id: startle
   name: Startle
@@ -249,7 +249,7 @@
   valence: -0.35
   arousal: 0.90
   tension: 0.55
-  bias: {verify: 0.20}
+  bias: {verify: 0.2}
   nearest: [alarm, surprise, panic]
 - id: grief
   name: Grief
@@ -258,7 +258,7 @@
   valence: -0.85
   arousal: 0.45
   tension: 0.65
-  bias: {withdraw: 0.25, connect: 0.15}
+  bias: {connect: 0.4}
   nearest: [heartbreak, sorrow, misery]
 - id: sorrow
   name: Sorrow
@@ -267,7 +267,7 @@
   valence: -0.75
   arousal: 0.35
   tension: 0.55
-  bias: {withdraw: 0.15}
+  bias: {connect: 0.15}
   nearest: [grief, misery, disappointment]
 - id: heartbreak
   name: Heartbreak
@@ -276,7 +276,7 @@
   valence: -0.90
   arousal: 0.45
   tension: 0.70
-  bias: {withdraw: 0.30}
+  bias: {connect: 0.3}
   nearest: [grief, misery, despair]
 - id: misery
   name: Misery
@@ -285,7 +285,7 @@
   valence: -0.85
   arousal: 0.35
   tension: 0.60
-  bias: {withdraw: 0.25, explore: -0.25}
+  bias: {connect: 0.25, explore: -0.25}
   nearest: [despair, sorrow, heartbreak]
 - id: disappointment
   name: Disappointment
@@ -294,7 +294,7 @@
   valence: -0.50
   arousal: 0.20
   tension: 0.45
-  bias: {retry_same: -0.15, verify: 0.10}
+  bias: {retry_same: -0.15, verify: 0.1}
   nearest: [letdown, discouragement, frustration]
 - id: letdown
   name: Letdown
@@ -303,7 +303,7 @@
   valence: -0.45
   arousal: 0.15
   tension: 0.40
-  bias: {}
+  bias: {persist: -0.1}
   nearest: [disappointment, discouragement, resignation]
 - id: betrayal
   name: Betrayal
@@ -312,7 +312,7 @@
   valence: -0.85
   arousal: 0.60
   tension: 0.75
-  bias: {withdraw: 0.30, verify: 0.25, trust: -0.30}
+  bias: {connect: 0, verify: 0.25}
   nearest: [hurt, distrust, heartbreak]
 - id: hurt
   name: Hurt
@@ -321,7 +321,7 @@
   valence: -0.65
   arousal: 0.30
   tension: 0.60
-  bias: {withdraw: 0.20, connect: 0.15}
+  bias: {connect: 0.35}
   nearest: [sorrow, betrayal, rejection]
 - id: jealousy
   name: Jealousy
@@ -330,7 +330,7 @@
   valence: -0.55
   arousal: 0.55
   tension: 0.65
-  bias: {compare: 0.25, withdraw: 0.15}
+  bias: {connect: 0.15, verify: 0.25}
   nearest: [envy, rivalry, resentment]
 - id: envy
   name: Envy
@@ -339,5 +339,5 @@
   valence: -0.50
   arousal: 0.45
   tension: 0.60
-  bias: {compare: 0.20, explore: 0.10}
+  bias: {explore: 0.1, verify: 0.2}
   nearest: [jealousy, admiration, defensiveness]
