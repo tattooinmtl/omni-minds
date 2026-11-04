@@ -11,64 +11,69 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
 
-/// One parameter the cognition loop reads.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum CognitionParameter {
-    Explore,
-    RetrySame,
-    Verify,
-    Persist,
-    Abandon,
-    Risk,
-    Ask,
-    Connect,
-    Create,
-    Revise,
-    Express,
-    Refuse,
-    Pace,
+/// Declares the registry once and expands it into everything that has to agree
+/// with it: the enum, the list of every parameter, the count, and the name
+/// each parameter prints and serialises as.
+///
+/// One list is the point. The values array is indexed by discriminant, so a
+/// variant that was not in the list would index past the end of that array —
+/// a runtime panic in the middle of the cognition loop, with nothing to
+/// explain it. Declaring the variants once makes that impossible rather than
+/// merely discouraged.
+macro_rules! declare_parameters {
+    ($($variant:ident => $spelling:literal),+ $(,)?) => {
+        /// One parameter the cognition loop reads.
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
+        )]
+        pub enum CognitionParameter {
+            $(
+                #[serde(rename = $spelling)]
+                $variant,
+            )+
+        }
+
+        impl CognitionParameter {
+            /// Every parameter, in registry order.
+            pub const ALL: [CognitionParameter; Self::COUNT] = [$(Self::$variant),+];
+
+            /// How many parameters the registry holds.
+            pub const COUNT: usize = {
+                let mut count = 0usize;
+                $( {
+                    let _ = Self::$variant;
+                    count += 1;
+                } )+
+                count
+            };
+        }
+
+        impl fmt::Display for CognitionParameter {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                let name = match self {
+                    $( Self::$variant => $spelling, )+
+                };
+                f.write_str(name)
+            }
+        }
+    };
 }
 
-impl CognitionParameter {
-    /// Every parameter, in registry order.
-    pub const ALL: [CognitionParameter; 13] = [
-        CognitionParameter::Explore,
-        CognitionParameter::RetrySame,
-        CognitionParameter::Verify,
-        CognitionParameter::Persist,
-        CognitionParameter::Abandon,
-        CognitionParameter::Risk,
-        CognitionParameter::Ask,
-        CognitionParameter::Connect,
-        CognitionParameter::Create,
-        CognitionParameter::Revise,
-        CognitionParameter::Express,
-        CognitionParameter::Refuse,
-        CognitionParameter::Pace,
-    ];
-}
-
-impl fmt::Display for CognitionParameter {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let name = match self {
-            CognitionParameter::Explore => "explore",
-            CognitionParameter::RetrySame => "retry_same",
-            CognitionParameter::Verify => "verify",
-            CognitionParameter::Persist => "persist",
-            CognitionParameter::Abandon => "abandon",
-            CognitionParameter::Risk => "risk",
-            CognitionParameter::Ask => "ask",
-            CognitionParameter::Connect => "connect",
-            CognitionParameter::Create => "create",
-            CognitionParameter::Revise => "revise",
-            CognitionParameter::Express => "express",
-            CognitionParameter::Refuse => "refuse",
-            CognitionParameter::Pace => "pace",
-        };
-        f.write_str(name)
-    }
-}
+declare_parameters!(
+    Explore => "explore",
+    RetrySame => "retry_same",
+    Verify => "verify",
+    Persist => "persist",
+    Abandon => "abandon",
+    Risk => "risk",
+    Ask => "ask",
+    Connect => "connect",
+    Create => "create",
+    Revise => "revise",
+    Express => "express",
+    Refuse => "refuse",
+    Pace => "pace",
+);
 
 /// The behaviour deltas currently in force, one per parameter.
 ///
@@ -79,7 +84,7 @@ pub struct CognitionParameters {
     // The length comes from the registry itself, so the two cannot drift
     // apart: a fourteenth parameter would not fit, and a removed one would
     // not leave a hole.
-    values: [f32; CognitionParameter::ALL.len()],
+    values: [f32; CognitionParameter::COUNT],
 }
 
 impl CognitionParameters {
@@ -110,6 +115,20 @@ mod tests {
     #[test]
     fn the_registry_has_exactly_thirteen_parameters() {
         assert_eq!(CognitionParameter::ALL.len(), 13);
+        assert_eq!(CognitionParameter::COUNT, 13);
+    }
+
+    #[test]
+    fn the_list_is_in_discriminant_order() {
+        // The values array is indexed by discriminant, so the registry's order
+        // is the array's order. If they drift, a parameter reads another's
+        // value.
+        for (index, parameter) in CognitionParameter::ALL.iter().enumerate() {
+            assert_eq!(
+                *parameter as usize, index,
+                "the registry must be in discriminant order"
+            );
+        }
     }
 
     #[test]
