@@ -84,3 +84,86 @@ fn events_carry_the_affect_snapshot_and_turn_id() {
     let fetched = log.event_at(event.seq).expect("event_at").expect("present");
     assert_eq!(fetched, event);
 }
+
+#[test]
+fn the_payload_column_holds_the_whole_tagged_event() {
+    let (_dir, path) = temp_db();
+    let log = Log::open(&path).expect("open");
+    let event = log
+        .append(
+            EventKind::Noticed {
+                kind: "contradiction".into(),
+                refs: vec!["a".into()],
+            },
+            None,
+            None,
+            0.0,
+        )
+        .expect("append");
+
+    let payload: String = log
+        .conn_for_test()
+        .query_row(
+            "SELECT payload FROM event WHERE seq = ?1",
+            rusqlite::params![event.seq],
+            |row| row.get(0),
+        )
+        .expect("payload");
+    assert_eq!(
+        payload,
+        r#"{"kind":"noticed","notice_kind":"contradiction","refs":["a"]}"#
+    );
+
+    let fetched = log.event_at(event.seq).expect("event_at").expect("present");
+    assert_eq!(fetched.kind, event.kind);
+}
+
+#[test]
+fn the_event_table_has_no_kind_column() {
+    let (_dir, path) = temp_db();
+    let log = Log::open(&path).expect("open");
+    let mut stmt = log
+        .conn_for_test()
+        .prepare("PRAGMA table_info(event)")
+        .expect("prepare");
+    let columns = stmt
+        .query_map([], |row| row.get::<_, String>(1))
+        .expect("query")
+        .map(|row| row.expect("row"))
+        .collect::<Vec<String>>();
+    assert!(
+        !columns.iter().any(|name| name == "kind"),
+        "the kind lives inside the payload, not in a column: {columns:?}"
+    );
+}
+
+#[test]
+fn a_replace_cannot_overwrite_an_existing_event() {
+    let (_dir, path) = temp_db();
+    let log = Log::open(&path).expect("open");
+    let event = log
+        .append(
+            EventKind::Responded {
+                answer_ref: "a".into(),
+            },
+            None,
+            None,
+            0.0,
+        )
+        .expect("append");
+
+    let replaced = log.conn_for_test().execute(
+        "INSERT OR REPLACE INTO event (id, ts_us, payload, salience) VALUES (?1, 0, 'rewritten', 0.0)",
+        rusqlite::params![event.id.0.to_string()],
+    );
+    assert!(
+        replaced.is_err(),
+        "a REPLACE must not overwrite an existing event"
+    );
+
+    let fetched = log.event_at(event.seq).expect("event_at").expect("present");
+    assert_eq!(
+        fetched, event,
+        "the original event must survive the attempt"
+    );
+}

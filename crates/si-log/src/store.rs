@@ -45,6 +45,11 @@ pub struct Log {
 /// (`{"kind":"noticed", ...}`), so the kind cannot disagree with the payload
 /// that carries it. Filter by kind in SQL with
 /// `json_extract(payload, '$.kind') = 'noticed'`.
+///
+/// The `event_no_replace` trigger closes the one hole the UPDATE and DELETE
+/// triggers leave: `INSERT OR REPLACE` deletes the row it conflicts with
+/// *without* firing the delete triggers, so an existing id could otherwise be
+/// overwritten in place. The trigger refuses the insert instead.
 const SCHEMA: &str = r#"
 CREATE TABLE IF NOT EXISTS event (
     seq        INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,6 +66,9 @@ CREATE INDEX IF NOT EXISTS event_turn_idx ON event(turn_id);
 CREATE TRIGGER IF NOT EXISTS event_no_update BEFORE UPDATE ON event
 BEGIN SELECT RAISE(ABORT, 'event log is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS event_no_delete BEFORE DELETE ON event
+BEGIN SELECT RAISE(ABORT, 'event log is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS event_no_replace BEFORE INSERT ON event
+WHEN EXISTS (SELECT 1 FROM event WHERE id = NEW.id)
 BEGIN SELECT RAISE(ABORT, 'event log is append-only'); END;
 "#;
 
@@ -100,6 +108,11 @@ impl Log {
     /// Applies the schema to a freshly opened connection.
     fn prepare(conn: Connection) -> Result<Self, LogError> {
         conn.execute_batch(SCHEMA)?;
+        // A REPLACE deletes the row it conflicts with without firing the
+        // delete triggers unless recursive triggers are on, which would let a
+        // rewritten event slip past them. This log is append-only, so the
+        // connection asks SQLite to fire them.
+        conn.execute_batch("PRAGMA recursive_triggers = ON;")?;
         Ok(Log { conn })
     }
 
@@ -146,7 +159,11 @@ impl Log {
                 salience
             ],
         )?;
-        let seq = self.last_seq()?;
+        // `seq` is the rowid alias, so the row just written already knows its
+        // sequence number. Reading it back with `MAX(seq)` would cost a second
+        // query on the hottest path in the system — every cognitive step
+        // appends — and it becomes a race the moment the connection is shared.
+        let seq = self.conn.last_insert_rowid() as u64;
         Ok(Event {
             id,
             seq,

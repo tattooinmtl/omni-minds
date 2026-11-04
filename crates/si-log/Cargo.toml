@@ -25,3 +25,6 @@ tempfile = "3"
 # `tests/` see a `#[cfg(feature = "test-support")]` accessor, which a plain
 # `#[cfg(test)]` gate cannot provide.
 si-log = { path = ".", features = ["test-support"] }
+# The store tests read the `payload` column and the table's columns straight
+# out of SQLite, so they need the driver itself, not just the store's API.
+rusqlite.workspace = true
