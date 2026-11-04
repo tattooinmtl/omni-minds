@@ -1873,6 +1873,22 @@ fn a_folder_that_starts_with_self_is_not_self() {
     v.write_note(&note("selfish/notes", "ordinary")).expect("write");
     assert!(v.read_note("selfish/notes").expect("read").is_some());
 }
+
+#[test]
+fn one_unreadable_note_does_not_hide_the_others() {
+    let (_dir, v) = vault();
+    v.write_note(&note("beliefs/a", "a")).expect("write");
+    v.write_note(&note("beliefs/b", "b")).expect("write");
+    // A note whose frontmatter is not valid YAML.
+    std::fs::write(v.root().join("beliefs/broken.md"), "---\nid: [unclosed\n---\n\nbody\n")
+        .expect("write the broken note");
+    let notes = v.notes().expect("notes");
+    assert!(
+        notes.iter().any(|n| n.id == "beliefs/a"),
+        "a broken note must not hide the rest of the vault"
+    );
+    assert!(notes.iter().all(|n| n.id != "beliefs/broken"));
+}
 ```
 
 - [ ] **Step 2: Run the test to verify it fails**
@@ -2021,7 +2037,12 @@ impl Vault {
     fn walk(&self, dir: &Path, out: &mut Vec<Note>) -> Result<(), VaultError> {
         let entries = match std::fs::read_dir(dir) {
             Ok(entries) => entries,
-            Err(_) => return Ok(()),
+            Err(source) => {
+                // A folder that cannot be read is a gap in the projection, not
+                // a reason to lose every other note.
+                tracing::warn!(vault.folder.unreadable = %dir.display(), error = %source, "skipping a folder that could not be read");
+                return Ok(());
+            }
         };
         for entry in entries.flatten() {
             let path = entry.path();
@@ -2034,9 +2055,21 @@ impl Vault {
             }
             let text = match std::fs::read_to_string(&path) {
                 Ok(text) => text,
-                Err(_) => continue,
+                Err(source) => {
+                    tracing::warn!(vault.note.unreadable = %path.display(), error = %source, "skipping a note that could not be read");
+                    continue;
+                }
             };
-            out.push(parse_note(&text, &path)?);
+            match parse_note(&text, &path) {
+                Ok(note) => out.push(note),
+                Err(source) => {
+                    // One unreadable note must not make the whole vault
+                    // unreadable: the mind would lose access to everything it
+                    // knows because of a single bad file. The file is still on
+                    // disk, and the log remains the source of truth.
+                    tracing::warn!(vault.note.unparsable = %path.display(), error = %source, "skipping a note that could not be parsed");
+                }
+            }
         }
         Ok(())
     }
@@ -2057,7 +2090,7 @@ And add `pub mod store;` plus `pub use store::Vault;` to `lib.rs`.
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-vault`
-Expected: PASS, 17 tests.
+Expected: PASS, 18 tests.
 
 
 - [ ] **Step 5: Run the task gate**
@@ -8138,7 +8171,7 @@ pub use instructions::{Instructions, DEFAULT_AGENTS_MD};
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-vault`
-Expected: PASS, 20 tests.
+Expected: PASS, 21 tests.
 
 
 - [ ] **Step 5: Run the task gate**
@@ -9465,7 +9498,7 @@ pub mod okf;
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-vault`
-Expected: PASS, 22 tests.
+Expected: PASS, 23 tests.
 
 
 - [ ] **Step 5: Run the task gate**
