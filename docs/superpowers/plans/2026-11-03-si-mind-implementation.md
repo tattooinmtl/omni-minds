@@ -1267,16 +1267,16 @@ pub fn render_note(note: &Note) -> String {
     out
 }
 
-/// Derives a note id from the note's file name.
+/// Derives a note id from a note's path.
 ///
-/// This is the fallback for a note whose frontmatter carries no `id`. It is
-/// the file name only, not the folder path, because `parse_note` is given an
-/// absolute path by the vault and cannot know the vault root — so two
-/// same-named notes in different folders share a fallback id. Notes written
-/// by the vault always carry their full `<folder>/<slug>` id in frontmatter,
-/// so the collision only affects hand-written notes.
+/// This is the fallback for a note whose frontmatter carries no `id`. The id
+/// is the path **without its extension**, so what the id keeps of the path is
+/// the caller's choice: the vault passes a path relative to its own root, so a
+/// note at `hand/no-id.md` is addressed as `hand/no-id` and two notes with the
+/// same file name in different folders stay two notes. An id the author wrote
+/// is never overridden — this is only the fallback.
 pub fn path_to_id(path: &Path) -> String {
-    path.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default()
+    path.with_extension("").to_string_lossy().replace(\'\\\', "/")
 }
 
 fn read_known(value: &Value) -> (String, String, String, Vec<String>, Vec<String>) {
@@ -2464,6 +2464,8 @@ Add to `VaultError` in `lib.rs`:
     SelfWriteRefused { action: &'static str, id: String },
     #[error("note id {0} would escape the vault")]
     UnsafeId(String),
+    #[error("note id {0} already carries the .md extension; use the id without it")]
+    IdCarriesExtension(String),
 ```
 
 And add `pub mod store;` plus `pub use store::Vault;` to `lib.rs`.
@@ -2481,8 +2483,11 @@ And add `pub mod store;` plus `pub use store::Vault;` to `lib.rs`.
 > 2. The `%`/`?` field sigils and a message template both work, but the
 >    message must come **last**: `warn!(name: "n", path = %p, "message")` is
 >    fine, while `event!(Level::WARN, "message", path = %p)` does not parse.
-> 3. `tracing::event!` does **not** accept `name:` — only the level-specific
->    macros do — so the vault uses `warn!`.
+> 3. `tracing::event!` **does** accept `name:`, but only in the arm
+>    `event!(name: "…", Level::WARN, fields…)`, with the level spelled out and
+>    the message still last. `warn!` is the level-specific shorthand that
+>    combines `name:`, the field sigils and a trailing message in one call, so
+>    the vault uses `warn!`.
 >
 > ```rust
 > tracing::warn!(name: "vault.note.unparsable", path = %path.display(), error = %source, "skipping a note that could not be parsed");
