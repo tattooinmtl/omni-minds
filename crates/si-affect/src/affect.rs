@@ -161,12 +161,24 @@ impl Affect {
         self.tension = clamp_axis(baseline.tension + (self.tension - baseline.tension) * factor);
     }
 
-    /// Euclidean distance to another affect state.
+    /// The squared Euclidean distance to another affect state.
+    ///
+    /// The comparison is done in `f64` on purpose. The coordinates are `f32`,
+    /// and the sum of three `f32` squares rounds differently depending on the
+    /// order the terms were added, so two points that are exactly equidistant
+    /// from a third come out at different distances and the float noise picks
+    /// the winner instead of the rule. In `f64` the noise is far below the
+    /// difference the lexicon is written at, so a tie stays a tie.
+    pub fn squared_distance(&self, other: Affect) -> f64 {
+        let dv = f64::from(self.valence) - f64::from(other.valence);
+        let da = f64::from(self.arousal) - f64::from(other.arousal);
+        let dt = f64::from(self.tension) - f64::from(other.tension);
+        dv * dv + da * da + dt * dt
+    }
+
+    /// The Euclidean distance to another affect state.
     pub fn distance(&self, other: Affect) -> f32 {
-        let dv = self.valence - other.valence;
-        let da = self.arousal - other.arousal;
-        let dt = self.tension - other.tension;
-        (dv * dv + da * da + dt * dt).sqrt()
+        self.squared_distance(other).sqrt() as f32
     }
 
     /// The axes as an array, for storage in an event.

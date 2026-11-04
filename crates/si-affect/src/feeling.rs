@@ -21,12 +21,14 @@ pub struct Feeling {
     /// The feelings whose canonical points are closest to this one.
     ///
     /// The ids of the three other feelings nearest in the three-axis affect
-    /// space, by Euclidean distance. Ties are broken by the position of the
-    /// feeling in the embedded lexicon — file order, then line order — and the
-    /// field is derived from the coordinates rather than written by hand:
-    /// `tools/regenerate_nearest.py` writes it, and
-    /// `tools/validate_lexicon.py` refuses a lexicon whose lists disagree with
-    /// that rule.
+    /// space. The comparison is exact: every coordinate is a hundredth, so the
+    /// squared distance scaled by 10000 — that is, `(dx² + dy² + dz²) × 10000`
+    /// — is an exact integer, and the rule compares those integers. Ties are
+    /// broken by the position of the feeling in the embedded lexicon — file
+    /// order, then line order — and the field is derived from the coordinates
+    /// rather than written by hand: `tools/regenerate_nearest.py` writes it,
+    /// and `tools/validate_lexicon.py` refuses a lexicon whose lists disagree
+    /// with that rule.
     pub nearest: Vec<String>,
 }
 

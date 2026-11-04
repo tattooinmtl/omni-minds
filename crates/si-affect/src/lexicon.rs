@@ -2,7 +2,7 @@
 
 //! The 250-feeling lexicon.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 use crate::affect::{Affect, AXIS_MAX, AXIS_MIN};
 use crate::bias::CognitionParameter;
@@ -42,6 +42,9 @@ pub enum AffectError {
     /// A canonical point outside the range the affect space is written in.
     #[error("feeling {0} has {1}={2}, outside the axis range {3:?}")]
     AxisOutOfRange(String, String, f32, (f32, f32)),
+    /// A `nearest` list that cannot be trusted.
+    #[error("feeling {0} has an invalid nearest list: {1}")]
+    InvalidNearest(String, String),
     /// The lexicon holds no feelings at all.
     #[error("the lexicon is empty")]
     Empty,
@@ -122,6 +125,7 @@ impl Lexicon {
         if feelings.is_empty() {
             return Err(AffectError::Empty);
         }
+        check_nearest(&feelings)?;
         Ok(Lexicon { feelings })
     }
 
@@ -151,37 +155,121 @@ impl Lexicon {
     /// relative to the one it nearly was.
     ///
     /// Ties are broken by the position of the feeling in the embedded lexicon:
-    /// the sort is stable, so two feelings at the same distance come back in
-    /// the order they were loaded — file order, then line order. The lexicon
-    /// this crate ships has no two feelings at the same canonical point, and
-    /// `tools/validate_lexicon.py` refuses a lexicon in which one does, so a
-    /// tie between two points cannot arise in the data. A caller that hands
-    /// `label` a lexicon of its own still gets this documented order rather
-    /// than an arbitrary one.
+    /// file order, then line order. A tie is two feelings at the same distance
+    /// from the state, and it is detected as one: the squared distances are
+    /// compared within [`SQUARED_DISTANCE_TOLERANCE`], a band wide enough to
+    /// absorb the rounding of a float32 coordinate and narrow enough that two
+    /// feelings which really are at different distances never share it. So the
+    /// feeling that comes first in the embedded lexicon wins the tie, and the
+    /// rule is the one the data is written against.
+    ///
+    /// The lexicon this crate ships has no two feelings at the same canonical
+    /// point, and `tools/validate_lexicon.py` refuses a lexicon in which one
+    /// does, so at the 250 canonical points the primary is never in doubt. A
+    /// caller that hands `label` a lexicon of its own still gets this
+    /// documented order rather than an arbitrary one.
     pub fn label(&self, affect: Affect) -> FeelingMatch {
-        let mut ranked: Vec<(&Feeling, f32)> = self
+        let mut ranked: Vec<(f64, usize, &Feeling)> = self
             .feelings
             .iter()
-            .map(|f| (f, affect.distance(f.point())))
+            .enumerate()
+            .map(|(position, feeling)| {
+                (affect.squared_distance(feeling.point()), position, feeling)
+            })
             .collect();
-        ranked.sort_by(|a, b| a.1.total_cmp(&b.1));
-        // The lexicon is never empty: the loader refuses one, and the field is
-        // private, so no caller can hand `label` an empty space to label. An
-        // empty one would be a programming error, not a state to report.
-        debug_assert!(
-            !ranked.is_empty(),
-            "a lexicon with no feelings has no label to report"
-        );
-        let (primary, distance) = ranked[0];
-        let runner_up = ranked.get(1).map(|(f, _)| (*f).clone());
-        let runner_up_distance = ranked.get(1).map(|(_, d)| *d);
+        ranked.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
+
+        let (primary, runner_up) = first_two(&ranked);
+        let primary = primary.expect("a lexicon with no feelings has no label to report");
         FeelingMatch {
             primary: primary.clone(),
-            runner_up,
-            distance,
-            runner_up_distance,
+            runner_up: runner_up.cloned(),
+            distance: affect.distance(primary.point()),
+            runner_up_distance: runner_up.map(|feeling| affect.distance(feeling.point())),
         }
     }
+}
+
+/// The width of the band two squared distances must fall inside to count as a
+/// tie.
+///
+/// The coordinates are written to two decimals, so two canonical points that
+/// differ at all differ by at least 0.01 in one axis, and their squared
+/// distances from a point on the same grid differ by at least 0.0001. This
+/// band is ten times finer than that, so it can never merge two distances
+/// that are genuinely different.
+///
+/// It is also far wider than the noise it has to absorb. The coordinates are
+/// float32, so two feelings that are exactly equidistant from a state come out
+/// up to about 1e-7 apart in squared distance. Without a band this wide the
+/// float noise would pick the neighbour instead of the tie-break, and the
+/// documented order would never fire.
+const SQUARED_DISTANCE_TOLERANCE: f64 = 1e-5;
+
+/// The first two feelings in the documented order.
+///
+/// The feelings are ranked by squared distance. Feelings whose squared
+/// distances fall inside [`SQUARED_DISTANCE_TOLERANCE`] of each other are a
+/// tie, and a tie is settled by the position of the feeling in the embedded
+/// lexicon rather than by the float noise between their coordinates.
+fn first_two<'a>(
+    ranked: &'a [(f64, usize, &'a Feeling)],
+) -> (Option<&'a Feeling>, Option<&'a Feeling>) {
+    let mut ordered: Vec<(usize, &Feeling)> = Vec::new();
+    let mut start = 0;
+    while start < ranked.len() && ordered.len() < 2 {
+        let anchor = ranked[start].0;
+        let mut end = start;
+        while end < ranked.len() && ranked[end].0 - anchor <= SQUARED_DISTANCE_TOLERANCE {
+            end += 1;
+        }
+        let mut tied: Vec<(usize, &Feeling)> = ranked[start..end]
+            .iter()
+            .map(|(_, position, feeling)| (*position, *feeling))
+            .collect();
+        tied.sort_by_key(|(position, _)| *position);
+        ordered.extend(tied);
+        start = end;
+    }
+    (
+        ordered.first().map(|(_, feeling)| *feeling),
+        ordered.get(1).map(|(_, feeling)| *feeling),
+    )
+}
+
+/// Checks that every `nearest` list can be trusted.
+///
+/// The loader is the place a caller starts trusting the field, so the lists
+/// have to be well formed before the lexicon is handed over: a list may not
+/// name the feeling itself, may not repeat an id, and may not name an id that
+/// is not in the lexicon. Whether the lists are the three *nearest* feelings
+/// is the derived rule's business, and `tools/validate_lexicon.py` checks it.
+fn check_nearest(feelings: &[Feeling]) -> Result<(), AffectError> {
+    let ids: HashSet<&str> = feelings.iter().map(|f| f.id.as_str()).collect();
+    for feeling in feelings {
+        if feeling.nearest.contains(&feeling.id) {
+            return Err(AffectError::InvalidNearest(
+                feeling.id.clone(),
+                "it names the feeling itself".to_string(),
+            ));
+        }
+        let mut seen: HashSet<&str> = HashSet::new();
+        for name in &feeling.nearest {
+            if !seen.insert(name.as_str()) {
+                return Err(AffectError::InvalidNearest(
+                    feeling.id.clone(),
+                    format!("it repeats '{name}'"),
+                ));
+            }
+            if !ids.contains(name.as_str()) {
+                return Err(AffectError::InvalidNearest(
+                    feeling.id.clone(),
+                    format!("'{name}' is not in the lexicon"),
+                ));
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Checks one canonical axis against the range the affect space is written in.
@@ -246,6 +334,15 @@ mod tests {
 
     /// One feeling whose canonical point sits outside the affect space.
     const LEXICON_WITH_OUT_OF_RANGE_AXIS: &str = "- id: wild\n  name: Wild\n  family: test\n  definition: A feeling placed outside the range the space is written in.\n  valence: 1.5\n  arousal: 0.0\n  tension: 0.0\n  bias: {explore: 0.1}\n  nearest: [wild]\n";
+
+    /// One feeling whose `nearest` list names the feeling itself.
+    const LEXICON_WITH_SELF_NEAREST: &str = "- id: selfish\n  name: Selfish\n  family: test\n  definition: A feeling that names itself as its own neighbour.\n  valence: 0.0\n  arousal: 0.0\n  tension: 0.0\n  bias: {explore: 0.1}\n  nearest: [selfish]\n";
+
+    /// One feeling whose `nearest` list repeats an id.
+    const LEXICON_WITH_REPEATED_NEAREST: &str = "- id: repetitive\n  name: Repetitive\n  family: test\n  definition: A feeling that names the same neighbour twice.\n  valence: 0.0\n  arousal: 0.0\n  tension: 0.0\n  bias: {explore: 0.1}\n  nearest: [repetitive, repetitive]\n";
+
+    /// One feeling whose `nearest` list names an id that is not in the lexicon.
+    const LEXICON_WITH_UNKNOWN_NEAREST: &str = "- id: lost\n  name: Lost\n  family: test\n  definition: A feeling that names a neighbour which does not exist.\n  valence: 0.0\n  arousal: 0.0\n  tension: 0.0\n  bias: {explore: 0.1}\n  nearest: [nowhere]\n";
 
     #[test]
     fn the_embedded_lexicon_holds_exactly_250_feelings() {
@@ -348,28 +445,68 @@ mod tests {
     #[test]
     fn a_blend_lands_between_its_two_closest_labels() {
         let lexicon = Lexicon::load_embedded().expect("load");
-        // Just inside glee (0.80, 0.65, -0.25), on the way to mirth
-        // (0.75, 0.65, -0.25). These two name each other as nearest, and the
-        // next label is more than 0.09 away, so the reading must resolve to
-        // exactly this pair.
+        // The midpoint of joy (0.80, 0.65, -0.35) and mirth (0.75, 0.65, -0.25).
+        // glee (0.80, 0.65, -0.25) is exactly as far from this point as either
+        // of them — all three sit at 0.003125 — so the three are tied and the
+        // tie-break decides. The embedded order is joy, glee, mirth, so the
+        // reading must resolve to joy and glee.
+        //
+        // This is the test that pins the tie-break: a comparison in float32
+        // puts mirth ahead of glee, because the rounding of the coordinates
+        // makes mirth a hair closer, and the documented order never fires.
         let blend = Affect {
-            valence: 0.78,
+            valence: 0.775,
             arousal: 0.65,
-            tension: -0.25,
+            tension: -0.30,
         };
         let matched = lexicon.label(blend);
         let ids = [
             matched.primary.id.clone(),
             matched.runner_up.map(|r| r.id).unwrap_or_default(),
         ];
-        assert!(
-            ids.contains(&"glee".to_string()) && ids.contains(&"mirth".to_string()),
-            "a blend must resolve to the two labels it sits between, got {ids:?}"
+        assert_eq!(
+            ids,
+            ["joy".to_string(), "glee".to_string()],
+            "a tie must be settled by the embedded order, got {ids:?}"
         );
-        assert!(
-            !ids.contains(&"joy".to_string()),
-            "the third label is further away and must not take a slot, got {ids:?}"
+    }
+
+    #[test]
+    fn a_tie_is_settled_by_the_embedded_order() {
+        let lexicon = Lexicon::load_embedded().expect("load");
+        // `betrayal` (-0.85, 0.60, 0.75) and `terror` (-0.90, 0.95, 0.95) are
+        // exactly equidistant from this state, and `terror` comes first in the
+        // embedded lexicon. In float32 the rounding of the coordinates makes
+        // `betrayal` a hair closer, so only a comparison that treats the two
+        // as tied reports the documented label.
+        let state = Affect {
+            valence: -1.0,
+            arousal: 0.7,
+            tension: 0.95,
+        };
+        let matched = lexicon.label(state);
+        assert_eq!(matched.primary.id, "terror");
+        assert_eq!(
+            matched.runner_up.map(|runner| runner.id),
+            Some("betrayal".to_string())
         );
+    }
+
+    #[test]
+    fn every_feeling_is_the_label_at_its_own_canonical_point() {
+        // The tie-break must not change the primary at any of the 250
+        // canonical points: at a feeling's own point it is the closest
+        // feeling by a distance no other feeling shares, so it must stay the
+        // primary.
+        let lexicon = Lexicon::load_embedded().expect("load");
+        for feeling in lexicon.feelings() {
+            let matched = lexicon.label(feeling.point());
+            assert_eq!(
+                matched.primary.id, feeling.id,
+                "{} must be the label at its own point, got {}",
+                feeling.id, matched.primary.id
+            );
+        }
     }
 
     #[test]
@@ -412,6 +549,36 @@ mod tests {
             .expect_err("a point outside the space cannot be labelled");
         assert!(
             matches!(&error, AffectError::AxisOutOfRange(id, axis, value, _) if id == "wild" && axis == "valence" && *value == 1.5),
+            "got {error:?}"
+        );
+    }
+
+    #[test]
+    fn a_nearest_list_that_names_the_feeling_itself_is_rejected() {
+        let error = Lexicon::load_sources(&[LEXICON_WITH_SELF_NEAREST])
+            .expect_err("a feeling is not its own neighbour");
+        assert!(
+            matches!(&error, AffectError::InvalidNearest(id, _) if id == "selfish"),
+            "got {error:?}"
+        );
+    }
+
+    #[test]
+    fn a_nearest_list_that_repeats_an_id_is_rejected() {
+        let error = Lexicon::load_sources(&[LEXICON_WITH_REPEATED_NEAREST])
+            .expect_err("a neighbour cannot be named twice");
+        assert!(
+            matches!(&error, AffectError::InvalidNearest(id, _) if id == "repetitive"),
+            "got {error:?}"
+        );
+    }
+
+    #[test]
+    fn a_nearest_list_that_names_an_unknown_id_is_rejected() {
+        let error = Lexicon::load_sources(&[LEXICON_WITH_UNKNOWN_NEAREST])
+            .expect_err("a neighbour that does not exist cannot be named");
+        assert!(
+            matches!(&error, AffectError::InvalidNearest(id, _) if id == "lost"),
             "got {error:?}"
         );
     }
