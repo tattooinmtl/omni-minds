@@ -12,9 +12,10 @@
 //! `serde_yaml` instead.
 //!
 //! Two points are measured: one exactly on a feeling's canonical point, and
-//! one between two feelings. The first is the cheapest case the query has,
-//! and the second is the typical one, where the state is near two feelings
-//! and the label is a judgement between them.
+//! one between two feelings. The first is the case where the answer is
+//! unambiguous, and the second is the case where the label is a judgement
+//! between two candidates. The query costs the same at both, because it
+//! reads every feeling whichever point it is given.
 
 use std::hint::black_box;
 
@@ -25,15 +26,19 @@ use si_affect::{Affect, Lexicon};
 fn benches(c: &mut Criterion) {
     let lexicon = Lexicon::load_embedded().expect("the embedded lexicon loads");
 
-    // The cheapest case: a state that sits exactly on a canonical point.
+    // The case where the answer is unambiguous: a state that sits exactly on
+    // a canonical point.
     let feelings = lexicon.feelings();
     let first = feelings.first().expect("the lexicon holds feelings");
     let canonical = first.point();
 
     // The typical case: a state between two feelings. The two are the first
-    // feeling of the embedded lexicon and the one farthest from it, so the
-    // point between them is as far from any canonical point as the space
-    // allows. Both are read from the lexicon rather than written down here,
+    // feeling of the embedded lexicon and the one farthest from it, and the
+    // midpoint of two feelings lies between the two rather than on either,
+    // so the label there is a judgement between two candidates rather than a
+    // reading of one. It is not the point furthest from any canonical point
+    // in the lexicon: the most distant pair of feelings is a different pair.
+    // Both feelings are read from the lexicon rather than written down here,
     // so the points follow the data when the data is regenerated.
     let farthest = feelings
         .iter()

@@ -13,6 +13,18 @@
 //!
 //! The throughput is one element per iteration, so the time criterion reports
 //! is the cost of one event rather than the cost of a batch of them.
+//!
+//! The log grows for the whole run. A run appends about 676,000 events to one
+//! log, and an insert into a table that already holds 676,000 rows costs a
+//! little more than an insert into an empty one: the per-event cost drifts by
+//! about 2.5% over a run. That drift is wider than the confidence interval
+//! criterion reports, so the real resolution of this benchmark is about 5% and
+//! not the width of the interval. The drift also runs the wrong way for a
+//! speedup - a faster append gets through more iterations and grows the log
+//! further - so an improvement of a few percent is indistinguishable from the
+//! drift it causes. Two numbers are therefore only comparable when they were
+//! measured the same way: on the same machine, with the same criterion
+//! configuration, against a log that grew in the same way.
 
 use std::hint::black_box;
 
