@@ -76,3 +76,32 @@ fn folding_past_the_end_is_the_same_as_folding_to_the_end() {
         .expect("fold");
     assert_eq!(a, b);
 }
+
+/// More events than one fold page holds, so the fold has to read a second page
+/// and then exit on a partial one.
+///
+/// The page size is the crate's business, so the count is deliberately larger
+/// than any plausible page: the fold stays a multi-page fold whatever the
+/// constant is.
+const EVENTS_SPANNING_SEVERAL_PAGES: u32 = 1000;
+
+#[test]
+fn a_fold_spans_more_events_than_one_page_holds() {
+    let log = Log::open_in_memory().expect("open");
+    for index in 0..EVENTS_SPANNING_SEVERAL_PAGES {
+        log.append(
+            EventKind::Thought {
+                text_ref: format!("t{index}"),
+                confidence: 1.0,
+            },
+            None,
+            None,
+            1.0,
+        )
+        .expect("append");
+    }
+    let (thoughts, _) = log
+        .fold_to(u64::MAX, CountThought::default())
+        .expect("fold");
+    assert_eq!(thoughts, EVENTS_SPANNING_SEVERAL_PAGES);
+}
