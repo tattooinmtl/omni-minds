@@ -93,6 +93,13 @@ python tools/validate_lexicon.py --fix
 # regenerate the `nearest` lists themselves; reports "no change" when they are
 # already correct, and is what `--fix` uses
 python tools/regenerate_nearest.py
+
+# the two hot-path benchmarks: the log append and the nearest-neighbour query.
+# `cargo test --workspace` does not run bench targets, so this is what checks them
+cargo bench -p si-log -p si-affect -- --test
+
+# the full measurement, which is the baseline a later change is compared against
+cargo bench -p si-log -p si-affect
 ```
 
 ## Rust conventions
