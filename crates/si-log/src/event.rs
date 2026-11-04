@@ -278,4 +278,199 @@ mod tests {
         tags.dedup();
         assert_eq!(tags.len(), count, "event kind serde tags must be unique");
     }
+
+    /// The exact JSON a `noticed` event is written to the log as.
+    ///
+    /// The tag key is `kind` and the payload key is `notice_kind`: serde
+    /// spends the `kind` key on the variant tag, so the payload field cannot
+    /// share that name. Changing this string invalidates every `noticed`
+    /// event already in the log.
+    const NOTICED_PAYLOAD_JSON: &str =
+        r#"{"kind":"noticed","notice_kind":"contradiction","refs":["a"]}"#;
+
+    /// Pins the wire format: the 18 tag strings from spec §4, and the shape
+    /// and round trip of the `noticed` payload.
+    ///
+    /// The tags are written into the `payload` column of the event table and
+    /// read back by every later component (`json_extract(payload, '$.kind')`).
+    /// A drifting tag or key keeps the crate compiling and leaves the other
+    /// tests green, so the format is asserted here rather than assumed.
+    #[test]
+    fn the_wire_format_is_pinned() {
+        // The 18 kinds, each paired with the tag the spec of record gives it
+        // (`docs/superpowers/specs/2026-11-03-si-mind-design.md` §4).
+        let kinds = vec![
+            (
+                "perceived",
+                EventKind::Perceived {
+                    source: "user".into(),
+                    content_ref: "c".into(),
+                },
+            ),
+            (
+                "recalled",
+                EventKind::Recalled {
+                    note_id: "n".into(),
+                    reason: "r".into(),
+                    query: "q".into(),
+                },
+            ),
+            (
+                "thought",
+                EventKind::Thought {
+                    text_ref: "t".into(),
+                    confidence: 0.5,
+                },
+            ),
+            (
+                "decided",
+                EventKind::Decided {
+                    options: vec![],
+                    chosen: "c".into(),
+                    rationale: "r".into(),
+                },
+            ),
+            (
+                "acted",
+                EventKind::Acted {
+                    tool: "t".into(),
+                    args_ref: "a".into(),
+                    result_ref: "r".into(),
+                },
+            ),
+            (
+                "felt",
+                EventKind::Felt {
+                    delta: [0.0; 3],
+                    after: [0.0; 3],
+                    label: "calm".into(),
+                },
+            ),
+            (
+                "noticed",
+                EventKind::Noticed {
+                    kind: "contradiction".into(),
+                    refs: vec!["a".into()],
+                },
+            ),
+            (
+                "wrote",
+                EventKind::Wrote {
+                    note_id: "n".into(),
+                    path: "p".into(),
+                    op: WriteOp::Create,
+                },
+            ),
+            (
+                "evicted",
+                EventKind::Evicted {
+                    node_id: "n".into(),
+                    reason: EvictReason::Budget,
+                },
+            ),
+            (
+                "routed",
+                EventKind::Routed {
+                    slot: "s".into(),
+                    provider: "p".into(),
+                    model: "m".into(),
+                    fallback: false,
+                    why: "w".into(),
+                },
+            ),
+            (
+                "responded",
+                EventKind::Responded {
+                    answer_ref: "a".into(),
+                },
+            ),
+            (
+                "ablation",
+                EventKind::Ablation {
+                    layer: "values".into(),
+                    state: false,
+                },
+            ),
+            (
+                "consolidated",
+                EventKind::Consolidated {
+                    operation: "merge".into(),
+                    count: 1,
+                },
+            ),
+            (
+                "plan_written",
+                EventKind::PlanWritten {
+                    plan_id: "p".into(),
+                    mode: "brainstorm".into(),
+                    diff_ref: "d".into(),
+                },
+            ),
+            (
+                "mode_changed",
+                EventKind::ModeChanged {
+                    from: "brainstorm".into(),
+                    to: "plan".into(),
+                    approved_by: "user".into(),
+                },
+            ),
+            (
+                "overlay_applied",
+                EventKind::OverlayApplied {
+                    overlay_id: "o".into(),
+                    seams: vec![],
+                    author: "user".into(),
+                    removed: false,
+                },
+            ),
+            (
+                "compacted",
+                EventKind::Compacted {
+                    turn_id: None,
+                    resumer_ref: "r".into(),
+                    tokens_before: 100,
+                    tokens_after: 10,
+                },
+            ),
+            (
+                "setting_changed",
+                EventKind::SettingChanged {
+                    key: "k".into(),
+                    from: serde_json::Value::Null,
+                    to: serde_json::Value::Null,
+                },
+            ),
+        ];
+        assert_eq!(kinds.len(), 18, "the spec lists exactly 18 event kinds");
+        for (expected_tag, kind) in &kinds {
+            let json = serde_json::to_value(kind).expect("serialize");
+            assert_eq!(
+                json["kind"], *expected_tag,
+                "the {} tag must not drift from spec §4",
+                expected_tag
+            );
+        }
+
+        // The `noticed` payload is written under `notice_kind`, not `kind`.
+        let noticed = EventKind::Noticed {
+            kind: "contradiction".into(),
+            refs: vec!["a".into()],
+        };
+        assert_eq!(
+            serde_json::to_string(&noticed).expect("serialize"),
+            NOTICED_PAYLOAD_JSON,
+            "the noticed payload shape must not drift"
+        );
+
+        // And the same JSON reads back into the same event.
+        let back: EventKind = serde_json::from_str(NOTICED_PAYLOAD_JSON).expect("deserialize");
+        assert!(
+            matches!(&back, EventKind::Noticed { kind, .. } if kind == "contradiction"),
+            "a noticed payload must deserialize into a noticed event, got {back:?}"
+        );
+        assert_eq!(
+            back, noticed,
+            "the noticed payload must round-trip unchanged"
+        );
+    }
 }
