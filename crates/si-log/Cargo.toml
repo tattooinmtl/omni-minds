@@ -20,6 +20,8 @@ uuid.workspace = true
 tracing.workspace = true
 
 [dev-dependencies]
+# The hot-path benchmark: the per-event cost of an append (M-HOTPATH).
+criterion.workspace = true
 tempfile = "3"
 # A package may dev-depend on itself. This is what lets an integration test in
 # `tests/` see a `#[cfg(feature = "test-support")]` accessor, which a plain
@@ -28,3 +30,7 @@ si-log = { path = ".", features = ["test-support"] }
 # The store tests read the `payload` column and the table's columns straight
 # out of SQLite, so they need the driver itself, not just the store's API.
 rusqlite.workspace = true
+
+[[bench]]
+name = "append"
+harness = false

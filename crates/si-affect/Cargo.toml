@@ -11,3 +11,12 @@ serde_json.workspace = true
 serde_yaml.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+
+[dev-dependencies]
+# The hot-path benchmark: the per-call cost of a nearest-neighbour label
+# (M-HOTPATH).
+criterion.workspace = true
+
+[[bench]]
+name = "label"
+harness = false
