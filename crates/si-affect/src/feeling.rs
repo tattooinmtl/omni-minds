@@ -18,7 +18,15 @@ pub struct Feeling {
     pub tension: f32,
     /// How this feeling moves behaviour.
     pub bias: BTreeMap<CognitionParameter, f32>,
-    /// The closest feelings, by id.
+    /// The feelings whose canonical points are closest to this one.
+    ///
+    /// The ids of the three other feelings nearest in the three-axis affect
+    /// space, by Euclidean distance. Ties are broken by the position of the
+    /// feeling in the embedded lexicon — file order, then line order — and the
+    /// field is derived from the coordinates rather than written by hand:
+    /// `tools/regenerate_nearest.py` writes it, and
+    /// `tools/validate_lexicon.py` refuses a lexicon whose lists disagree with
+    /// that rule.
     pub nearest: Vec<String>,
 }
 

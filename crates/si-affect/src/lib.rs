@@ -11,4 +11,4 @@ pub mod lexicon;
 pub use affect::Affect;
 pub use bias::{CognitionParameter, CognitionParameters};
 pub use feeling::Feeling;
-pub use lexicon::{FeelingMatch, Lexicon};
+pub use lexicon::{AffectError, FeelingMatch, Lexicon};

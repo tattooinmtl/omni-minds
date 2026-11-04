@@ -18,13 +18,16 @@ use std::time::Duration;
 /// space for a nearest-neighbour label to mean anything. Widening this bound
 /// would let the live state drift outside the space the labels were defined
 /// in, and the labelling would silently stop describing the state.
-const AXIS_MIN: f32 = -1.0;
+///
+/// The lexicon loader checks its canonical points against the same bound, so
+/// the labels and the state they are matched against share one range.
+pub(crate) const AXIS_MIN: f32 = -1.0;
 
 /// The highest an axis may hold.
 ///
 /// The other end of the same scale as [`AXIS_MIN`], and closed for the same
 /// reason: the state and the labels share one space.
-const AXIS_MAX: f32 = 1.0;
+pub(crate) const AXIS_MAX: f32 = 1.0;
 
 /// The value an axis holds when nothing is happening.
 ///
