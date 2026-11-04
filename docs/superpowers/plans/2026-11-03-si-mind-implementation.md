@@ -4442,7 +4442,18 @@ crate only needs it as a dev-dependency. In `crates/si-log/Cargo.toml` and
 ```toml
 [dev-dependencies]
 criterion.workspace = true
+
+# The bench target needs its own table: `criterion_main!` supplies its own
+# `main`, and cargo's default bench harness would try to supply one as well.
+[[bench]]
+name = "append"          # "label" in crates/si-affect/Cargo.toml
+harness = false
 ```
+
+The `[[bench]]` table is not optional. Without `harness = false` the
+benchmark does not build as a criterion benchmark at all, because cargo's
+default bench harness conflicts with the `main` that `criterion_main!`
+generates.
 
 - [ ] **Step 2: Write the log append benchmark**
 
