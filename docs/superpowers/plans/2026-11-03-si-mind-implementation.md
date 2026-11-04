@@ -1005,7 +1005,7 @@ Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo
 - [ ] **Step 6: Run the whole crate and commit**
 
 Run: `cargo test -p si-log`
-Expected: PASS, 8 tests.
+Expected: PASS — 11 tests in total: 3 event unit tests, 6 store tests, 2 fold tests.
 
 ```bash
 git add crates/si-log
@@ -9374,7 +9374,7 @@ pub fn conn_for_test(&self) -> std::sync::MutexGuard<'_, rusqlite::Connection> {
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-log`
-Expected: PASS, 10 tests.
+Expected: PASS — 13 tests in total: 3 event unit tests, 6 store tests, 2 fold tests, 2 shared tests.
 
 > `cargo test -p si-log` must be green, including the Task 0.3 trigger test
 > and the Task 0.4 fold test. The fold walks the log through `events`, which
