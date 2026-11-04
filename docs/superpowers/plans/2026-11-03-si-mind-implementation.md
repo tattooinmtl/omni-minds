@@ -433,7 +433,7 @@ pub struct Event {
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-log`
-Expected: PASS, 2 tests.
+Expected: PASS, 3 tests.
 
 
 - [ ] **Step 5: Run the task gate**
@@ -898,7 +898,7 @@ Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo
 - [ ] **Step 6: Run the whole crate and commit**
 
 Run: `cargo test -p si-log`
-Expected: PASS, 7 tests.
+Expected: PASS, 8 tests.
 
 ```bash
 git add crates/si-log
