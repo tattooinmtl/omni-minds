@@ -4495,9 +4495,17 @@ change is compared against.
 
 - [ ] **Step 5: Run the task gate**
 
-Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo test --benches && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
 Expected: all green. `cargo clippy --all-targets` includes the benchmark targets, so a
 lint in a bench fails the gate.
+
+`cargo test --workspace` alone does **not** exercise a bench target. A bench
+target's `test` field defaults to true only for lib, bins and tests, and cargo's
+default target selection for `cargo test` excludes benches, so the bench binaries
+are neither built nor run by it. `cargo test --benches` builds and runs each of
+them in criterion's test mode, where every benchmark is measured once and the run
+finishes in seconds. Without that step the gate would pass on a benchmark that
+cannot run.
 
 - [ ] **Step 6: Commit**
 
