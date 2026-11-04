@@ -3,7 +3,7 @@
 //! Building the note graph from wikilinks, tags and frontmatter.
 
 use crate::note::Note;
-use crate::wikilink::extract_wikilinks;
+use crate::wikilink::{extract_wikilinks, target_without_anchor};
 
 /// The frontmatter key that names the folder a note belongs to.
 const PARENT_KEY: &str = "parent";
@@ -64,6 +64,8 @@ pub fn graph(notes: &[Note]) -> Vec<Edge> {
                 .trim_start_matches('[')
                 .trim_end_matches(']');
             let target = target.split('|').next().unwrap_or(target).trim();
+            // An anchor names a place inside the target note, not another note.
+            let target = target_without_anchor(target);
             if !target.is_empty() {
                 edges.push(Edge {
                     from: note.id.clone(),
@@ -131,5 +133,18 @@ mod tests {
         assert!(edges
             .iter()
             .any(|e| e.kind == EdgeKind::Origin && e.to == "brainstorms/x"));
+        // A declared link may carry an anchor. The anchor names a place inside
+        // the target note, so the edge has to point at the note itself and
+        // stay resolvable — the same rule the body route follows.
+        let declared = "---\nid: beliefs/d\nlinks: [\"[[beliefs/c#history]]\"]\n---\n\nbody\n";
+        let declared_note = parse_note(declared, &PathBuf::from("beliefs/d.md")).expect("parse");
+        let declared_edges = graph(&[declared_note]);
+        assert!(declared_edges
+            .iter()
+            .any(|e| e.kind == EdgeKind::Link && e.to == "beliefs/c"));
+        assert!(
+            !declared_edges.iter().any(|e| e.to.contains('#')),
+            "an anchor must not become part of the edge target"
+        );
     }
 }
