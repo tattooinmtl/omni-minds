@@ -1582,12 +1582,35 @@ Run: `cargo test -p si-vault`
 Expected: PASS, 6 tests.
 
 
-- [ ] **Step 7: Run the task gate**
+- [ ] **Step 7: Export the new items from the crate root**
+
+`crates/si-vault/src/lib.rs` gains the two new modules and their re-exports. Item
+by item, with `#[doc(inline)]` — no glob re-exports:
+
+```rust
+pub mod frontmatter;
+pub mod graph;
+pub mod note;
+pub mod wikilink;
+
+#[doc(inline)]
+pub use graph::{graph, Edge, EdgeKind};
+#[doc(inline)]
+pub use note::{parse_note, render_note, Note};
+#[doc(inline)]
+pub use wikilink::{extract_wikilinks, Wikilink};
+```
+
+The `VaultError` enum stays exactly as Task 1.1 left it. The `note` re-export
+gains `#[doc(inline)]` so that every re-export in the crate root carries it, the
+way `si-log` does it.
+
+- [ ] **Step 8: Run the task gate**
 
 Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
 Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
 git add crates/si-vault
