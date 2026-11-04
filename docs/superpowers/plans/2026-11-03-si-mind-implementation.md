@@ -1109,20 +1109,52 @@ use serde_yaml::Value;
 
 /// Splits a document into its frontmatter block and its body.
 ///
+/// The fence is matched line by line rather than by a literal `"---\n"`, so a
+/// note whose lines end with CRLF is recognised exactly like one whose lines
+/// end with LF. Matching the fence by literal text silently loses the
+/// frontmatter of every CRLF note: the id falls back to the file name, the
+/// tags come back empty, and the YAML block becomes body prose.
+///
 /// Returns `Ok(None, whole_document)` when there is no frontmatter, which is
-/// how plain markdown notes stay valid notes.
+/// how plain markdown notes stay valid notes. A document that opens with a
+/// fence but never closes it is treated the same way: a half-written note must
+/// still be readable.
 pub fn split_frontmatter(text: &str) -> (Option<&str>, &str) {
     let trimmed = text.strip_prefix('\u{feff}').unwrap_or(text);
-    let Some(rest) = trimmed.strip_prefix("---\n") else {
+    // The opening fence has to be the first line of the document.
+    let Some(first_end) = trimmed.find('\n') else {
         return (None, trimmed);
     };
-    match rest.split_once("\n---\n") {
-        Some((front, body)) => (Some(front), body),
-        // A document that opens with a fence but never closes it is treated as
-        // having no frontmatter rather than as an error: a half-written note
-        // must still be readable.
-        None => (None, trimmed),
+    if !is_fence(&trimmed[..first_end]) {
+        return (None, trimmed);
     }
+    let front_start = first_end + 1;
+    let mut offset = front_start;
+    loop {
+        let Some(relative_end) = trimmed[offset..].find('\n') else {
+            // The last line has no line ending, so it cannot close the block.
+            return (None, trimmed);
+        };
+        let line_start = offset;
+        let line_end = offset + relative_end;
+        offset = line_end + 1;
+        if is_fence(&trimmed[line_start..line_end]) {
+            let front = &trimmed[front_start..line_start];
+            // A CRLF document leaves the carriage return of the closing line's
+            // ending at the end of the frontmatter block. Drop it, so the YAML
+            // parser never sees a line break that is not one.
+            let front = front.strip_suffix('\r').unwrap_or(front);
+            return (Some(front), &trimmed[offset..]);
+        }
+    }
+}
+
+/// Whether a line is a frontmatter fence.
+///
+/// The line ending and any trailing spaces are ignored, so `---`, `--- ` and
+/// `---\r` are all the same fence.
+fn is_fence(line: &str) -> bool {
+    line.trim_end() == "---"
 }
 
 /// Parses a frontmatter block into a YAML mapping.
@@ -1205,9 +1237,14 @@ pub fn parse_note(text: &str, path: &Path) -> Result<Note, VaultError> {
     let id = if id.is_empty() { path_to_id(path) } else { id };
     let title = if title.is_empty() { id.clone() } else { title };
     // The blank line that separates the frontmatter from the body is not part
-    // of the body. Stripping exactly one newline keeps the body as it was
-    // authored and makes `render_note` → `parse_note` an exact round trip.
-    let body = body.strip_prefix('\n').unwrap_or(body);
+    // of the body. Stripping exactly one line ending keeps the body as it was
+    // authored and makes `render_note` → `parse_note` an exact round trip. The
+    // body keeps its own line endings: a note written on Windows still has
+    // CRLF in its prose.
+    let body = body
+        .strip_prefix("\r\n")
+        .or_else(|| body.strip_prefix('\n'))
+        .unwrap_or(body);
     Ok(Note { id, title, note_type, tags, links, body: body.to_string(), extra, path: path.to_path_buf() })
 }
 
@@ -1339,6 +1376,26 @@ mod tests {
         let again = parse_note(&rendered, &PathBuf::from("beliefs/rust.md")).expect("parse");
         assert_eq!(note, again);
     }
+
+    #[test]
+    fn a_crlf_note_still_has_its_frontmatter() {
+        let text = "---\r\nid: beliefs/rust\r\ntype: belief\r\n---\r\n\r\nBody\r\n";
+        let note = parse_note(text, &PathBuf::from("elsewhere.md")).expect("parse");
+        assert_eq!(note.id, "beliefs/rust", "the frontmatter must win over the file name");
+        assert_eq!(note.note_type, "belief");
+        assert!(
+            !note.body.contains("id:"),
+            "the yaml must not leak into the body: {}",
+            note.body
+        );
+    }
+
+    #[test]
+    fn an_empty_frontmatter_block_is_not_body_prose() {
+        let text = "---\n---\n\nBody.\n";
+        let note = parse_note(text, &PathBuf::from("elsewhere.md")).expect("parse");
+        assert_eq!(note.body.trim(), "Body.");
+    }
 }
 ```
 
@@ -1354,7 +1411,7 @@ do not add a second `[dev-dependencies]` table, which TOML rejects.
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-vault`
-Expected: PASS, 3 tests.
+Expected: PASS, 5 tests.
 
 
 - [ ] **Step 5: Run the task gate**
@@ -1579,7 +1636,7 @@ mod tests {
 ```
 
 Run: `cargo test -p si-vault`
-Expected: PASS, 6 tests.
+Expected: PASS, 8 tests.
 
 
 - [ ] **Step 7: Export the new items from the crate root**
@@ -1824,7 +1881,7 @@ And add `pub mod store;` plus `pub use store::Vault;` to `lib.rs`.
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-vault`
-Expected: PASS, 10 tests.
+Expected: PASS, 12 tests.
 
 
 - [ ] **Step 5: Run the task gate**
