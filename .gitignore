@@ -5,6 +5,12 @@
 # Runtime data: the mind's own log, vault and journals are not source.
 /data/
 
+# Isolated worktrees — the implementation branch lives here.
+/.worktrees/
+
+# Superpowers scratch: ledgers, briefs, review packages. Not source.
+/.superpowers/
+
 # Editor / OS
 .vscode/
 .idea/
