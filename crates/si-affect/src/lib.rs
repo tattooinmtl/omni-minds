@@ -5,6 +5,10 @@
 
 pub mod affect;
 pub mod bias;
+pub mod feeling;
+pub mod lexicon;
 
 pub use affect::Affect;
 pub use bias::{CognitionParameter, CognitionParameters};
+pub use feeling::Feeling;
+pub use lexicon::{FeelingMatch, Lexicon};
