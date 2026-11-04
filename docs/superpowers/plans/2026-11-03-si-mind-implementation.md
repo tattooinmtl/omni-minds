@@ -2390,15 +2390,22 @@ feelings across 8 files, committed in the design phase — but the crate itself
 does not. Two things must happen before `cargo test -p si-affect` can run at
 all:
 
-1. **Remove the temporary workspace exclude.** Task 0.1 added
+1. **Create the crate manifest and a module skeleton**, so the package exists
+   and `cargo test -p si-affect` resolves.
+2. **Remove the temporary workspace exclude.** Task 0.1 added
    `exclude = ["crates/si-affect"]` and three comment lines to the root
    `Cargo.toml`, because Cargo requires every directory matched by
    `members = ["crates/*"]` to be a valid package and the data directory was
    already there. Delete the `exclude` line and its comment lines from the
-   root `Cargo.toml` **before** creating the manifest: with the exclude gone
-   and no manifest yet, the workspace does not load at all.
-2. **Create the crate manifest and a module skeleton**, so the package exists
-   and `cargo test -p si-affect` resolves.
+   root `Cargo.toml`.
+
+> **Do the manifest first, the exclude second.** The order matters only
+> because of the moment in between: with the exclude gone and no manifest
+> yet, `members = ["crates/*"]` matches a directory that is not a package and
+> the workspace does not load at all — every cargo command in the repository
+> fails until it is fixed. Creating the manifest while the exclude is still
+> there is harmless (cargo ignores an excluded directory), so the workspace is
+> never in a broken state.
 
 `crates/si-affect/Cargo.toml`:
 
@@ -2442,6 +2449,9 @@ doc comment, which Step 4 fills in:
 
 Run: `cargo build -p si-affect`
 Expected: compiles. The crate is in the workspace and has no behaviour yet.
+Both halves of Step 1 must be done before this command: with the exclude
+still in the root `Cargo.toml`, `si-affect` is not a workspace member and
+`-p si-affect` does not resolve.
 
 - [ ] **Step 2: Write the failing test**
 
