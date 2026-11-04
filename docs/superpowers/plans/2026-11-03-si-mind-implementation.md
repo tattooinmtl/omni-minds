@@ -1147,31 +1147,43 @@ pub struct Note {
 /// Parses a note from its on-disk text.
 pub fn parse_note(text: &str, path: &Path) -> Result<Note, VaultError> {
     let (front, body) = split_frontmatter(text);
+    // The frontmatter is parsed once. A vault re-reads its notes constantly,
+    // so parsing the same block twice for every note is a real cost.
+    let value = match front {
+        Some(front) => Some(parse_frontmatter(front)?),
+        None => None,
+    };
     let mut extra = Value::Mapping(Default::default());
-    if let Some(front) = front {
-        let value = parse_frontmatter(front)?;
-        if let Value::Mapping(map) = value {
-            for (key, val) in map {
-                let key = key.as_str().unwrap_or_default().to_string();
-                match key.as_str() {
-                    "id" | "title" | "type" | "tags" | "links" => {}
-                    _ => {
-                        if let Some(mapping) = extra.as_mapping_mut() {
-                            mapping.insert(Value::String(key), val);
-                        }
+    if let Some(Value::Mapping(map)) = &value {
+        for (key, val) in map {
+            let key = key.as_str().unwrap_or_default().to_string();
+            match key.as_str() {
+                "id" | "title" | "type" | "tags" | "links" => {}
+                _ => {
+                    if let Some(mapping) = extra.as_mapping_mut() {
+                        mapping.insert(Value::String(key), val.clone());
                     }
                 }
             }
         }
     }
-    // The remaining known fields are read from the original mapping.
-    let (id, title, note_type, tags, links) = if let Some(front) = front {
-        read_known(front)?
-    } else {
-        (String::new(), String::new(), String::new(), Vec::new(), Vec::new())
+    // The remaining known fields are read from the same parsed mapping.
+    let (id, title, note_type, tags, links) = match &value {
+        Some(value) => read_known(value),
+        None => (
+            String::new(),
+            String::new(),
+            String::new(),
+            Vec::new(),
+            Vec::new(),
+        ),
     };
     let id = if id.is_empty() { path_to_id(path) } else { id };
     let title = if title.is_empty() { id.clone() } else { title };
+    // The blank line that separates the frontmatter from the body is not part
+    // of the body. Stripping exactly one newline keeps the body as it was
+    // authored and makes `render_note` → `parse_note` an exact round trip.
+    let body = body.strip_prefix('\n').unwrap_or(body);
     Ok(Note { id, title, note_type, tags, links, body: body.to_string(), extra, path: path.to_path_buf() })
 }
 
@@ -1194,15 +1206,25 @@ pub fn render_note(note: &Note) -> String {
     out
 }
 
-/// Derives a note id from a path relative to the vault root.
+/// Derives a note id from the note's file name.
+///
+/// This is the fallback for a note whose frontmatter carries no `id`. It is
+/// the file name only, not the folder path, because `parse_note` is given an
+/// absolute path by the vault and cannot know the vault root — so two
+/// same-named notes in different folders share a fallback id. Notes written
+/// by the vault always carry their full `<folder>/<slug>` id in frontmatter,
+/// so the collision only affects hand-written notes.
 pub fn path_to_id(path: &Path) -> String {
     path.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default()
 }
 
-fn read_known(front: &str) -> Result<(String, String, String, Vec<String>, Vec<String>), VaultError> {
-    let value: Value = parse_frontmatter(front)?;
+fn read_known(value: &Value) -> (String, String, String, Vec<String>, Vec<String>) {
     let get = |key: &str| -> String {
-        value.get(key).and_then(|v| v.as_str()).unwrap_or_default().to_string()
+        value
+            .get(key)
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_string()
     };
     let list = |key: &str| -> Vec<String> {
         value
@@ -1211,7 +1233,13 @@ fn read_known(front: &str) -> Result<(String, String, String, Vec<String>, Vec<S
             .map(|s| s.iter().filter_map(|v| v.as_str().map(str::to_string)).collect())
             .unwrap_or_default()
     };
-    Ok((get("id"), get("title"), get("type"), list("tags"), list("links")))
+    (
+        get("id"),
+        get("title"),
+        get("type"),
+        list("tags"),
+        list("links"),
+    )
 }
 ```
 
@@ -1295,12 +1323,9 @@ Expected: FAIL to compile — `serde_yaml` not in scope, `VaultError` not yet de
 
 - [ ] **Step 3: Implement the remaining pieces**
 
-Add `use std::path::PathBuf;` to `note.rs`. Create the `lib.rs` shown above. Add to `crates/si-vault/Cargo.toml`:
-
-```toml
-[dev-dependencies]
-tempfile = "3"
-```
+Add `use std::path::PathBuf;` to `note.rs`. Create the `lib.rs` shown above. The
+manifest from Step 1 already declares the dev-dependencies this task's tests need —
+do not add a second `[dev-dependencies]` table, which TOML rejects.
 
 - [ ] **Step 4: Run the test to verify it passes**
 
