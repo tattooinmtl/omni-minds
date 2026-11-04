@@ -930,6 +930,30 @@ fn folding_past_the_end_is_the_same_as_folding_to_the_end() {
     let b = log.fold_to(u64::MAX, CountThought::default()).expect("fold");
     assert_eq!(a, b);
 }
+
+/// More events than one fold page holds, so the fold has to read a second page
+/// and then exit on a partial one.
+///
+/// The page size is the crate's business, so the count is deliberately larger
+/// than any plausible page: the fold stays a multi-page fold whatever the
+/// constant is.
+const EVENTS_SPANNING_SEVERAL_PAGES: u32 = 1000;
+
+#[test]
+fn a_fold_spans_more_events_than_one_page_holds() {
+    let log = Log::open_in_memory().expect("open");
+    for index in 0..EVENTS_SPANNING_SEVERAL_PAGES {
+        log.append(
+            EventKind::Thought { text_ref: format!("t{index}"), confidence: 1.0 },
+            None,
+            None,
+            1.0,
+        )
+        .expect("append");
+    }
+    let (thoughts, _) = log.fold_to(u64::MAX, CountThought::default()).expect("fold");
+    assert_eq!(thoughts, EVENTS_SPANNING_SEVERAL_PAGES);
+}
 ```
 
 - [ ] **Step 2: Run the test to verify it fails**
@@ -1012,7 +1036,7 @@ impl Log {
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-log --test fold`
-Expected: PASS, 2 tests.
+Expected: PASS, 3 tests.
 
 
 - [ ] **Step 5: Run the task gate**
@@ -1023,7 +1047,7 @@ Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo
 - [ ] **Step 6: Run the whole crate and commit**
 
 Run: `cargo test -p si-log`
-Expected: PASS — 11 tests in total: 3 event unit tests, 6 store tests, 2 fold tests.
+Expected: PASS — 12 tests in total: 3 event unit tests, 6 store tests, 3 fold tests.
 
 ```bash
 git add crates/si-log
@@ -9417,7 +9441,7 @@ pub fn conn_for_test(&self) -> std::sync::MutexGuard<'_, rusqlite::Connection> {
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-log`
-Expected: PASS — 13 tests in total: 3 event unit tests, 6 store tests, 2 fold tests, 2 shared tests.
+Expected: PASS — 14 tests in total: 3 event unit tests, 6 store tests, 3 fold tests, 2 shared tests.
 
 > `cargo test -p si-log` must be green, including the Task 0.3 trigger test
 > and the Task 0.4 fold test. The fold walks the log through `events`, which
