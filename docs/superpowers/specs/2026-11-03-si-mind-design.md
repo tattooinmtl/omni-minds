@@ -149,7 +149,7 @@ Every cognitive step is an event. These are the only kinds:
 | `decided` | a choice is made among options | `options`, `chosen`, `rationale` |
 | `acted` | a tool call or file write | `tool`, `args_ref`, `result_ref` |
 | `felt` | affect state changes | `delta`, `after`, `label` |
-| `noticed` | a contradiction, duplicate, or anomaly is detected | `kind`, `refs` |
+| `noticed` | a contradiction, duplicate, or anomaly is detected | `kind`, `refs` (serialized as `notice_kind` — see below) |
 | `wrote` | a vault note is created or edited | `note_id`, `path` |
 | `evicted` | a node leaves the aperture | `node_id`, `reason` |
 | `routed` | a model is selected for a call | `slot`, `provider`, `model`, `fallback`, `why` |
@@ -165,6 +165,11 @@ Every cognitive step is an event. These are the only kinds:
 `routed` makes the router visible inside the mind: you can see *why* H3 was chosen for a video
 and M3.1-Flash for a thought, and you can see a fallback fire when an entitlement lapses.
 
+Each kind is stored as an internally tagged JSON object, so the kind's tag key is `kind`
+inside the payload. That key is spent on the tag, so a variant's own field cannot also be
+called `kind`: the `noticed` variant's field is serialized as `notice_kind`. The Rust field
+keeps the name `kind`, so every consumer reads `EventKind::Noticed { kind, .. }` unchanged.
+
 ### 4.1 Event schema
 
 ```sql
@@ -172,9 +177,8 @@ CREATE TABLE event (
     seq        INTEGER PRIMARY KEY AUTOINCREMENT,
     id         TEXT    NOT NULL UNIQUE,   -- UUIDv7
     ts_us      INTEGER NOT NULL,          -- unix microseconds
-    kind       TEXT    NOT NULL,
     turn_id    TEXT,                      -- NULL for daemon-origin events
-    payload    TEXT    NOT NULL,          -- JSON
+    payload    TEXT    NOT NULL,          -- JSON, internally tagged: {"kind":"felt", ...}
     valence    REAL,                      -- affect snapshot at emit time
     arousal    REAL,
     tension    REAL,
@@ -185,6 +189,10 @@ BEGIN SELECT RAISE(ABORT, 'event log is append-only'); END;
 CREATE TRIGGER event_no_delete BEFORE DELETE ON event
 BEGIN SELECT RAISE(ABORT, 'event log is append-only'); END;
 ```
+
+There is no separate `kind` column. The kind is the tag inside the `payload` JSON, so the
+column and the payload it duplicates cannot drift apart. Filter by kind in SQL with
+`json_extract(payload, '$.kind') = 'felt'`.
 
 `turn_id` groups events belonging to one user query — the unit the Query Lens replays.
 

@@ -44,6 +44,7 @@ Every task below implicitly includes these. They are copied verbatim from the sp
 - **Every plan item has an origin.**
 - **Provider keys are never in the log and never in a setting value.**
 - **Lexicon validation:** `python tools/validate_lexicon.py` must pass after any change to `crates/si-affect/data/feelings/`.
+- **Every task ends green on the full gate:** `cargo build`, `cargo test`, `cargo fmt --all --check` and `cargo clippy --all-targets -- -D warnings` all pass. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` after writing them and before committing.
 
 ---
 
@@ -252,7 +253,10 @@ git commit -m "chore: cargo workspace skeleton with si-log crate"
 - Produces:
   - `si_log::EventId` — newtype over `uuid::Uuid`.
   - `si_log::TurnId` — newtype over `String`.
-  - `si_log::EventKind` — the 18 variants listed in §4.
+  - `si_log::EventKind` — the 18 variants listed in §4. The `Noticed` variant's
+    `kind` field is serialized as `notice_kind`: serde spends the `kind` key on
+    the variant tag, and a variant field cannot share the tag's name. The Rust
+    field keeps the spec's name; only the wire key differs.
   - `si_log::Event` — `{ id: EventId, seq: u64, ts_us: i64, turn_id: Option<TurnId>, kind: EventKind, affect: Option<AffectSnapshot>, salience: f32 }`.
   - `si_log::AffectSnapshot` — `{ valence: f32, arousal: f32, tension: f32 }`.
 
@@ -382,7 +386,18 @@ pub enum EventKind {
     Decided { options: Vec<String>, chosen: String, rationale: String },
     Acted { tool: String, args_ref: String, result_ref: String },
     Felt { delta: [f32; 3], after: [f32; 3], label: String },
-    Noticed { kind: String, refs: Vec<String> },
+    Noticed {
+        /// What was noticed: `contradiction`, `duplicate`, `anomaly`, ...
+        ///
+        /// Serialized as `notice_kind`, not `kind`. The internally tagged
+        /// representation already spends the `kind` key on the variant tag
+        /// itself, and serde rejects a variant field that shares the tag's
+        /// name. The Rust field keeps the spec's name so every consumer
+        /// matches `EventKind::Noticed { kind, .. }` unchanged.
+        #[serde(rename = "notice_kind")]
+        kind: String,
+        refs: Vec<String>,
+    },
     Wrote { note_id: String, path: String, op: WriteOp },
     Evicted { node_id: String, reason: EvictReason },
     Routed { slot: String, provider: String, model: String, fallback: bool, why: String },
@@ -555,6 +570,11 @@ pub struct Log {
 }
 
 /// Schema applied on open. Kept as a constant so it can be asserted against.
+///
+/// There is no `kind` column: the variant tag lives inside the `payload` JSON
+/// (`{"kind":"noticed", ...}`), so the kind cannot disagree with the payload
+/// that carries it. Filter by kind in SQL with
+/// `json_extract(payload, '$.kind') = 'noticed'`.
 const SCHEMA: &str = r#"
 CREATE TABLE IF NOT EXISTS event (
     seq        INTEGER PRIMARY KEY AUTOINCREMENT,
