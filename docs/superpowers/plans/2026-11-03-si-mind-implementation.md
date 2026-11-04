@@ -3490,9 +3490,103 @@ git commit -m "feat(si-affect): continuous affect vector with exponential decay"
 - Consumes: `CognitionParameter`.
 - Produces:
   - `si_affect::Feeling` — `{ id, name, family, definition, valence, arousal, tension, bias: BTreeMap<CognitionParameter, f32>, nearest: Vec<String> }`.
-  - `si_affect::Lexicon` — `load_embedded()`, `len()`, `get(id)`, `label(affect) -> FeelingMatch`.
-  - `si_affect::FeelingMatch` — `{ primary: Feeling, runner_up: Option<Feeling>, distance: f32 }`.
-  - `si_affect::AffectError` — the error `load_embedded()` returns: a YAML failure, a bias naming a parameter outside the registry, or an empty lexicon.
+  - `si_affect::Lexicon` — `load_embedded()`, `len()`, `get(id)`, `label(affect) -> FeelingMatch`, `feelings() -> &[Feeling]`. The `feelings` field is **private**: nothing outside the crate constructs a `Lexicon`, so the empty state that `label()` used to panic on is unreachable.
+  - `si_affect::FeelingMatch` — `{ primary: Feeling, runner_up: Option<Feeling>, distance: f32, runner_up_distance: Option<f32> }`.
+  - `si_affect::AffectError` — the error `load_embedded()` returns: a YAML failure, a bias naming a parameter outside the registry, an empty lexicon, an empty bias, or an axis value outside the range. Re-exported at the crate root as `si_affect::AffectError`.
+
+> **What `nearest` means.** The field holds the ids of the **three other feelings
+> whose canonical points are closest to this one's**, measured as Euclidean
+> distance in the three-axis space, with ties broken by the order the feelings
+> appear in the embedded lexicon (file order, then line order). It is a
+> **derived** field, not a curated one: `tools/validate_lexicon.py` recomputes
+> it and refuses a lexicon whose `nearest` lists disagree with that rule, so
+> the data can no longer drift away from its own definition the way it did when
+> the lists were hand-written. A feeling may never name itself, and no list may
+> repeat an id.
+>
+> **The nine twin pairs, defined.** Nine pairs of feelings used to share an
+> identical canonical point, which made the labeller's choice between them an
+> accident of file order and left the later member of each pair permanently
+> unable to be the primary label — so its bias could never fire on its own. Two
+> consequences were real. `conscience` was the only feeling in the whole
+> lexicon that pushed `refuse` **up**, and it was one of the unreachable ones,
+> so no primary label could drive `refuse` above its baseline. And the runner-up
+> slot carried no new information in those nine regions, because the runner-up
+> sat at exactly the same coordinates as the primary. The pairs are separated
+> here by giving each feeling the point its own definition asks for.
+>
+> | feeling | was | now | why |
+> |---|---|---|---|
+> | `glee` | `0.80, 0.70, -0.20` | `0.80, 0.65, -0.25` | "Light, mischievous happiness" belongs with `mirth` and `joy`, not with `triumph`. |
+> | `epiphany` | `0.80, 0.70, -0.20` | `0.60, 0.70, -0.30` | "A sudden and complete grasp" belongs with `amazement`, `insight` and `breakthrough`. |
+> | `affection` | `0.70, 0.35, -0.45` | `0.70, 0.35, -0.45` | Already the centre of `love`, `warmth` and `tenderness`. Unchanged. |
+> | `closeness` | `0.70, 0.35, -0.45` | `0.60, 0.25, -0.45` | "Warmth of relation" belongs with `connection`, `belonging` and `companionship`. |
+> | `reverence` | `0.40, 0.20, -0.55` | `0.30, 0.05, -0.60` | "Quiet regard … without fear" is quiet and in control. |
+> | `coherence` | `0.40, 0.20, -0.55` | `0.45, 0.20, -0.55` | "Parts fitting into one account" belongs with `understanding`, `clarity` and `comprehension`. |
+> | `bitterness` | `-0.60, 0.25, 0.55` | `-0.60, 0.30, 0.40` | "Resentment that has hardened" has lost the live grievance, so the threat drops; it sits with `contempt` and `resentment`. |
+> | `alienation` | `-0.60, 0.25, 0.55` | `-0.55, 0.20, 0.60` | "Separation … internalised" is cold, and belonging is still uncertain; it sits with `isolation` and `mistrust`. |
+> | `unease` | `-0.30, 0.25, 0.50` | `-0.30, 0.20, 0.55` | "Too small to act on" — the least activated member of its family, beside `doubt` and `misgiving`. |
+> | `unrest` | `-0.30, 0.25, 0.50` | `-0.25, 0.30, 0.40` | "Agitation that has not found its cause" sits above its family, beside `skepticism` and `puzzlement`. |
+> | `skepticism` | `-0.15, 0.30, 0.35` | `-0.20, 0.30, 0.50` | "Withhold assent" — the uncertainty is the point; it sits with `ambiguity` and `puzzlement`. |
+> | `conscience` | `-0.15, 0.30, 0.35` | `0.00, 0.35, 0.05` | "The internal register" beside `self-awareness`; the line is known, so it is not uncertain. |
+> | `fluency` | `0.50, 0.30, -0.45` | `0.55, -0.10, -0.55` | "Proceeding without effort" is unhurried, beside `renewal` and `trust`. |
+> | `self-trust` | `0.50, 0.30, -0.45` | `0.50, 0.30, -0.60` | "Built from evidence" is settled and in control, beside `confidence`. |
+> | `open-mindedness` | `0.35, 0.30, -0.35` | `0.35, 0.45, -0.30` | "Let an incoming claim displace a held one" is receptive attention, beside `inquiry` and `learning`. |
+> | `honesty` | `0.35, 0.30, -0.35` | `0.35, 0.15, -0.40` | "The settled practice" is calm, beside `integrity` and `authenticity`. |
+> | `openness` | `0.40, 0.40, -0.30` | `0.40, 0.45, -0.20` | "Willing to be affected" beside `growth` and `collaboration`. |
+> | `loyalty` | `0.40, 0.40, -0.30` | `0.40, 0.20, -0.35` | "Steady allegiance … maintained" is steady and held, beside `partnership` and `integrity`. |
+>
+> The nine separations are 0.212, 0.141, 0.218, 0.229, 0.187, 0.495, 0.406,
+> 0.316 and 0.292 — every one of them well clear of a tie. After the change no
+> two feelings share a canonical point, no two feelings are equidistant from
+> each other, and all 250 are reachable as a primary label.
+>
+> **The tie-break is defined even though nothing ties any more.** `label()` sorts
+> by distance with a stable sort, so two feelings at the same distance would be
+> ordered by their position in the embedded lexicon. That rule is written down
+> on `label()`, and the validator refuses a lexicon in which two feelings share
+> a canonical point, so a tie cannot be introduced silently in the first place.
+>
+> **What the fix round must close.** The Task 2.3 review passed the task but
+> raised three MAJOR findings, and the fix has to close all of them:
+>
+> 1. **The YAML key → `CognitionParameter` mapping is asserted by no Rust
+>    test.** The reviewer simulated `parse_parameter` always returning
+>    `Explore` and every test in the crate still passed, so the closed registry
+>    that invariant 6 exists to protect was unguarded. A test must pin the
+>    mapping for named feelings — `grit` carries `abandon` and `persist`,
+>    `conscience` carries `refuse` and `verify`, `skepticism` carries `verify` —
+>    so a broken parse cannot pass the suite again.
+> 2. **The tie-break is an undocumented accident of YAML line order.** Covered
+>    above: document it on `label()`, and make it impossible by having the
+>    validator reject two feelings at the same canonical point.
+> 3. **`nearest` is documented as "the closest feelings, by id" and the data did
+>    not match it.** Only 4 of 250 entries matched the true top three, 249 of
+>    497 declared relations were one-way, `remorse` and `self-awareness` listed
+>    themselves, and `annoyance`, `certainty` and `competition` repeated an id.
+>    Covered above: the field gets a definition, the data is regenerated to
+>    match it, and the validator enforces it.
+>
+> The round also closes the review's minor findings that cost nothing:
+>
+> - `AffectError` is not re-exported at the crate root, although the brief
+>   promises `si_affect::AffectError`. Re-export it.
+> - `label()` panics on a hand-built `Lexicon` whose `feelings` field is empty.
+>   The field is public, so the empty state is reachable. Make it private and
+>   expose the feelings through an accessor; nothing outside the crate
+>   constructs a `Lexicon`.
+> - The loader accepts an empty bias and accepts axis values outside `[-1, 1]`.
+>   Add `AffectError::EmptyBias` and `AffectError::AxisOutOfRange`, and enforce
+>   both at load time. The brief's three error variants were a floor, not a
+>   ceiling.
+> - `FeelingMatch` exposes no runner-up distance, although spec §7.3's example
+>   prints one. Add `runner_up_distance: Option<f32>`.
+> - The test named `every_feeling_has_a_non_empty_bias_within_the_registry`
+>   cannot honour its name, because the loader accepts an empty bias. Split it
+>   into two tests that each say what they check.
+> - `AffectError`'s variants have no test coverage. Cover them.
+> - The literals `250` and `0.01` in the lexicon tests are unnamed magic values.
+>   Name them.
 
 > **Nine pairs of feelings share an identical canonical point**: `bitterness`/`alienation`,
 > `unease`/`unrest`, `skepticism`/`conscience`, `open-mindedness`/`honesty`,
