@@ -90,15 +90,23 @@ fn deleting_from_self_is_refused() {
 }
 
 #[test]
+fn the_id_self_is_a_file_beside_the_folder_not_inside_it() {
+    let (dir, v) = vault();
+    v.write_note(&note("self", "ordinary")).expect("write");
+    assert!(
+        dir.path().join("self.md").exists(),
+        "self.md is an ordinary file beside the folder"
+    );
+    assert!(v.read_note("self").expect("read").is_some());
+}
+
+#[test]
 fn a_note_id_cannot_escape_the_vault() {
     let (dir, v) = vault();
     for id in [
         "../escaped",
         "beliefs/../../escaped",
         "/absolute",
-        "C:/escaped",
-        "C:escaped",
-        "//server/share/escaped",
         ".. /escaped",
         ".../escaped",
     ] {
@@ -118,6 +126,45 @@ fn a_note_id_cannot_escape_the_vault() {
             .join("escaped.md")
             .exists(),
         "nothing may land beside the vault"
+    );
+}
+
+#[cfg(windows)]
+#[test]
+fn a_drive_prefixed_id_cannot_escape_the_vault() {
+    let (dir, v) = vault();
+    for id in ["C:/escaped", "C:escaped", "//server/share/escaped"] {
+        assert!(
+            v.write_note(&note(id, "x")).is_err(),
+            "{id} must not be written outside the vault"
+        );
+        assert!(
+            v.read_note(id).is_err(),
+            "{id} must not be read from outside the vault"
+        );
+    }
+    assert!(
+        !dir.path()
+            .parent()
+            .expect("parent")
+            .join("escaped.md")
+            .exists(),
+        "nothing may land beside the vault"
+    );
+}
+
+#[test]
+fn a_colon_in_an_id_is_refused() {
+    let (dir, v) = vault();
+    for id in ["beliefs/C:foo", "beliefs/file.md:stream"] {
+        assert!(
+            v.write_note(&note(id, "x")).is_err(),
+            "{id} must be refused: a colon names an alternate data stream"
+        );
+    }
+    assert!(
+        !dir.path().join("beliefs").exists(),
+        "a refused id must leave nothing behind"
     );
 }
 
@@ -174,6 +221,61 @@ fn two_notes_with_the_same_file_name_get_different_ids() {
 }
 
 #[test]
+fn an_author_written_id_is_left_alone() {
+    let (dir, v) = vault();
+    std::fs::create_dir_all(dir.path().join("hand")).expect("folder");
+    std::fs::write(
+        dir.path().join("hand").join("explicit.md"),
+        "---\nid: explicit\ntype: note\n---\n\nbody\n",
+    )
+    .expect("seed");
+    let ids: Vec<String> = v
+        .notes()
+        .expect("notes")
+        .into_iter()
+        .map(|n| n.id)
+        .collect();
+    assert!(
+        ids.contains(&"explicit".to_string()),
+        "an id the author wrote must survive, got {ids:?}"
+    );
+}
+
+#[test]
+fn reading_and_listing_agree_about_a_note() {
+    let (dir, v) = vault();
+    std::fs::create_dir_all(dir.path().join("hand")).expect("folder");
+    std::fs::write(
+        dir.path().join("hand").join("no-id.md"),
+        "---\ntype: note\n---\n\nbody\n",
+    )
+    .expect("seed");
+    let listed = v.notes().expect("notes");
+    let listed_id = listed
+        .iter()
+        .find(|n| n.id == "hand/no-id")
+        .expect("the note is listed")
+        .id
+        .clone();
+    let read = v.read_note(&listed_id).expect("read").expect("present");
+    assert_eq!(
+        read.id, listed_id,
+        "read_note and notes() must agree about the same file"
+    );
+}
+
+#[test]
+fn an_id_that_already_names_the_extension_is_refused() {
+    let (dir, v) = vault();
+    let result = v.write_note(&note("beliefs/a.md", "a"));
+    assert!(
+        matches!(result, Err(VaultError::IdCarriesExtension { .. })),
+        "one note must have one address, got {result:?}"
+    );
+    assert!(!dir.path().join("beliefs").exists());
+}
+
+#[test]
 fn writing_a_note_leaves_no_temporary_file_behind() {
     let (dir, v) = vault();
     v.write_note(&note("beliefs/a", "a")).expect("write");
@@ -191,11 +293,25 @@ fn writing_a_note_leaves_no_temporary_file_behind() {
 }
 
 #[test]
-fn an_id_that_already_names_the_extension_is_not_doubled() {
+fn a_failed_write_leaves_the_previous_note_intact() {
     let (dir, v) = vault();
-    v.write_note(&note("beliefs/a.md", "a")).expect("write");
-    assert!(dir.path().join("beliefs").join("a.md").exists());
-    assert!(!dir.path().join("beliefs").join("a.md.md").exists());
+    // A directory where the note belongs: the rename onto it cannot succeed.
+    std::fs::create_dir_all(dir.path().join("beliefs").join("blocked.md")).expect("dir");
+    let result = v.write_note(&note("beliefs/blocked", "new"));
+    assert!(result.is_err(), "the write must fail");
+    assert!(
+        dir.path().join("beliefs").join("blocked.md").is_dir(),
+        "the previous note must survive a failed write"
+    );
+    let leftovers: Vec<String> = std::fs::read_dir(dir.path().join("beliefs"))
+        .expect("read")
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().to_string())
+        .collect();
+    assert!(
+        !leftovers.iter().any(|name| name.ends_with(".tmp")),
+        "a failed write must not leave a temp file: {leftovers:?}"
+    );
 }
 
 #[test]

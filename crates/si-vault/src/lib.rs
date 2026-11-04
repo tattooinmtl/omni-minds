@@ -27,6 +27,8 @@ pub enum VaultError {
     SelfWriteRefused { action: &'static str, id: String },
     #[error("note id {0} would escape the vault")]
     UnsafeId(String),
+    #[error("note id {0} already carries the .md extension; use the id without it")]
+    IdCarriesExtension(String),
 }
 
 #[doc(inline)]

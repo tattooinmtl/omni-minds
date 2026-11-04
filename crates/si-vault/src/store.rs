@@ -5,7 +5,7 @@
 use std::path::{Component, Path, PathBuf};
 
 use crate::graph::{graph, Edge};
-use crate::note::{parse_note, path_to_id, render_note, Note};
+use crate::note::{parse_note, render_note, Note};
 use crate::VaultError;
 
 /// The folder the agent's own self-authored journals live in. Only the journal
@@ -40,12 +40,21 @@ fn windows_segment(segment: &str) -> &str {
 /// is an ordinary folder and must not be refused. Only the first segment is
 /// compared, because `self/` is the folder directly under the vault root —
 /// `other/self/notes` is somewhere else entirely.
+///
+/// The id `self` is **not** inside the folder: it is the note `self.md`,
+/// an ordinary file beside it.
 fn is_self_id(id: &str) -> bool {
     let id = id.replace('\\', "/");
-    match id.split('/').next() {
-        Some(first) => windows_segment(first).eq_ignore_ascii_case(SELF_DIR),
-        None => false,
+    let mut segments = id.split('/');
+    let first = match segments.next() {
+        Some(first) => first,
+        None => return false,
+    };
+    if !windows_segment(first).eq_ignore_ascii_case(SELF_DIR) {
+        return false;
     }
+    // `self` alone is a file name; `self/anything` is inside the folder.
+    segments.next().is_some()
 }
 
 /// Whether an id can be turned into a path inside the vault.
@@ -66,10 +75,32 @@ fn id_stays_inside_the_vault(id: &str) -> bool {
     ) {
         return false;
     }
+    // A colon is invalid in a Windows file name, and in the middle of a path
+    // it names an alternate data stream: `note.md:stream` would write beside
+    // the note instead of into it, leaving the note itself untouched.
+    if id.split('/').any(|segment| segment.contains(':')) {
+        return false;
+    }
     // A segment that is nothing but dots and spaces is a parent-directory
     // segment to Windows, whatever it looks like.
     !id.split('/')
         .any(|segment| windows_segment(segment).is_empty())
+}
+
+/// Whether an id already carries the note extension.
+///
+/// The id of a note is its path without the extension, so `beliefs/rust` is
+/// the id of `beliefs/rust.md`. Accepting `beliefs/rust.md` as well would give
+/// one file two addresses, and a second write through the other spelling
+/// would silently replace the first.
+fn id_carries_the_extension(id: &str) -> bool {
+    let id = id.replace('\\', "/");
+    let name = match id.rsplit('/').next() {
+        Some(name) => name,
+        None => return false,
+    };
+    let suffix = format!(".{}", NOTE_EXTENSION);
+    name.len() > suffix.len() && name.ends_with(&suffix)
 }
 
 /// A directory of markdown notes.
@@ -104,15 +135,18 @@ impl Vault {
     /// Writes a note, creating parent folders as needed.
     ///
     /// Refuses to write into `self/`; see `SELF_DIR`.
+    ///
+    /// The frontmatter is machine-managed and is rebuilt from the note's
+    /// fields, so a rewritten note gains `tags:` and `links:` keys the author
+    /// never wrote. The **body** is the author's text and is left byte for
+    /// byte alone, CRLF endings included.
     pub fn write_note(&self, note: &Note) -> Result<(), VaultError> {
+        self.check_id(&note.id)?;
         if is_self_id(&note.id) {
             return Err(VaultError::SelfWriteRefused {
                 action: "write",
                 id: note.id.clone(),
             });
-        }
-        if !id_stays_inside_the_vault(&note.id) {
-            return Err(VaultError::UnsafeId(note.id.clone()));
         }
         let path = self.path_for(&note.id);
         if let Some(parent) = path.parent() {
@@ -146,9 +180,7 @@ impl Vault {
     /// Reading `self/` is allowed: the personality code reads the agent's own
     /// journals. Reading outside the vault is not.
     pub fn read_note(&self, id: &str) -> Result<Option<Note>, VaultError> {
-        if !id_stays_inside_the_vault(id) {
-            return Err(VaultError::UnsafeId(id.to_string()));
-        }
+        self.check_id(id)?;
         let path = self.path_for(id);
         if !path.exists() {
             return Ok(None);
@@ -157,7 +189,13 @@ impl Vault {
             path: path.clone(),
             source,
         })?;
-        Ok(Some(parse_note(&text, &path)?))
+        // The parse is given the note's path *relative to the vault root*, so
+        // that a note without an id of its own is addressed by where it
+        // lives. `notes()` uses the same rule, so the two agree.
+        let relative = format!("{}.{}", id, NOTE_EXTENSION);
+        let mut note = parse_note(&text, Path::new(&relative))?;
+        note.path = path;
+        Ok(Some(note))
     }
 
     /// Deletes a note. Returns whether anything was removed.
@@ -165,14 +203,12 @@ impl Vault {
     /// Refuses to delete from `self/`: the journal writer owns those notes, and
     /// deleting one would destroy the record the personality is derived from.
     pub fn delete_note(&self, id: &str) -> Result<bool, VaultError> {
+        self.check_id(id)?;
         if is_self_id(id) {
             return Err(VaultError::SelfWriteRefused {
                 action: "delete",
                 id: id.to_string(),
             });
-        }
-        if !id_stays_inside_the_vault(id) {
-            return Err(VaultError::UnsafeId(id.to_string()));
         }
         let path = self.path_for(id);
         if !path.exists() {
@@ -195,35 +231,33 @@ impl Vault {
         Ok(graph(&self.notes()?))
     }
 
-    /// The file a note id lives in.
-    ///
-    /// An id that already carries the extension is not given a second one.
-    fn path_for(&self, id: &str) -> PathBuf {
-        let id = id.replace('\\', "/");
-        let suffix = format!(".{}", NOTE_EXTENSION);
-        let stem = id.strip_suffix(suffix.as_str()).unwrap_or(&id);
-        self.root.join(format!("{}.{}", stem, NOTE_EXTENSION))
+    /// The checks every id must pass before it can name a file.
+    fn check_id(&self, id: &str) -> Result<(), VaultError> {
+        if !id_stays_inside_the_vault(id) {
+            return Err(VaultError::UnsafeId(id.to_string()));
+        }
+        if id_carries_the_extension(id) {
+            return Err(VaultError::IdCarriesExtension(id.to_string()));
+        }
+        Ok(())
     }
 
-    /// The id of the note at `path`, taken from where it sits in the vault.
+    /// The file a note id lives in.
     ///
-    /// The path is the note's address: `read_note(id)` looks for
-    /// `<root>/<id>.md`. So a note without an `id` of its own is addressed by
-    /// its place in the tree, and two notes with the same file name in
-    /// different folders stay two notes.
-    fn id_for(&self, path: &Path) -> String {
-        let relative = path.strip_prefix(&self.root).unwrap_or(path);
-        let relative = relative.to_string_lossy().replace('\\', "/");
-        let suffix = format!(".{}", NOTE_EXTENSION);
-        match relative.strip_suffix(suffix.as_str()).map(str::to_string) {
-            Some(stem) => stem,
-            None => relative,
-        }
+    /// An id is a path without its extension: `beliefs/rust` is
+    /// `<root>/beliefs/rust.md`.
+    fn path_for(&self, id: &str) -> PathBuf {
+        self.root.join(format!("{}.{}", id, NOTE_EXTENSION))
     }
 
     fn walk(&self, dir: &Path, out: &mut Vec<Note>, depth: usize) -> Result<(), VaultError> {
         if depth > MAX_FOLDER_DEPTH {
-            tracing::warn!(path = %dir.display(), depth = depth, "vault.folder.too_deep: the vault nests deeper than the walk follows");
+            tracing::warn!(
+                name: "vault.folder.too_deep",
+                path = %dir.display(),
+                depth = depth,
+                "the vault nests deeper than the walk follows"
+            );
             return Ok(());
         }
         let entries = match std::fs::read_dir(dir) {
@@ -231,7 +265,12 @@ impl Vault {
             Err(source) => {
                 // A folder that cannot be read is a gap in the projection, not
                 // a reason to lose every other note.
-                tracing::warn!(path = %dir.display(), error = %source, "vault.folder.unreadable: skipping a folder that could not be read");
+                tracing::warn!(
+                    name: "vault.folder.unreadable",
+                    path = %dir.display(),
+                    error = %source,
+                    "skipping a folder that could not be read"
+                );
                 return Ok(());
             }
         };
@@ -241,7 +280,12 @@ impl Vault {
                 Err(source) => {
                     // An entry that could not even be listed is a gap like any
                     // other: skip it, say so, and keep going.
-                    tracing::warn!(path = %dir.display(), error = %source, "vault.entry.unreadable: skipping an entry that could not be listed");
+                    tracing::warn!(
+                        name: "vault.entry.unreadable",
+                        path = %dir.display(),
+                        error = %source,
+                        "skipping an entry that could not be listed"
+                    );
                     continue;
                 }
             };
@@ -256,21 +300,23 @@ impl Vault {
             let text = match std::fs::read_to_string(&path) {
                 Ok(text) => text,
                 Err(source) => {
-                    tracing::warn!(path = %path.display(), error = %source, "vault.note.unreadable: skipping a note that could not be read");
+                    tracing::warn!(
+                        name: "vault.note.unreadable",
+                        path = %path.display(),
+                        error = %source,
+                        "skipping a note that could not be read"
+                    );
                     continue;
                 }
             };
-            match parse_note(&text, &path) {
+            // The note is parsed against its path *relative to the vault
+            // root*, so a note without an id of its own is addressed by where
+            // it lives and two notes with the same file name in different
+            // folders stay two notes. An id the author wrote is left alone.
+            let relative = path.strip_prefix(&self.root).unwrap_or(&path);
+            match parse_note(&text, relative) {
                 Ok(mut note) => {
-                    // `parse_note` falls back to the file name when a note
-                    // carries no `id` of its own, and two notes with the same
-                    // name in different folders would then share one. The
-                    // vault addresses notes by their place in the tree, so the
-                    // fallback becomes the full path. An `id` the author
-                    // wrote is left alone.
-                    if note.id == path_to_id(&path) {
-                        note.id = self.id_for(&path);
-                    }
+                    note.path = path.to_path_buf();
                     out.push(note);
                 }
                 Err(source) => {
@@ -278,7 +324,12 @@ impl Vault {
                     // unreadable: the mind would lose access to everything it
                     // knows because of a single bad file. The file is still on
                     // disk, and the log remains the source of truth.
-                    tracing::warn!(path = %path.display(), error = %source, "vault.note.unparsable: skipping a note that could not be parsed");
+                    tracing::warn!(
+                        name: "vault.note.unparsable",
+                        path = %path.display(),
+                        error = %source,
+                        "skipping a note that could not be parsed"
+                    );
                 }
             }
         }

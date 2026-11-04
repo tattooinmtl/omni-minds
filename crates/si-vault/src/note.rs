@@ -114,18 +114,16 @@ pub fn render_note(note: &Note) -> String {
     out
 }
 
-/// Derives a note id from the note's file name.
+/// Derives a note id from a note's path.
 ///
-/// This is the fallback for a note whose frontmatter carries no `id`. It is
-/// the file name only, not the folder path, because `parse_note` is given an
-/// absolute path by the vault and cannot know the vault root — so two
-/// same-named notes in different folders share a fallback id. Notes written
-/// by the vault always carry their full `<folder>/<slug>` id in frontmatter,
-/// so the collision only affects hand-written notes.
+/// This is the fallback for a note whose frontmatter carries no `id`. The id
+/// is the path **without its extension**, so what the id keeps of the path is
+/// the caller's choice: the vault passes a path relative to its own root, so a
+/// note at `hand/no-id.md` is addressed as `hand/no-id` and two notes with the
+/// same file name in different folders stay two notes. An id the author wrote
+/// is never overridden — this is only the fallback.
 pub fn path_to_id(path: &Path) -> String {
-    path.file_stem()
-        .map(|s| s.to_string_lossy().to_string())
-        .unwrap_or_default()
+    path.with_extension("").to_string_lossy().replace('\\', "/")
 }
 
 fn read_known(value: &Value) -> (String, String, String, Vec<String>, Vec<String>) {
