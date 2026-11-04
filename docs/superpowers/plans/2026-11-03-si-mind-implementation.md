@@ -1757,6 +1757,31 @@ fn the_graph_links_notes_by_wikilink() {
     let edges = v.graph().expect("graph");
     assert!(edges.iter().any(|e| e.from == "beliefs/a" && e.to == "beliefs/b"));
 }
+
+#[test]
+fn deleting_from_self_is_refused() {
+    let (_dir, v) = vault();
+    let result = v.delete_note("self/2026-11-03");
+    assert!(result.is_err(), "the journal writer owns the notes in self/");
+}
+
+#[test]
+fn a_note_id_cannot_escape_the_vault() {
+    let (_dir, v) = vault();
+    for id in ["../escaped", "beliefs/../../escaped", "/absolute"] {
+        assert!(
+            v.write_note(&note(id, "x")).is_err(),
+            "{id} must not be written outside the vault"
+        );
+    }
+}
+
+#[test]
+fn a_folder_that_starts_with_self_is_not_self() {
+    let (_dir, v) = vault();
+    v.write_note(&note("selfish/notes", "ordinary")).expect("write");
+    assert!(v.read_note("selfish/notes").expect("read").is_some());
+}
 ```
 
 - [ ] **Step 2: Run the test to verify it fails**
@@ -1784,6 +1809,31 @@ use crate::VaultError;
 /// into `self/` would make his personality ours rather than his.
 const SELF_DIR: &str = "self";
 
+/// The prefix that puts a note inside `self/`.
+const SELF_DIR_PREFIX: &str = concat!("self", "/");
+
+/// Whether an id names a note inside `self/`.
+///
+/// The match is on the folder, not on a prefix: `selfish/notes` is an
+/// ordinary folder and must not be refused.
+fn is_self_id(id: &str) -> bool {
+    let id = id.replace('\\', "/");
+    id == SELF_DIR || id.starts_with(SELF_DIR_PREFIX)
+}
+
+/// Whether an id can be turned into a path inside the vault.
+///
+/// A note id is a `<folder>/<slug>` path relative to the vault root. An id
+/// that walks out of the vault — with a `..` segment, or by being absolute —
+/// would put a note outside the mind's own folder, so it is refused.
+fn id_stays_inside_the_vault(id: &str) -> bool {
+    let id = id.replace('\\', "/");
+    !id.starts_with('/')
+        && !id
+            .split('/')
+            .any(|segment| segment.is_empty() || segment == "." || segment == "..")
+}
+
 /// A directory of markdown notes.
 #[derive(Debug, Clone)]
 pub struct Vault {
@@ -1806,8 +1856,14 @@ impl Vault {
     ///
     /// Refuses to write into `self/`; see `SELF_DIR`.
     pub fn write_note(&self, note: &Note) -> Result<(), VaultError> {
-        if note.id.starts_with(SELF_DIR) {
-            return Err(VaultError::SelfWriteRefused(note.id.clone()));
+        if is_self_id(&note.id) {
+            return Err(VaultError::SelfWriteRefused {
+                action: "write",
+                id: note.id.clone(),
+            });
+        }
+        if !id_stays_inside_the_vault(&note.id) {
+            return Err(VaultError::UnsafeId(note.id.clone()));
         }
         let path = self.path_for(&note.id);
         if let Some(parent) = path.parent() {
@@ -1817,7 +1873,13 @@ impl Vault {
     }
 
     /// Reads a note by id.
+    ///
+    /// Reading `self/` is allowed: the personality code reads the agent's own
+    /// journals. Reading outside the vault is not.
     pub fn read_note(&self, id: &str) -> Result<Option<Note>, VaultError> {
+        if !id_stays_inside_the_vault(id) {
+            return Err(VaultError::UnsafeId(id.to_string()));
+        }
         let path = self.path_for(id);
         if !path.exists() {
             return Ok(None);
@@ -1827,7 +1889,19 @@ impl Vault {
     }
 
     /// Deletes a note. Returns whether anything was removed.
+    ///
+    /// Refuses to delete from `self/`: the journal writer owns those notes, and
+    /// deleting one would destroy the record the personality is derived from.
     pub fn delete_note(&self, id: &str) -> Result<bool, VaultError> {
+        if is_self_id(id) {
+            return Err(VaultError::SelfWriteRefused {
+                action: "delete",
+                id: id.to_string(),
+            });
+        }
+        if !id_stays_inside_the_vault(id) {
+            return Err(VaultError::UnsafeId(id.to_string()));
+        }
         let path = self.path_for(id);
         if !path.exists() {
             return Ok(false);
@@ -1881,8 +1955,10 @@ impl Vault {
 Add to `VaultError` in `lib.rs`:
 
 ```rust
-    #[error("writing to self/ is refused: {0}")]
-    SelfWriteRefused(String),
+    #[error("refusing to {action} {id}: only the journal writer touches self/")]
+    SelfWriteRefused { action: &'static str, id: String },
+    #[error("note id {0} would escape the vault")]
+    UnsafeId(String),
 ```
 
 And add `pub mod store;` plus `pub use store::Vault;` to `lib.rs`.
@@ -1890,7 +1966,7 @@ And add `pub mod store;` plus `pub use store::Vault;` to `lib.rs`.
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-vault`
-Expected: PASS, 12 tests.
+Expected: PASS, 15 tests.
 
 
 - [ ] **Step 5: Run the task gate**
