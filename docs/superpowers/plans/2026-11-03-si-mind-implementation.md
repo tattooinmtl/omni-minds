@@ -1388,6 +1388,15 @@ mod tests {
             "the yaml must not leak into the body: {}",
             note.body
         );
+        // The body keeps its own line endings, so a CRLF body must survive the
+        // round trip unchanged.
+        let rendered = render_note(&note);
+        let again = parse_note(&rendered, &PathBuf::from("elsewhere.md")).expect("parse");
+        assert_eq!(note, again, "a crlf body must survive the round trip");
+        assert!(
+            note.body.contains("\r\n"),
+            "the body keeps its own line endings"
+        );
     }
 
     #[test]
