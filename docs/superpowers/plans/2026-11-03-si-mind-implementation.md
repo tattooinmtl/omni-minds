@@ -3365,7 +3365,7 @@ impl Affect {
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-affect`
-Expected: PASS, 6 tests.
+Expected: PASS, 20 tests — 4 bias registry and 16 affect vector.
 
 
 - [ ] **Step 5: Run the task gate**
@@ -3739,7 +3739,7 @@ pub use lexicon::{FeelingMatch, Lexicon};
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-affect`
-Expected: PASS, 10 tests.
+Expected: PASS, 24 tests — 4 bias registry, 16 affect vector and 4 lexicon.
 
 - [ ] **Step 5: Run the external validator too**
 
