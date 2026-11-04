@@ -2316,7 +2316,10 @@ impl fmt::Display for CognitionParameter {
 /// feeling is actually felt.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct CognitionParameters {
-    values: [f32; 13],
+    // The length comes from the registry itself, so the two cannot drift
+    // apart: a fourteenth parameter would not fit, and a removed one would
+    // not leave a hole.
+    values: [f32; CognitionParameter::ALL.len()],
 }
 
 impl CognitionParameters {
