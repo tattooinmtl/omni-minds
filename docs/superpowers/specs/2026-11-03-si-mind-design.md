@@ -188,7 +188,19 @@ CREATE TRIGGER event_no_update BEFORE UPDATE ON event
 BEGIN SELECT RAISE(ABORT, 'event log is append-only'); END;
 CREATE TRIGGER event_no_delete BEFORE DELETE ON event
 BEGIN SELECT RAISE(ABORT, 'event log is append-only'); END;
+CREATE TRIGGER event_no_replace BEFORE INSERT ON event
+WHEN EXISTS (SELECT 1 FROM event WHERE id = NEW.id)
+BEGIN SELECT RAISE(ABORT, 'event log is append-only'); END;
 ```
+
+The three triggers together are the append-only guarantee, and each covers a hole
+the others do not. `UPDATE` and `DELETE` are refused outright. `INSERT OR REPLACE`
+is the subtle one: SQLite deletes the row it conflicts with *without* firing the
+delete triggers, so an existing event id could be overwritten in place and the
+log would look untouched. The `event_no_replace` trigger refuses the insert
+before that delete happens. The connection additionally sets
+`PRAGMA recursive_triggers = ON`, so a REPLACE against any other unique column is
+caught by the delete trigger too.
 
 There is no separate `kind` column. The kind is the tag inside the `payload` JSON, so the
 column and the payload it duplicates cannot drift apart. Filter by kind in SQL with

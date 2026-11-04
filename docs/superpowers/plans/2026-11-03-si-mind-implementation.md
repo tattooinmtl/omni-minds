@@ -524,6 +524,73 @@ fn events_carry_the_affect_snapshot_and_turn_id() {
     let fetched = log.event_at(event.seq).expect("event_at").expect("present");
     assert_eq!(fetched, event);
 }
+
+#[test]
+fn the_payload_column_holds_the_whole_tagged_event() {
+    let (_dir, path) = temp_db();
+    let log = Log::open(&path).expect("open");
+    let event = log
+        .append(
+            EventKind::Noticed { kind: "contradiction".into(), refs: vec!["a".into()] },
+            None,
+            None,
+            0.0,
+        )
+        .expect("append");
+
+    let payload: String = log
+        .conn_for_test()
+        .query_row(
+            "SELECT payload FROM event WHERE seq = ?1",
+            rusqlite::params![event.seq],
+            |row| row.get(0),
+        )
+        .expect("payload");
+    assert_eq!(
+        payload,
+        r#"{"kind":"noticed","notice_kind":"contradiction","refs":["a"]}"#
+    );
+
+    let fetched = log.event_at(event.seq).expect("event_at").expect("present");
+    assert_eq!(fetched.kind, event.kind);
+}
+
+#[test]
+fn the_event_table_has_no_kind_column() {
+    let (_dir, path) = temp_db();
+    let log = Log::open(&path).expect("open");
+    let mut stmt = log
+        .conn_for_test()
+        .prepare("PRAGMA table_info(event)")
+        .expect("prepare");
+    let columns = stmt
+        .query_map([], |row| row.get::<_, String>(1))
+        .expect("query")
+        .map(|row| row.expect("row"))
+        .collect::<Vec<String>>();
+    assert!(
+        !columns.iter().any(|name| name == "kind"),
+        "the kind lives inside the payload, not in a column: {columns:?}"
+    );
+}
+
+#[test]
+fn a_replace_cannot_overwrite_an_existing_event() {
+    let (_dir, path) = temp_db();
+    let log = Log::open(&path).expect("open");
+    let event = log
+        .append(EventKind::Responded { answer_ref: "a".into() }, None, None, 0.0)
+        .expect("append");
+
+    let replaced = log.conn_for_test().execute(
+        "INSERT OR REPLACE INTO event (id, ts_us, payload, salience) VALUES (?1, 0, 'rewritten', 0.0)",
+        rusqlite::params![event.id.0.to_string()],
+    );
+    assert!(replaced.is_err(), "a REPLACE must not overwrite an existing event");
+
+    let fetched = log.event_at(event.seq).expect("event_at").expect("present");
+    assert_eq!(fetched, event, "the original event must survive the attempt");
+}
 ```
 
 > `conn_for_test` is a `#[cfg(test)]`-gated accessor — but integration tests in
@@ -539,6 +606,15 @@ fn events_carry_the_affect_snapshot_and_turn_id() {
 > ```rust
 > #[cfg(feature = "test-support")]
 > pub fn conn_for_test(&self) -> &rusqlite::Connection { &self.conn }
+> ```
+>
+> The tests also read the `payload` column and the table's columns directly, so
+> `rusqlite` must also be a dev-dependency of the crate:
+> ```toml
+> [dev-dependencies]
+> tempfile = "3"
+> si-log = { path = ".", features = ["test-support"] }
+> rusqlite.workspace = true
 > ```
 
 - [ ] **Step 2: Run the test to verify it fails**
@@ -587,6 +663,11 @@ pub struct Log {
 /// (`{"kind":"noticed", ...}`), so the kind cannot disagree with the payload
 /// that carries it. Filter by kind in SQL with
 /// `json_extract(payload, '$.kind') = 'noticed'`.
+///
+/// The `event_no_replace` trigger closes the one hole the UPDATE and DELETE
+/// triggers leave: `INSERT OR REPLACE` deletes the row it conflicts with
+/// *without* firing the delete triggers, so an existing id could otherwise be
+/// overwritten in place. The trigger refuses the insert instead.
 const SCHEMA: &str = r#"
 CREATE TABLE IF NOT EXISTS event (
     seq        INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -603,6 +684,9 @@ CREATE INDEX IF NOT EXISTS event_turn_idx ON event(turn_id);
 CREATE TRIGGER IF NOT EXISTS event_no_update BEFORE UPDATE ON event
 BEGIN SELECT RAISE(ABORT, 'event log is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS event_no_delete BEFORE DELETE ON event
+BEGIN SELECT RAISE(ABORT, 'event log is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS event_no_replace BEFORE INSERT ON event
+WHEN EXISTS (SELECT 1 FROM event WHERE id = NEW.id)
 BEGIN SELECT RAISE(ABORT, 'event log is append-only'); END;
 "#;
 
@@ -623,6 +707,11 @@ impl Log {
 
     fn prepare(conn: Connection) -> Result<Self, LogError> {
         conn.execute_batch(SCHEMA)?;
+        // A REPLACE deletes the row it conflicts with without firing the
+        // delete triggers unless recursive triggers are on, which would let a
+        // rewritten event slip past them. This log is append-only, so the
+        // connection asks SQLite to fire them.
+        conn.execute_batch("PRAGMA recursive_triggers = ON;")?;
         Ok(Log { conn })
     }
 
@@ -646,7 +735,11 @@ impl Log {
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![id.0.to_string(), ts_us, turn_id.map(|t| t.0.clone()), payload, valence, arousal, tension, salience],
         )?;
-        let seq = self.last_seq()?;
+        // `seq` is the rowid alias, so the row just written already knows its
+        // sequence number. Reading it back with `MAX(seq)` would cost a second
+        // query on the hottest path in the system — every cognitive step
+        // appends — and it becomes a race the moment the connection is shared.
+        let seq = self.conn.last_insert_rowid() as u64;
         Ok(Event { id, seq, ts_us, turn_id: turn_id.cloned(), kind, affect, salience })
     }
 
@@ -736,7 +829,7 @@ fn unix_micros() -> i64 {
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-log --test store`
-Expected: PASS, 3 tests.
+Expected: PASS, 6 tests.
 
 
 - [ ] **Step 5: Run the task gate**
