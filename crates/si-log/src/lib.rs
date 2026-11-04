@@ -3,10 +3,13 @@
 //! Append-only event log: the single source of truth for the mind.
 
 pub mod event;
+pub mod fold;
 pub mod store;
 
 #[doc(inline)]
 pub use event::{AffectSnapshot, Event, EventId, EventKind, EvictReason, TurnId, WriteOp};
+#[doc(inline)]
+pub use fold::Project;
 #[doc(inline)]
 pub use store::{Log, LogError};
 
