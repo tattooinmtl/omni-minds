@@ -1544,6 +1544,18 @@ fn pattern() -> &'static Regex {
     PATTERN.get_or_init(|| Regex::new(r"\[\[([^\]\|]+)(?:\|([^\]]+))?\]\]").expect("pattern compiles"))
 }
 
+/// Strips an anchor from a link target.
+///
+/// An anchor names a place inside the target note, not another note:
+/// `[[note#heading]]` is a link to `note`, and Obsidian writes that form
+/// natively. Left in place it would be an edge that can never resolve.
+///
+/// The body scanner and the graph builder share this, so the two routes
+/// cannot drift apart and produce different edges for the same link.
+pub(crate) fn target_without_anchor(raw: &str) -> &str {
+    raw.split('#').next().unwrap_or(raw).trim()
+}
+
 /// Extracts every wikilink in `text`, skipping fenced code blocks.
 pub fn extract_wikilinks(text: &str) -> Vec<Wikilink> {
     let mut out = Vec::new();
@@ -1566,11 +1578,7 @@ pub fn extract_wikilinks(text: &str) -> Vec<Wikilink> {
         }
         for capture in pattern().captures_iter(line) {
             let raw = capture.get(1).map(|m| m.as_str().trim().to_string()).unwrap_or_default();
-            // An anchor names a place inside the target note, not another note:
-            // `[[note#heading]]` is a link to `note`, and Obsidian writes that
-            // form natively. Left in place it would be an edge that can never
-            // resolve.
-            let target = raw.split('#').next().unwrap_or_default().trim().to_string();
+            let target = target_without_anchor(&raw).to_string();
             if target.is_empty() {
                 continue;
             }
@@ -1625,7 +1633,7 @@ Expected: PASS, 4 tests.
 //! Building the note graph from wikilinks, tags and frontmatter.
 
 use crate::note::Note;
-use crate::wikilink::extract_wikilinks;
+use crate::wikilink::{extract_wikilinks, target_without_anchor};
 
 /// Why two notes are connected.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1662,7 +1670,7 @@ pub fn graph(notes: &[Note]) -> Vec<Edge> {
             let target = declared.trim().trim_start_matches('[').trim_end_matches(']');
             let target = target.split('|').next().unwrap_or(target).trim();
             // An anchor names a place inside the target note, not another note.
-            let target = target.split('#').next().unwrap_or(target).trim();
+            let target = target_without_anchor(target);
             if !target.is_empty() {
                 edges.push(Edge { from: note.id.clone(), to: target.to_string(), kind: EdgeKind::Link });
             }
@@ -1710,6 +1718,19 @@ mod tests {
         let edges = graph(&[note]);
         assert!(edges.iter().any(|e| e.kind == EdgeKind::Contradicts && e.to == "beliefs/b"));
         assert!(edges.iter().any(|e| e.kind == EdgeKind::Origin && e.to == "brainstorms/x"));
+        // A declared link may carry an anchor. The anchor names a place inside
+        // the target note, so the edge has to point at the note itself and
+        // stay resolvable — the same rule the body route follows.
+        let declared = "---\nid: beliefs/d\nlinks: [\"[[beliefs/c#history]]\"]\n---\n\nbody\n";
+        let declared_note = parse_note(declared, &PathBuf::from("beliefs/d.md")).expect("parse");
+        let declared_edges = graph(&[declared_note]);
+        assert!(declared_edges
+            .iter()
+            .any(|e| e.kind == EdgeKind::Link && e.to == "beliefs/c"));
+        assert!(
+            !declared_edges.iter().any(|e| e.to.contains('#')),
+            "an anchor must not become part of the edge target"
+        );
     }
 }
 ```
