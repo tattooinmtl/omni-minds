@@ -12,8 +12,9 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::finite::{
-    deserialize_finite, deserialize_finite_vector, finite, finite_vector, serialize_finite,
-    serialize_finite_vector,
+    deserialize_after, deserialize_arousal, deserialize_confidence, deserialize_delta,
+    deserialize_salience, deserialize_tension, deserialize_valence, finite, repaired_vector,
+    serialize_finite, serialize_finite_vector, Original, Repair,
 };
 
 /// Identity of a single event. UUIDv7 so ids sort by creation time.
@@ -37,19 +38,19 @@ pub struct AffectSnapshot {
     /// −1 displeasure, +1 pleasure.
     #[serde(
         serialize_with = "serialize_finite",
-        deserialize_with = "deserialize_finite"
+        deserialize_with = "deserialize_valence"
     )]
     pub valence: f32,
     /// −1 calm, +1 activated.
     #[serde(
         serialize_with = "serialize_finite",
-        deserialize_with = "deserialize_finite"
+        deserialize_with = "deserialize_arousal"
     )]
     pub arousal: f32,
     /// −1 in control, +1 threatened or uncertain.
     #[serde(
         serialize_with = "serialize_finite",
-        deserialize_with = "deserialize_finite"
+        deserialize_with = "deserialize_tension"
     )]
     pub tension: f32,
 }
@@ -95,7 +96,7 @@ pub enum EventKind {
         /// out of it, so a thought is never made unreadable by its number.
         #[serde(
             serialize_with = "serialize_finite",
-            deserialize_with = "deserialize_finite"
+            deserialize_with = "deserialize_confidence"
         )]
         confidence: f32,
     },
@@ -116,13 +117,13 @@ pub enum EventKind {
         /// out of it.
         #[serde(
             serialize_with = "serialize_finite_vector",
-            deserialize_with = "deserialize_finite_vector"
+            deserialize_with = "deserialize_delta"
         )]
         delta: [f32; 3],
         /// The affect state after the movement.
         #[serde(
             serialize_with = "serialize_finite_vector",
-            deserialize_with = "deserialize_finite_vector"
+            deserialize_with = "deserialize_after"
         )]
         after: [f32; 3],
         label: String,
@@ -210,7 +211,7 @@ pub struct Event {
     /// of it, so a row is never made unreadable by its salience.
     #[serde(
         serialize_with = "serialize_finite",
-        deserialize_with = "deserialize_finite"
+        deserialize_with = "deserialize_salience"
     )]
     pub salience: f32,
 }
@@ -231,24 +232,33 @@ impl EventKind {
     /// serde attributes above: the attributes keep the log clean whatever the
     /// caller does, and this keeps the event the caller is handed the same
     /// event the log holds.
-    pub(crate) fn repaired(&self) -> (EventKind, Vec<&'static str>) {
+    ///
+    /// The event is taken by value, so the repair costs no copy of it: this
+    /// runs on the path every cognitive step takes.
+    pub(crate) fn repaired(self) -> (EventKind, Vec<Repair>) {
         match self {
             EventKind::Thought {
                 text_ref,
                 confidence,
             } => {
-                let repaired = finite(*confidence);
-                let fields = if repaired == *confidence {
-                    Vec::new()
-                } else {
-                    vec!["confidence"]
+                let mut repairs = Vec::new();
+                let confidence = match Original::of(confidence) {
+                    Some(original) => {
+                        repairs.push(Repair {
+                            field: "confidence",
+                            axis: None,
+                            original,
+                        });
+                        finite(confidence)
+                    }
+                    None => confidence,
                 };
                 (
                     EventKind::Thought {
-                        text_ref: text_ref.clone(),
-                        confidence: repaired,
+                        text_ref,
+                        confidence,
                     },
-                    fields,
+                    repairs,
                 )
             }
             EventKind::Felt {
@@ -256,25 +266,19 @@ impl EventKind {
                 after,
                 label,
             } => {
-                let repaired_delta = finite_vector(*delta);
-                let repaired_after = finite_vector(*after);
-                let mut fields = Vec::new();
-                if repaired_delta != *delta {
-                    fields.push("delta");
-                }
-                if repaired_after != *after {
-                    fields.push("after");
-                }
+                let mut repairs = Vec::new();
+                let delta = repaired_vector("delta", delta, &mut repairs);
+                let after = repaired_vector("after", after, &mut repairs);
                 (
                     EventKind::Felt {
-                        delta: repaired_delta,
-                        after: repaired_after,
-                        label: label.clone(),
+                        delta,
+                        after,
+                        label,
                     },
-                    fields,
+                    repairs,
                 )
             }
-            other => (other.clone(), Vec::new()),
+            other => (other, Vec::new()),
         }
     }
 }
@@ -758,19 +762,22 @@ mod tests {
 
     /// The repair says what it repaired.
     ///
-    /// A repair is worth a trace, so the fields that had to be repaired are
-    /// named rather than swallowed.
+    /// A repair is worth a trace, so the field that had to be repaired, and
+    /// what that field held, are named rather than swallowed.
     #[test]
     fn the_repair_names_the_fields_it_repaired() {
         let thought = EventKind::Thought {
             text_ref: "t".into(),
             confidence: f32::NAN,
         };
-        let (repaired, fields) = thought.repaired();
-        assert_eq!(fields, vec!["confidence"], "the confidence was repaired");
+        let serialized = serde_json::to_string(&thought).expect("serialize");
+        let (repaired, repairs) = thought.repaired();
+        assert_eq!(repairs.len(), 1, "the confidence was repaired");
+        assert_eq!(repairs[0].field, "confidence");
+        assert_eq!(repairs[0].original, Original::NotANumber);
         assert_eq!(
             serde_json::to_string(&repaired).expect("serialize"),
-            serde_json::to_string(&thought).expect("serialize"),
+            serialized,
             "the repaired event and the serialised event must be the same event"
         );
 
@@ -779,11 +786,14 @@ mod tests {
             after: [0.0, 0.0, 0.0],
             label: "calm".into(),
         };
-        let (repaired, fields) = felt.repaired();
-        assert_eq!(fields, vec!["delta"], "only the delta was repaired");
+        let serialized = serde_json::to_string(&felt).expect("serialize");
+        let (repaired, repairs) = felt.repaired();
+        assert_eq!(repairs.len(), 1, "only the delta was repaired");
+        assert_eq!(repairs[0].field, "delta");
+        assert_eq!(repairs[0].axis, Some(0), "the first axis was repaired");
         assert_eq!(
             serde_json::to_string(&repaired).expect("serialize"),
-            serde_json::to_string(&felt).expect("serialize"),
+            serialized,
             "the repaired event and the serialised event must be the same event"
         );
 
@@ -791,11 +801,38 @@ mod tests {
             text_ref: "t".into(),
             confidence: 0.5,
         };
-        let (repaired, fields) = finite.repaired();
+        let expected = finite.clone();
+        let (repaired, repairs) = finite.repaired();
         assert!(
-            fields.is_empty(),
-            "a finite event needs no repair, got {fields:?}"
+            repairs.is_empty(),
+            "a finite event needs no repair, got {repairs:?}"
         );
-        assert_eq!(repaired, finite, "a finite event is returned unchanged");
+        assert_eq!(repaired, expected, "a finite event is returned unchanged");
+    }
+
+    /// The two infinities are different facts, and must not report alike.
+    ///
+    /// Both are repaired to the same finite value, so only the report can
+    /// tell them apart.
+    #[test]
+    fn the_two_infinities_are_reported_apart() {
+        let positive = EventKind::Thought {
+            text_ref: "t".into(),
+            confidence: f32::INFINITY,
+        };
+        let negative = EventKind::Thought {
+            text_ref: "t".into(),
+            confidence: f32::NEG_INFINITY,
+        };
+        let (_, repairs) = positive.repaired();
+        let positive_original = repairs[0].original;
+        let (_, repairs) = negative.repaired();
+        let negative_original = repairs[0].original;
+        assert_eq!(positive_original, Original::PositiveInfinity);
+        assert_eq!(negative_original, Original::NegativeInfinity);
+        assert_ne!(
+            positive_original, negative_original,
+            "the two infinities must not report the same thing"
+        );
     }
 }

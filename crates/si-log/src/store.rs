@@ -14,7 +14,10 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use crate::event::{AffectSnapshot, Event, EventId, EventKind, TurnId};
-use crate::finite::finite;
+use crate::finite::{
+    axis_marker, finite, reading_payload, report_payload_repair, Original, Repair,
+    NON_FINITE_DEFAULT,
+};
 
 /// Failures the append-only store can produce.
 #[derive(Debug, Error)]
@@ -150,7 +153,7 @@ impl Log {
         // The log is append-only, so a number that is not finite would be
         // permanent. It is repaired here, before the row is written, and
         // never after.
-        let (kind, mut repaired) = kind.repaired();
+        let (kind, mut repairs) = kind.repaired();
         let payload = serde_json::to_string(&kind).expect("event kind serializes");
         let affect = match affect {
             Some(original) => {
@@ -159,14 +162,26 @@ impl Log {
                     arousal: finite(original.arousal),
                     tension: finite(original.tension),
                 };
-                if snapshot.valence != original.valence {
-                    repaired.push("valence");
+                if let Some(original) = Original::of(original.valence) {
+                    repairs.push(Repair {
+                        field: "valence",
+                        axis: None,
+                        original,
+                    });
                 }
-                if snapshot.arousal != original.arousal {
-                    repaired.push("arousal");
+                if let Some(original) = Original::of(original.arousal) {
+                    repairs.push(Repair {
+                        field: "arousal",
+                        axis: None,
+                        original,
+                    });
                 }
-                if snapshot.tension != original.tension {
-                    repaired.push("tension");
+                if let Some(original) = Original::of(original.tension) {
+                    repairs.push(Repair {
+                        field: "tension",
+                        axis: None,
+                        original,
+                    });
                 }
                 Some(snapshot)
             }
@@ -177,15 +192,21 @@ impl Log {
             None => (None, None, None),
         };
         let repaired_salience = finite(salience);
-        if repaired_salience != salience {
-            repaired.push("salience");
+        if let Some(original) = Original::of(salience) {
+            repairs.push(Repair {
+                field: "salience",
+                axis: None,
+                original,
+            });
         }
-        if !repaired.is_empty() {
+        for repair in &repairs {
             tracing::warn!(
                 name: "log.event.repaired",
-                stage = "write",
-                fields = %repaired.join(", "),
-                "an event was written with numbers that were not finite, repaired to finite ones"
+                row = %id.0,
+                field = repair.field,
+                axis = %axis_marker(repair.axis),
+                original = %repair.original,
+                "an event was written with a number that was not finite, repaired to a finite one"
             );
         }
         self.conn.execute(
@@ -309,22 +330,9 @@ fn row_to_event(row: &rusqlite::Row<'_>) -> rusqlite::Result<Event> {
     let tension: Option<f32> = row.get(7)?;
     let salience: f32 = row.get(8)?;
 
-    let kind: EventKind = serde_json::from_str(&payload).map_err(|e| {
-        rusqlite::Error::FromSqlConversionFailure(
-            payload.len(),
-            rusqlite::types::Type::Text,
-            Box::new(e),
-        )
-    })?;
+    let kind: EventKind = read_payload(&id, &payload)?;
 
-    let affect = match (valence, arousal, tension) {
-        (Some(v), Some(a), Some(t)) => Some(AffectSnapshot {
-            valence: repaired_column("valence", v),
-            arousal: repaired_column("arousal", a),
-            tension: repaired_column("tension", t),
-        }),
-        _ => None,
-    };
+    let affect = read_affect(&id, valence, arousal, tension);
 
     Ok(Event {
         id: EventId(Uuid::parse_str(&id).map_err(|e| {
@@ -339,27 +347,91 @@ fn row_to_event(row: &rusqlite::Row<'_>) -> rusqlite::Result<Event> {
         turn_id: turn_id.map(TurnId),
         kind,
         affect,
-        salience: repaired_column("salience", salience),
+        salience: read_number(&id, "salience", salience),
     })
 }
 
-/// Repairs one number read back out of the log, saying so when it changes.
+/// Reads the payload of one row, reporting every repair it makes.
+///
+/// A payload that holds a `null` where a number belongs is the shape every
+/// pre-fix build wrote for a number that was not finite, so the repair is
+/// reported with the row it was in: a log that quietly turned one into a
+/// zero would be claiming a number the mind never had.
+fn read_payload(id: &str, payload: &str) -> Result<EventKind, rusqlite::Error> {
+    let (kind, repairs) = reading_payload(|| serde_json::from_str::<EventKind>(payload));
+    for repair in &repairs {
+        report_payload_repair(Some(id), repair);
+    }
+    kind.map_err(|e| {
+        rusqlite::Error::FromSqlConversionFailure(
+            payload.len(),
+            rusqlite::types::Type::Text,
+            Box::new(e),
+        )
+    })
+}
+
+/// Reads the affect snapshot out of the three columns.
+///
+/// A row with no affect at all records none, and that is not a fault: the
+/// store writes three `NULL`s when an event carries no affect state.
+///
+/// A row with some but not all of them can only have come from a NaN axis,
+/// which SQLite stores as `NULL`. The axes that are there are real values and
+/// are kept; the ones that are missing are repaired and reported. A partial
+/// snapshot is never discarded.
+fn read_affect(
+    id: &str,
+    valence: Option<f32>,
+    arousal: Option<f32>,
+    tension: Option<f32>,
+) -> Option<AffectSnapshot> {
+    match (valence, arousal, tension) {
+        (None, None, None) => None,
+        (valence, arousal, tension) => Some(AffectSnapshot {
+            valence: read_axis(id, "valence", valence),
+            arousal: read_axis(id, "arousal", arousal),
+            tension: read_axis(id, "tension", tension),
+        }),
+    }
+}
+
+/// Reads one affect axis, which a row may not hold at all.
+fn read_axis(id: &str, field: &'static str, value: Option<f32>) -> f32 {
+    match value {
+        Some(value) => read_number(id, field, value),
+        None => {
+            report_column_repair(id, field, Original::Missing);
+            NON_FINITE_DEFAULT
+        }
+    }
+}
+
+/// Reads one number that is stored, repairing it when it is not finite.
+fn read_number(id: &str, field: &'static str, value: f32) -> f32 {
+    let repaired = finite(value);
+    if repaired != value {
+        if let Some(original) = Original::of(value) {
+            report_column_repair(id, field, original);
+        }
+    }
+    repaired
+}
+
+/// Reports a number that was repaired on the way out of the log.
 ///
 /// Nothing this crate writes is ever not finite, so a number that needs
 /// repairing came from a log written before the repair, or from a hand. The
 /// repair is reported rather than silent: a log that holds one is telling
 /// something about how it was written.
-fn repaired_column(field: &'static str, value: f32) -> f32 {
-    let repaired = finite(value);
-    if repaired != value {
-        tracing::warn!(
-            name: "log.event.repaired",
-            stage = "read",
-            field = field,
-            "a stored number was not finite and has been repaired"
-        );
-    }
-    repaired
+fn report_column_repair(id: &str, field: &'static str, original: Original) {
+    tracing::warn!(
+        name: "log.column.repaired",
+        row = %id,
+        field = field,
+        original = %original,
+        "a stored number was not a number and has been repaired"
+    );
 }
 
 /// Current wall-clock time in microseconds since the Unix epoch.
@@ -394,25 +466,56 @@ mod tests {
     use tracing::subscriber::{self, Subscriber};
     use tracing::{Event, Metadata};
 
+    /// One event the recorder caught.
+    #[derive(Debug, Clone)]
+    struct Reported {
+        /// The name of the event.
+        name: String,
+        /// The row the event was about.
+        row: Option<String>,
+        /// The field the event was about.
+        field: Option<String>,
+        /// Which axis of the vector, when the field carries one.
+        axis: Option<String>,
+        /// What the number was before it was repaired.
+        original: Option<String>,
+        /// The message of the event.
+        message: String,
+    }
+
     /// A subscriber that keeps the events it is given.
     ///
     /// The crate has no dependency on a tracing subscriber, so the recorder
     /// is written here rather than pulled in: the store only needs to know
-    /// that a repair was reported.
+    /// that a repair was reported, and what it said about it.
     #[derive(Clone, Default)]
     struct Recorder {
-        events: Arc<Mutex<Vec<(String, String)>>>,
+        events: Arc<Mutex<Vec<Reported>>>,
     }
 
     impl Recorder {
-        /// The name of every event that was reported.
-        fn names(&self) -> Vec<String> {
+        /// Every event that was reported.
+        fn reported(&self) -> Vec<Reported> {
             self.events
                 .lock()
                 .expect("the recorder must not be poisoned")
-                .iter()
-                .map(|(name, _)| name.clone())
+                .clone()
+        }
+
+        /// The name of every event that was reported.
+        fn names(&self) -> Vec<String> {
+            self.reported()
+                .into_iter()
+                .map(|event| event.name)
                 .collect()
+        }
+
+        /// The one event with that name.
+        fn named(&self, name: &str) -> Reported {
+            self.reported()
+                .into_iter()
+                .find(|event| event.name == name)
+                .unwrap_or_else(|| panic!("the {name} event must be reported"))
         }
     }
 
@@ -430,16 +533,21 @@ mod tests {
         fn record_follows_from(&self, _span: &Id, _follows: &Id) {}
 
         fn event(&self, event: &Event<'_>) {
-            let mut fields = Fields {
-                message: String::new(),
-            };
+            let mut fields = Fields::default();
             event.record(&mut fields);
             // `name: "..."` in the tracing macro is the name of the event, not
             // a field, so the name comes from the metadata.
             self.events
                 .lock()
                 .expect("the recorder must not be poisoned")
-                .push((event.metadata().name().to_string(), fields.message));
+                .push(Reported {
+                    name: event.metadata().name().to_string(),
+                    row: fields.row,
+                    field: fields.field,
+                    axis: fields.axis,
+                    original: fields.original,
+                    message: fields.message,
+                });
         }
 
         fn enter(&self, _span: &Id) {}
@@ -447,23 +555,70 @@ mod tests {
         fn exit(&self, _span: &Id) {}
     }
 
-    /// The message of one store event.
+    /// The fields of one store event.
+    #[derive(Default)]
     struct Fields {
+        row: Option<String>,
+        field: Option<String>,
+        axis: Option<String>,
+        original: Option<String>,
         message: String,
     }
 
     impl Visit for Fields {
         fn record_debug(&mut self, field: &Field, value: &dyn Debug) {
-            if field.name() == "message" {
-                self.message = format!("{value:?}");
+            match field.name() {
+                "row" => self.row = Some(format!("{value:?}")),
+                "axis" => self.axis = Some(format!("{value:?}")),
+                "original" => self.original = Some(format!("{value:?}")),
+                "message" => self.message = format!("{value:?}"),
+                _ => {}
             }
         }
 
         fn record_str(&mut self, field: &Field, value: &str) {
-            if field.name() == "message" {
-                self.message = value.to_string();
+            match field.name() {
+                "row" => self.row = Some(value.to_string()),
+                "field" => self.field = Some(value.to_string()),
+                "message" => self.message = value.to_string(),
+                _ => {}
             }
         }
+    }
+
+    /// An id for a row written by hand.
+    ///
+    /// The log never edits a row, so the only way a damaged row gets into it
+    /// is by writing it directly.
+    const HAND_WRITTEN_ID: &str = "0192b3c4-5d6e-7f80-91a2-b3c4d5e6f708";
+
+    /// Writes one raw row into the log at `path`, the way a hand would.
+    ///
+    /// The store's own connection is only exposed to the integration tests,
+    /// so the row is written through a second connection to the same file.
+    fn write_raw_row(
+        path: &std::path::Path,
+        id: &str,
+        payload: &str,
+        valence: Option<f32>,
+        arousal: Option<f32>,
+        tension: Option<f32>,
+    ) {
+        let conn = rusqlite::Connection::open(path).expect("the connection must open");
+        conn.execute(
+            "INSERT INTO event (id, ts_us, turn_id, payload, valence, arousal, tension, salience)
+             VALUES (?1, 0, NULL, ?2, ?3, ?4, ?5, 0.0)",
+            rusqlite::params![id, payload, valence, arousal, tension],
+        )
+        .expect("the raw row must be writable");
+    }
+
+    /// A log on disk, for the tests that need a row written by hand.
+    fn log_on_disk() -> (tempfile::TempDir, std::path::PathBuf, Log) {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let path = dir.path().join("mind.db");
+        let log = Log::open(&path).expect("open");
+        (dir, path, log)
     }
 
     /// A repair is reported, not swallowed.
@@ -494,6 +649,182 @@ mod tests {
         assert!(
             names.contains(&"log.event.repaired".to_string()),
             "a repair must be reported, got {names:?}"
+        );
+    }
+
+    /// A repair on the way in names the row and what the number was.
+    ///
+    /// `+Inf` and `-Inf` are both repaired to the same finite value, so only
+    /// the report can tell them apart.
+    #[test]
+    fn a_write_repair_names_the_row_and_what_the_number_was() {
+        let log = Log::open_in_memory().expect("open");
+        let recorder = Recorder::default();
+        let event = subscriber::with_default(recorder.clone(), || {
+            log.append(
+                EventKind::Thought {
+                    text_ref: "t".into(),
+                    confidence: f32::NEG_INFINITY,
+                },
+                None,
+                None,
+                0.5,
+            )
+            .expect("append")
+        });
+        let row = event.id.0.to_string();
+        let repair = recorder.named("log.event.repaired");
+        assert_eq!(
+            repair.row.as_deref(),
+            Some(row.as_str()),
+            "the repair must name the row it belongs to"
+        );
+        assert_eq!(repair.field.as_deref(), Some("confidence"));
+        assert_eq!(
+            repair.original.as_deref(),
+            Some("negative infinity"),
+            "the report must say which infinity it was"
+        );
+    }
+
+    /// A repair on the way out of the log names the row and the field.
+    ///
+    /// A payload that holds a `null` where a number belongs is the shape
+    /// every pre-fix build wrote for a number that was not finite, so this
+    /// is the common case rather than an edge case.
+    #[test]
+    fn a_payload_repair_names_the_row_and_the_field() {
+        let (_dir, path, log) = log_on_disk();
+        write_raw_row(
+            &path,
+            HAND_WRITTEN_ID,
+            r#"{"kind":"thought","text_ref":"t","confidence":null}"#,
+            None,
+            None,
+            None,
+        );
+        let recorder = Recorder::default();
+        subscriber::with_default(recorder.clone(), || {
+            log.event_at(1).expect("event_at").expect("present");
+        });
+        let repair = recorder.named("log.payload.repaired");
+        assert_eq!(
+            repair.row.as_deref(),
+            Some(HAND_WRITTEN_ID),
+            "the repair must name the row it belongs to"
+        );
+        assert_eq!(repair.field.as_deref(), Some("confidence"));
+        assert_eq!(
+            repair.original.as_deref(),
+            Some("null"),
+            "the report must say the payload held a null"
+        );
+        assert!(
+            repair.message.contains("repaired"),
+            "the report must say what happened, got {}",
+            repair.message
+        );
+    }
+
+    /// A repair inside a vector names the axis it was in.
+    ///
+    /// A vector carries three numbers, and a repair of one of them has to say
+    /// which one.
+    #[test]
+    fn a_payload_repair_names_the_axis_it_was_in() {
+        let (_dir, path, log) = log_on_disk();
+        write_raw_row(
+            &path,
+            HAND_WRITTEN_ID,
+            r#"{"kind":"felt","delta":[0.1,null,0.0],"after":[0.2,-0.1,0.3],"label":"calm"}"#,
+            None,
+            None,
+            None,
+        );
+        let recorder = Recorder::default();
+        subscriber::with_default(recorder.clone(), || {
+            log.event_at(1).expect("event_at").expect("present");
+        });
+        let repair = recorder.named("log.payload.repaired");
+        assert_eq!(repair.field.as_deref(), Some("delta"));
+        assert_eq!(
+            repair.axis.as_deref(),
+            Some("1"),
+            "the report must say which axis was repaired"
+        );
+        assert_eq!(repair.original.as_deref(), Some("null"));
+    }
+
+    /// A partially lost affect snapshot is kept, and the loss is reported.
+    ///
+    /// A pre-fix build wrote a NaN axis as `NULL`, so a row can hold some of
+    /// its axes and not the others. The axes that are there are real values
+    /// and are kept; the ones that are missing are repaired and reported.
+    #[test]
+    fn a_partially_lost_affect_snapshot_is_kept_and_reported() {
+        let (_dir, path, log) = log_on_disk();
+        write_raw_row(
+            &path,
+            HAND_WRITTEN_ID,
+            r#"{"kind":"felt","delta":[0.1,0.0,0.0],"after":[0.2,-0.1,0.3],"label":"calm"}"#,
+            None,
+            Some(0.1),
+            Some(0.2),
+        );
+        let recorder = Recorder::default();
+        let fetched = subscriber::with_default(recorder.clone(), || {
+            log.event_at(1).expect("event_at").expect("present")
+        });
+        let affect = fetched
+            .affect
+            .expect("the affect state must not be discarded");
+        assert_eq!(
+            affect.valence, 0.0,
+            "the missing axis is repaired to the neutral zero"
+        );
+        assert_eq!(affect.arousal, 0.1, "the axes that are there are kept");
+        assert_eq!(affect.tension, 0.2, "the axes that are there are kept");
+        let repair = recorder.named("log.column.repaired");
+        assert_eq!(
+            repair.row.as_deref(),
+            Some(HAND_WRITTEN_ID),
+            "the repair must name the row it belongs to"
+        );
+        assert_eq!(repair.field.as_deref(), Some("valence"));
+        assert_eq!(
+            repair.original.as_deref(),
+            Some("missing"),
+            "the report must say the axis was missing"
+        );
+    }
+
+    /// A row with no affect at all records none, and says nothing.
+    ///
+    /// Three `NULL`s is what the store writes for an event that carries no
+    /// affect state, so it is not damage and must not be reported.
+    #[test]
+    fn a_row_with_no_affect_at_all_is_not_reported() {
+        let (_dir, path, log) = log_on_disk();
+        write_raw_row(
+            &path,
+            HAND_WRITTEN_ID,
+            r#"{"kind":"thought","text_ref":"t","confidence":0.5}"#,
+            None,
+            None,
+            None,
+        );
+        let recorder = Recorder::default();
+        let fetched = subscriber::with_default(recorder.clone(), || {
+            log.event_at(1).expect("event_at").expect("present")
+        });
+        assert!(
+            fetched.affect.is_none(),
+            "a row with three null axes records no affect state"
+        );
+        assert!(
+            recorder.names().is_empty(),
+            "a row that records no affect state is not damage, got {:?}",
+            recorder.names()
         );
     }
 

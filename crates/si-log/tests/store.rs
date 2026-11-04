@@ -495,6 +495,59 @@ fn the_wire_format_for_a_finite_event_is_unchanged() {
     );
 }
 
+/// A partially lost affect snapshot must not be discarded.
+///
+/// A pre-fix build wrote a NaN axis as `NULL`, so a row can hold some of its
+/// axes and not the others. The axes that are there are real values, and the
+/// ones that are missing are repaired rather than thrown away with the rest.
+#[test]
+fn a_partially_lost_affect_snapshot_is_kept() {
+    let (_dir, path) = temp_db();
+    let log = Log::open(&path).expect("open");
+    log.conn_for_test()
+        .execute(
+            "INSERT INTO event (id, ts_us, turn_id, payload, valence, arousal, tension, salience)
+             VALUES (?1, 0, NULL, ?2, NULL, 0.1, 0.2, 0.0)",
+            rusqlite::params![
+                HAND_WRITTEN_ID,
+                r#"{"kind":"felt","delta":[0.1,0.0,0.0],"after":[0.2,-0.1,0.3],"label":"calm"}"#
+            ],
+        )
+        .expect("the raw row must be writable");
+
+    let fetched = log.event_at(1).expect("event_at").expect("present");
+    let affect = fetched
+        .affect
+        .expect("the affect state must not be discarded");
+    assert_eq!(
+        affect.valence, 0.0,
+        "the missing axis is repaired to the neutral zero"
+    );
+    assert_eq!(affect.arousal, 0.1, "the axes that are there are kept");
+    assert_eq!(affect.tension, 0.2, "the axes that are there are kept");
+}
+
+/// A row with no affect at all records none.
+///
+/// Three `NULL`s is what the store writes for an event that carries no
+/// affect state, so it is not damage.
+#[test]
+fn a_row_with_no_affect_at_all_records_none() {
+    let (_dir, path) = temp_db();
+    let log = Log::open(&path).expect("open");
+    write_raw_row(
+        &log,
+        HAND_WRITTEN_ID,
+        r#"{"kind":"thought","text_ref":"t","confidence":0.5}"#,
+    );
+
+    let fetched = log.event_at(1).expect("event_at").expect("present");
+    assert!(
+        fetched.affect.is_none(),
+        "a row that records no affect state must read back with none"
+    );
+}
+
 /// A repaired row is as append-only as any other.
 ///
 /// The repair happens before the row is written, and it never goes through an
