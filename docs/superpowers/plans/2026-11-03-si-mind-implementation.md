@@ -2379,7 +2379,25 @@ git commit -m "feat(si-affect): closed registry of 13 cognition parameters"
   - `si_affect::Affect::decay_toward(&mut self, baseline: Affect, elapsed: Duration, tau: Duration)`.
   - `si_affect::Affect::shift(&mut self, delta: [f32; 3])`.
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Declare the module and write the failing test**
+
+`crates/si-affect/src/lib.rs` — replace the file with this. The `pub mod affect;`
+line is what makes `affect.rs` a compiled module at all: without it the file is
+never built, its tests never run, and `cargo test -p si-affect` reports the 3
+tests from Task 2.1 instead of failing.
+
+```rust
+// Rust guideline compliant 2026-03-30
+
+//! The affect engine: a continuous three-axis state, labelled by a lexicon of
+//! 250 feelings, whose labels move real behaviour.
+
+pub mod affect;
+pub mod bias;
+
+pub use affect::Affect;
+pub use bias::{CognitionParameter, CognitionParameters};
+```
 
 `crates/si-affect/src/affect.rs`, at the bottom:
 
@@ -2403,7 +2421,10 @@ mod tests {
         let mut affect = Affect { valence: 1.0, arousal: 0.0, tension: 0.0 };
         let tau = Duration::from_secs(60);
         affect.decay_toward(Affect::default(), Duration::from_secs(60), tau);
-        assert!((affect.valence - std::f32::consts::E).abs() < 0.001, "one half-life leaves 1/e of the value");
+        assert!(
+            (affect.valence - 1.0 / std::f32::consts::E).abs() < 0.001,
+            "one time constant leaves 1/e of the value"
+        );
 
         let mut affect = Affect { valence: 1.0, arousal: 0.0, tension: 0.0 };
         affect.decay_toward(Affect::default(), Duration::from_secs(0), tau);
@@ -2419,7 +2440,8 @@ Expected: FAIL — `Affect` is not defined.
 
 - [ ] **Step 3: Implement the affect vector**
 
-`crates/si-affect/src/affect.rs`:
+`crates/si-affect/src/affect.rs` — write this above the test module from Step 1,
+leaving that test module at the bottom of the file:
 
 ```rust
 // Rust guideline compliant 2026-03-30
@@ -2522,8 +2544,52 @@ git commit -m "feat(si-affect): continuous affect vector with exponential decay"
   - `si_affect::Feeling` — `{ id, name, family, definition, valence, arousal, tension, bias: BTreeMap<CognitionParameter, f32>, nearest: Vec<String> }`.
   - `si_affect::Lexicon` — `load_embedded()`, `len()`, `get(id)`, `label(affect) -> FeelingMatch`.
   - `si_affect::FeelingMatch` — `{ primary: Feeling, runner_up: Option<Feeling>, distance: f32 }`.
+  - `si_affect::AffectError` — the error `load_embedded()` returns: a YAML failure, a bias naming a parameter outside the registry, or an empty lexicon.
 
-- [ ] **Step 1: Write the failing test**
+> **Nine pairs of feelings share an identical canonical point**: `bitterness`/`alienation`,
+> `unease`/`unrest`, `skepticism`/`conscience`, `open-mindedness`/`honesty`,
+> `reverence`/`coherence`, `openness`/`loyalty`, `fluency`/`self-trust`,
+> `affection`/`closeness` and `glee`/`epiphany`. Each pair names the other in
+> `nearest`, so the overlap is deliberate rather than accidental — but it has a
+> consequence for the labeller: a tie at equal distance is broken by the order
+> of the embedded YAML, so **one member of each pair can never be the primary
+> label**, and its bias can never fire on its own. The pair still occupies the
+> region and still shows up as the runner-up, so the label is reported either
+> way. Nudging the twins apart is a **content decision for the user**, not a
+> code fix, and it is deliberately left alone here.
+
+- [ ] **Step 1: Declare the modules and write the failing test**
+
+`crates/si-affect/src/lib.rs` — replace the file with this. Every `pub mod`
+line is load-bearing: a module that is not declared is not compiled, so its
+code and its tests simply do not exist and `cargo test` reports a smaller
+number of tests instead of failing. `feeling` is declared here but its
+re-export waits for Step 3, because the placeholder below has no `Feeling`
+type yet.
+
+```rust
+// Rust guideline compliant 2026-03-30
+
+//! The affect engine: a continuous three-axis state, labelled by a lexicon of
+//! 250 feelings, whose labels move real behaviour.
+
+pub mod affect;
+pub mod bias;
+pub mod feeling;
+pub mod lexicon;
+
+pub use affect::Affect;
+pub use bias::{CognitionParameter, CognitionParameters};
+```
+
+`crates/si-affect/src/feeling.rs` — a placeholder with the header and the
+module doc comment, which Step 3 fills in:
+
+```rust
+// Rust guideline compliant 2026-03-30
+
+//! One feeling: a canonical point in affect space with a definition and a bias.
+```
 
 `crates/si-affect/src/lexicon.rs`, at the bottom:
 
@@ -2563,11 +2629,16 @@ mod tests {
     #[test]
     fn a_blend_lands_between_its_two_closest_labels() {
         let lexicon = Lexicon::load_embedded().expect("load");
-        // Halfway between frustration (-0.45, 0.60, 0.70) and irritation (-0.35, 0.45, 0.30).
-        let blend = Affect { valence: -0.40, arousal: 0.525, tension: 0.50 };
+        // The midpoint of joy (0.80, 0.65, -0.35) and mirth (0.75, 0.65, -0.25).
+        // These two name each other as nearest and no other label sits between
+        // them, so the midpoint must resolve to exactly this pair.
+        let blend = Affect { valence: 0.775, arousal: 0.65, tension: -0.30 };
         let matched = lexicon.label(blend);
         let ids = [matched.primary.id.clone(), matched.runner_up.map(|r| r.id).unwrap_or_default()];
-        assert!(ids.contains(&"frustration".to_string()) || ids.contains(&"irritation".to_string()));
+        assert!(
+            ids.contains(&"joy".to_string()) && ids.contains(&"mirth".to_string()),
+            "a midpoint must resolve to the two labels it sits between, got {ids:?}"
+        );
     }
 }
 ```
@@ -2579,7 +2650,7 @@ Expected: FAIL — `Lexicon` is not defined.
 
 - [ ] **Step 3: Implement the feeling type and the loader**
 
-`crates/si-affect/src/feeling.rs`:
+`crates/si-affect/src/feeling.rs` — replace the placeholder from Step 1 with this:
 
 ```rust
 // Rust guideline compliant 2026-03-30
@@ -2614,7 +2685,8 @@ impl Feeling {
 }
 ```
 
-`crates/si-affect/src/lexicon.rs`:
+`crates/si-affect/src/lexicon.rs` — write this above the test module from Step 1,
+leaving that test module at the bottom of the file:
 
 ```rust
 // Rust guideline compliant 2026-03-30
@@ -2731,7 +2803,7 @@ impl Lexicon {
             .map(|f| (f, affect.distance(f.point())))
             .collect();
         ranked.sort_by(|a, b| a.1.total_cmp(&b.1));
-        let (primary, distance) = ranked[0].clone();
+        let (primary, distance) = ranked[0];
         let runner_up = ranked.get(1).map(|(f, _)| (*f).clone());
         FeelingMatch { primary: primary.clone(), runner_up, distance }
     }
@@ -2753,6 +2825,28 @@ const EMBEDDED: &[&str] = &[
     include_str!("../data/feelings/07-relational.yaml"),
     include_str!("../data/feelings/08-moral-self.yaml"),
 ];
+```
+
+`crates/si-affect/src/lib.rs` — replace the file with the final version. The two
+new re-exports are the difference from Step 1: they publish `Feeling`,
+`Lexicon` and `FeelingMatch` at the crate root, which is where the
+Interfaces section says they live.
+
+```rust
+// Rust guideline compliant 2026-03-30
+
+//! The affect engine: a continuous three-axis state, labelled by a lexicon of
+//! 250 feelings, whose labels move real behaviour.
+
+pub mod affect;
+pub mod bias;
+pub mod feeling;
+pub mod lexicon;
+
+pub use affect::Affect;
+pub use bias::{CognitionParameter, CognitionParameters};
+pub use feeling::Feeling;
+pub use lexicon::{FeelingMatch, Lexicon};
 ```
 
 - [ ] **Step 4: Run the test to verify it passes**
