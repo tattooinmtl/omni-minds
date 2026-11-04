@@ -63,9 +63,14 @@ pub fn parse_note(text: &str, path: &Path) -> Result<Note, VaultError> {
     let id = if id.is_empty() { path_to_id(path) } else { id };
     let title = if title.is_empty() { id.clone() } else { title };
     // The blank line that separates the frontmatter from the body is not part
-    // of the body. Stripping exactly one newline keeps the body as it was
-    // authored and makes `render_note` → `parse_note` an exact round trip.
-    let body = body.strip_prefix('\n').unwrap_or(body);
+    // of the body. Stripping exactly one line ending keeps the body as it was
+    // authored and makes `render_note` → `parse_note` an exact round trip. The
+    // body keeps its own line endings: a note written on Windows still has
+    // CRLF in its prose.
+    let body = body
+        .strip_prefix("\r\n")
+        .or_else(|| body.strip_prefix('\n'))
+        .unwrap_or(body);
     Ok(Note {
         id,
         title,
@@ -188,5 +193,37 @@ mod tests {
         let rendered = render_note(&note);
         let again = parse_note(&rendered, &PathBuf::from("beliefs/rust.md")).expect("parse");
         assert_eq!(note, again);
+    }
+
+    #[test]
+    fn a_crlf_note_still_has_its_frontmatter() {
+        let text = "---\r\nid: beliefs/rust\r\ntype: belief\r\n---\r\n\r\nBody\r\n";
+        let note = parse_note(text, &PathBuf::from("elsewhere.md")).expect("parse");
+        assert_eq!(
+            note.id, "beliefs/rust",
+            "the frontmatter must win over the file name"
+        );
+        assert_eq!(note.note_type, "belief");
+        assert!(
+            !note.body.contains("id:"),
+            "the yaml must not leak into the body: {}",
+            note.body
+        );
+        // The body keeps its own line endings, so a CRLF body must survive the
+        // round trip unchanged.
+        let rendered = render_note(&note);
+        let again = parse_note(&rendered, &PathBuf::from("elsewhere.md")).expect("parse");
+        assert_eq!(note, again, "a crlf body must survive the round trip");
+        assert!(
+            note.body.contains("\r\n"),
+            "the body keeps its own line endings"
+        );
+    }
+
+    #[test]
+    fn an_empty_frontmatter_block_is_not_body_prose() {
+        let text = "---\n---\n\nBody.\n";
+        let note = parse_note(text, &PathBuf::from("elsewhere.md")).expect("parse");
+        assert_eq!(note.body.trim(), "Body.");
     }
 }
