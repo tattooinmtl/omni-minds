@@ -43,6 +43,25 @@ false, so they are enforced by tests rather than by good intentions.
    an untraced ablation would invalidate every personality measurement.
 8. **The values floor is explicit, versioned, and never model-authored.** See
    `si-values`.
+9. **Overlays are text and cannot widen the floor.** A loop overlay is a
+   prompt-level directive at named seams. It may narrow behaviour; it may
+   never grant permission the code-enforced floor denies. An overlay that
+   appears to do so is refused by the floor, and the refusal is logged.
+10. **The loop's shape is fixed.** The agentic loop is Rust control flow and
+    never changes shape at runtime. Only overlays layer onto it, and overlays
+    stack rather than replace.
+11. **Only the aperture compacts.** The event log is never compacted, so
+    returning to a past moment is exact. A compaction writes a resumer into
+    `context_history.md` first, in the agent's own words.
+12. **Brainstorm mode gates execution.** He may think, read, recall and write
+    notes; he may not execute plan steps or mutate anything outside the plan
+    and the vault. The gate is enforced in code and refusals are logged.
+13. **Every plan item has an origin.** Each item records the brainstorm
+    passage, timestamp and event sequence that produced it, so a step can be
+    traced back to the idea it came from.
+14. **Provider keys are never in the log and never in a setting value.** They
+    live in the `provider_credential` table, are masked in the UI, and are read
+    from the environment first so a shell variable overrides a saved key.
 
 ## The falsification test
 
@@ -50,6 +69,13 @@ false, so they are enforced by tests rather than by good intentions.
 resets the metrics, replays the same log, and asserts every trait lands on 0.5.
 If it fails, a seed was smuggled in. Treat that failure as the most serious
 signal in the project.
+
+Two more tests guard the rest of the design:
+
+- `cargo test --test ablation_audit` — every layer change leaves an `ablation`
+  event.
+- `cargo test --test plan_lineage` — every plan item resolves to an origin with
+  a quote, and every gated action is refused and logged.
 
 ## Commands
 
