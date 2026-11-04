@@ -3,9 +3,12 @@
 //! Append-only event log: the single source of truth for the mind.
 
 pub mod event;
+pub mod store;
 
 #[doc(inline)]
 pub use event::{AffectSnapshot, Event, EventId, EventKind, EvictReason, TurnId, WriteOp};
+#[doc(inline)]
+pub use store::{Log, LogError};
 
 /// The crate version string, inherited from the workspace package version.
 ///

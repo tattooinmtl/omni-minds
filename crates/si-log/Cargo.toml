@@ -5,6 +5,12 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+# Exposes the raw connection so an integration test can assert that the
+# append-only triggers really do deny UPDATE and DELETE. Gated behind a
+# feature so a production build cannot reach the connection at all.
+test-support = []
+
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
@@ -15,3 +21,7 @@ tracing.workspace = true
 
 [dev-dependencies]
 tempfile = "3"
+# A package may dev-depend on itself. This is what lets an integration test in
+# `tests/` see a `#[cfg(feature = "test-support")]` accessor, which a plain
+# `#[cfg(test)]` gate cannot provide.
+si-log = { path = ".", features = ["test-support"] }

@@ -307,6 +307,7 @@ dependencies = [
  "rusqlite",
  "serde",
  "serde_json",
+ "si-log",
  "tempfile",
  "thiserror",
  "tracing",
