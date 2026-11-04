@@ -26,7 +26,10 @@ false, so they are enforced by tests rather than by good intentions.
    find yourself storing derived state authoritatively, that is the bug.
 3. **Nothing writes to `vault/self/` except the journal writer.** `vault/self/`
    holds his own account of himself. A seed written there would make his
-   personality ours.
+   personality ours. Deleting a journal is equally forbidden. The guard matches
+   the folder the way the filesystem does, not the way the id is spelled — on
+   Windows `Self/`, `SELF/` and `self./` all name the same folder, so a guard
+   that compared the raw string would let a seed in through the back door.
 4. **All personality traits start at exactly 0.5.** No seed, no prior, no
    authored weights. Unbiased is the default.
 5. **The feeling lexicon is neutral.** All 250 feelings are available at all

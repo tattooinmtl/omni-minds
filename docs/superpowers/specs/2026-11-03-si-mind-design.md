@@ -439,7 +439,13 @@ Nobody authored it. It accretes.
 ### 8.3 Guardrails
 
 - **Nothing but the journal writer writes to `vault/self/`.** Enforced by the vault writer
-  refusing writes to `self/` from any other call site, and by an integration test.
+  refusing writes to `self/` from any other call site, and by an integration test. The
+  refusal covers **deletions** too: the journals are the record the personality is derived
+  from, so removing one is as destructive as overwriting it. The check matches the folder
+  the way the filesystem does, not the way the id is spelled — on Windows `Self/`, `SELF/`
+  and `self./` all name the same folder, so a guard that compared the raw string would let
+  a seed in through the back door. The same rule governs note ids: an id that is absolute
+  or that walks out of the vault is refused rather than clamped.
 - **No authored trait weights.** Behavioural parameters that shape decisions are read only from
   his self-authored notes, never from a config value.
 - **Baseline is 0.5 everywhere.** Unbiased is the default; drift is the signal.
