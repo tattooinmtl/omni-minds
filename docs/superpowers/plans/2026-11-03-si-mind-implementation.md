@@ -3714,18 +3714,60 @@ module doc comment, which Step 3 fills in:
 mod tests {
     use super::*;
     use crate::affect::Affect;
+    use std::collections::BTreeMap;
+
+    /// How many feelings the lexicon holds.
+    ///
+    /// 250 is the number the design fixes, across the eight families the YAML
+    /// ships. It is written down in one place so a family that gains or loses
+    /// a feeling has to change this constant too.
+    const EXPECTED_FEELING_COUNT: usize = 250;
+
+    /// How close a label has to be to the state it labels.
+    ///
+    /// A state that sits exactly on a canonical point is at distance zero. The
+    /// tolerance only absorbs the rounding of the two-decimal coordinates the
+    /// YAML holds, so a label that is merely nearby cannot pass for an exact
+    /// one.
+    const EXACT_POINT_TOLERANCE: f32 = 0.01;
+
+    /// One feeling whose bias key is not in the registry.
+    const LEXICON_WITH_UNKNOWN_BIAS_KEY: &str = "- id: rogue\n  name: Rogue\n  family: test\n  definition: A feeling that names a parameter the loop does not read.\n  valence: 0.0\n  arousal: 0.0\n  tension: 0.0\n  bias: {explore: 0.1, not_a_parameter: 0.2}\n  nearest: [rogue]\n";
+
+    /// One feeling with no bias at all.
+    const LEXICON_WITH_EMPTY_BIAS: &str = "- id: hollow\n  name: Hollow\n  family: test\n  definition: A feeling that cannot move behaviour.\n  valence: 0.0\n  arousal: 0.0\n  tension: 0.0\n  bias: {}\n  nearest: [hollow]\n";
+
+    /// One feeling whose canonical point sits outside the affect space.
+    const LEXICON_WITH_OUT_OF_RANGE_AXIS: &str = "- id: wild\n  name: Wild\n  family: test\n  definition: A feeling placed outside the range the space is written in.\n  valence: 1.5\n  arousal: 0.0\n  tension: 0.0\n  bias: {explore: 0.1}\n  nearest: [wild]\n";
+
+    /// One feeling whose `nearest` list names the feeling itself.
+    const LEXICON_WITH_SELF_NEAREST: &str = "- id: selfish\n  name: Selfish\n  family: test\n  definition: A feeling that names itself as its own neighbour.\n  valence: 0.0\n  arousal: 0.0\n  tension: 0.0\n  bias: {explore: 0.1}\n  nearest: [selfish]\n";
+
+    /// One feeling whose `nearest` list repeats an id.
+    const LEXICON_WITH_REPEATED_NEAREST: &str = "- id: repetitive\n  name: Repetitive\n  family: test\n  definition: A feeling that names the same neighbour twice.\n  valence: 0.0\n  arousal: 0.0\n  tension: 0.0\n  bias: {explore: 0.1}\n  nearest: [repetitive, repetitive]\n";
+
+    /// One feeling whose `nearest` list names an id that is not in the lexicon.
+    const LEXICON_WITH_UNKNOWN_NEAREST: &str = "- id: lost\n  name: Lost\n  family: test\n  definition: A feeling that names a neighbour which does not exist.\n  valence: 0.0\n  arousal: 0.0\n  tension: 0.0\n  bias: {explore: 0.1}\n  nearest: [nowhere]\n";
 
     #[test]
     fn the_embedded_lexicon_holds_exactly_250_feelings() {
         let lexicon = Lexicon::load_embedded().expect("load");
-        assert_eq!(lexicon.len(), 250);
+        assert_eq!(lexicon.len(), EXPECTED_FEELING_COUNT);
+        assert_eq!(lexicon.feelings().len(), EXPECTED_FEELING_COUNT);
     }
 
     #[test]
-    fn every_feeling_has_a_non_empty_bias_within_the_registry() {
+    fn every_feeling_carries_a_non_empty_bias() {
         let lexicon = Lexicon::load_embedded().expect("load");
-        for feeling in &lexicon.feelings {
+        for feeling in lexicon.feelings() {
             assert!(!feeling.bias.is_empty(), "{} has an empty bias", feeling.id);
+        }
+    }
+
+    #[test]
+    fn every_bias_value_is_within_the_unit_range() {
+        let lexicon = Lexicon::load_embedded().expect("load");
+        for feeling in lexicon.feelings() {
             for (parameter, value) in &feeling.bias {
                 assert!(
                     (-1.0..=1.0).contains(value),
@@ -3735,6 +3777,46 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn the_bias_keys_map_to_the_registry_parameters_they_name() {
+        // The closed registry is what stops the lexicon and the loop drifting
+        // apart, and nothing else guards the mapping: a parse that sent every
+        // key to one parameter would leave every other test in this crate
+        // passing.
+        let lexicon = Lexicon::load_embedded().expect("load");
+
+        let grit = lexicon.get("grit").expect("grit is in the lexicon");
+        assert_eq!(
+            grit.bias,
+            BTreeMap::from([
+                (CognitionParameter::Abandon, -0.25),
+                (CognitionParameter::Persist, 0.4),
+            ]),
+            "grit gives up and carries on, so it biases abandon and persist"
+        );
+
+        let conscience = lexicon
+            .get("conscience")
+            .expect("conscience is in the lexicon");
+        assert_eq!(
+            conscience.bias,
+            BTreeMap::from([
+                (CognitionParameter::Refuse, 0.25),
+                (CognitionParameter::Verify, 0.15),
+            ]),
+            "conscience is the only feeling in the lexicon that pushes refuse up"
+        );
+
+        let skepticism = lexicon
+            .get("skepticism")
+            .expect("skepticism is in the lexicon");
+        assert_eq!(
+            skepticism.bias,
+            BTreeMap::from([(CognitionParameter::Verify, 0.55)]),
+            "withholding assent is a verify bias"
+        );
     }
 
     #[test]
@@ -3752,8 +3834,16 @@ mod tests {
             "a reading must always carry a runner-up"
         );
         assert!(
-            matched.distance < 0.01,
+            matched.distance < EXACT_POINT_TOLERANCE,
             "the exact canonical point is at distance zero"
+        );
+        let runner_up_distance = matched
+            .runner_up_distance
+            .expect("a runner-up carries its own distance");
+        assert!(
+            runner_up_distance > matched.distance,
+            "the runner-up is further away than the primary, got {runner_up_distance} and {}",
+            matched.distance
         );
     }
 
@@ -3761,8 +3851,14 @@ mod tests {
     fn a_blend_lands_between_its_two_closest_labels() {
         let lexicon = Lexicon::load_embedded().expect("load");
         // The midpoint of joy (0.80, 0.65, -0.35) and mirth (0.75, 0.65, -0.25).
-        // These two name each other as nearest and no other label sits between
-        // them, so the midpoint must resolve to exactly this pair.
+        // glee (0.80, 0.65, -0.25) is exactly as far from this point as either
+        // of them — all three sit at 0.003125 — so the three are tied and the
+        // tie-break decides. The embedded order is joy, glee, mirth, so the
+        // reading must resolve to joy and glee.
+        //
+        // This is the test that pins the tie-break: a comparison in float32
+        // puts mirth ahead of glee, because the rounding of the coordinates
+        // makes mirth a hair closer, and the documented order never fires.
         let blend = Affect {
             valence: 0.775,
             arousal: 0.65,
@@ -3773,9 +3869,122 @@ mod tests {
             matched.primary.id.clone(),
             matched.runner_up.map(|r| r.id).unwrap_or_default(),
         ];
+        assert_eq!(
+            ids,
+            ["joy".to_string(), "glee".to_string()],
+            "a tie must be settled by the embedded order, got {ids:?}"
+        );
+    }
+
+    #[test]
+    fn a_tie_is_settled_by_the_embedded_order() {
+        let lexicon = Lexicon::load_embedded().expect("load");
+        // `betrayal` (-0.85, 0.60, 0.75) and `terror` (-0.90, 0.95, 0.95) are
+        // exactly equidistant from this state, and `terror` comes first in the
+        // embedded lexicon. In float32 the rounding of the coordinates makes
+        // `betrayal` a hair closer, so only a comparison that treats the two
+        // as tied reports the documented label.
+        let state = Affect {
+            valence: -1.0,
+            arousal: 0.7,
+            tension: 0.95,
+        };
+        let matched = lexicon.label(state);
+        assert_eq!(matched.primary.id, "terror");
+        assert_eq!(
+            matched.runner_up.map(|runner| runner.id),
+            Some("betrayal".to_string())
+        );
+    }
+
+    #[test]
+    fn every_feeling_is_the_label_at_its_own_canonical_point() {
+        // The tie-break must not change the primary at any of the 250
+        // canonical points: at a feeling's own point it is the closest
+        // feeling by a distance no other feeling shares, so it must stay the
+        // primary.
+        let lexicon = Lexicon::load_embedded().expect("load");
+        for feeling in lexicon.feelings() {
+            let matched = lexicon.label(feeling.point());
+            assert_eq!(
+                matched.primary.id, feeling.id,
+                "{} must be the label at its own point, got {}",
+                feeling.id, matched.primary.id
+            );
+        }
+    }
+
+    #[test]
+    fn a_malformed_lexicon_is_a_yaml_error() {
+        let error = Lexicon::load_sources(&["- id: broken\n  name: Broken\n"])
+            .expect_err("a feeling without a family cannot be read");
+        assert!(matches!(error, AffectError::Yaml(_)), "got {error:?}");
+    }
+
+    #[test]
+    fn an_empty_lexicon_is_rejected() {
+        let error =
+            Lexicon::load_sources(&[]).expect_err("a lexicon with no feelings has no label");
+        assert!(matches!(error, AffectError::Empty), "got {error:?}");
+    }
+
+    #[test]
+    fn a_bias_key_outside_the_registry_is_rejected() {
+        let error = Lexicon::load_sources(&[LEXICON_WITH_UNKNOWN_BIAS_KEY])
+            .expect_err("a bias the loop does not read is a no-op");
         assert!(
-            ids.contains(&"joy".to_string()) && ids.contains(&"mirth".to_string()),
-            "a midpoint must resolve to the two labels it sits between, got {ids:?}"
+            matches!(&error, AffectError::UnknownBiasParameter(id, key) if id == "rogue" && key == "not_a_parameter"),
+            "got {error:?}"
+        );
+    }
+
+    #[test]
+    fn a_feeling_with_an_empty_bias_is_rejected() {
+        let error = Lexicon::load_sources(&[LEXICON_WITH_EMPTY_BIAS])
+            .expect_err("a feeling that cannot move behaviour is a label");
+        assert!(
+            matches!(&error, AffectError::EmptyBias(id) if id == "hollow"),
+            "got {error:?}"
+        );
+    }
+
+    #[test]
+    fn a_canonical_point_outside_the_axis_range_is_rejected() {
+        let error = Lexicon::load_sources(&[LEXICON_WITH_OUT_OF_RANGE_AXIS])
+            .expect_err("a point outside the space cannot be labelled");
+        assert!(
+            matches!(&error, AffectError::AxisOutOfRange(id, axis, value, _) if id == "wild" && axis == "valence" && *value == 1.5),
+            "got {error:?}"
+        );
+    }
+
+    #[test]
+    fn a_nearest_list_that_names_the_feeling_itself_is_rejected() {
+        let error = Lexicon::load_sources(&[LEXICON_WITH_SELF_NEAREST])
+            .expect_err("a feeling is not its own neighbour");
+        assert!(
+            matches!(&error, AffectError::InvalidNearest(id, _) if id == "selfish"),
+            "got {error:?}"
+        );
+    }
+
+    #[test]
+    fn a_nearest_list_that_repeats_an_id_is_rejected() {
+        let error = Lexicon::load_sources(&[LEXICON_WITH_REPEATED_NEAREST])
+            .expect_err("a neighbour cannot be named twice");
+        assert!(
+            matches!(&error, AffectError::InvalidNearest(id, _) if id == "repetitive"),
+            "got {error:?}"
+        );
+    }
+
+    #[test]
+    fn a_nearest_list_that_names_an_unknown_id_is_rejected() {
+        let error = Lexicon::load_sources(&[LEXICON_WITH_UNKNOWN_NEAREST])
+            .expect_err("a neighbour that does not exist cannot be named");
+        assert!(
+            matches!(&error, AffectError::InvalidNearest(id, _) if id == "lost"),
+            "got {error:?}"
         );
     }
 }
@@ -3811,7 +4020,17 @@ pub struct Feeling {
     pub tension: f32,
     /// How this feeling moves behaviour.
     pub bias: BTreeMap<CognitionParameter, f32>,
-    /// The closest feelings, by id.
+    /// The feelings whose canonical points are closest to this one.
+    ///
+    /// The ids of the three other feelings nearest in the three-axis affect
+    /// space. The comparison is exact: every coordinate is a hundredth, so the
+    /// squared distance scaled by 10000 — that is, `(dx² + dy² + dz²) × 10000`
+    /// — is an exact integer, and the rule compares those integers. Ties are
+    /// broken by the position of the feeling in the embedded lexicon — file
+    /// order, then line order — and the field is derived from the coordinates
+    /// rather than written by hand: `tools/regenerate_nearest.py` writes it,
+    /// and `tools/validate_lexicon.py` refuses a lexicon whose lists disagree
+    /// with that rule.
     pub nearest: Vec<String>,
 }
 
@@ -3835,9 +4054,9 @@ leaving that test module at the bottom of the file:
 
 //! The 250-feeling lexicon.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
-use crate::affect::Affect;
+use crate::affect::{Affect, AXIS_MAX, AXIS_MIN};
 use crate::bias::CognitionParameter;
 use crate::feeling::Feeling;
 use thiserror::Error;
@@ -3862,10 +4081,23 @@ struct RawFeeling {
 /// Failures loading the lexicon.
 #[derive(Debug, Error)]
 pub enum AffectError {
+    /// The YAML could not be read at all.
     #[error("yaml error: {0}")]
     Yaml(#[from] serde_yaml::Error),
+    /// A bias named a parameter the cognition loop does not read.
     #[error("feeling {0} names a bias parameter outside the registry: {1}")]
     UnknownBiasParameter(String, String),
+    /// A feeling with no bias cannot move behaviour, so it is a label and not
+    /// a feeling.
+    #[error("feeling {0} has an empty bias - a feeling that cannot move behaviour is a label, not a feeling")]
+    EmptyBias(String),
+    /// A canonical point outside the range the affect space is written in.
+    #[error("feeling {0} has {1}={2}, outside the axis range {3:?}")]
+    AxisOutOfRange(String, String, f32, (f32, f32)),
+    /// A `nearest` list that cannot be trusted.
+    #[error("feeling {0} has an invalid nearest list: {1}")]
+    InvalidNearest(String, String),
+    /// The lexicon holds no feelings at all.
     #[error("the lexicon is empty")]
     Empty,
 }
@@ -3873,26 +4105,55 @@ pub enum AffectError {
 /// A labelled reading of an affect state.
 #[derive(Debug, Clone)]
 pub struct FeelingMatch {
+    /// The feeling the state sits closest to.
     pub primary: Feeling,
+    /// The feeling it nearly was, when the lexicon has more than one.
     pub runner_up: Option<Feeling>,
     /// Distance from the affect state to the primary label.
     pub distance: f32,
+    /// Distance from the affect state to the runner-up label, when there is
+    /// one. The spec's example prints both distances, because a reading that
+    /// names only one label cannot be judged against the other.
+    pub runner_up_distance: Option<f32>,
 }
 
 /// Every feeling, loaded from the embedded YAML.
 #[derive(Debug, Clone)]
 pub struct Lexicon {
-    pub feelings: Vec<Feeling>,
+    /// The feelings, in embedded order.
+    ///
+    /// Private on purpose: a lexicon built outside the crate could be empty,
+    /// and an empty lexicon has no label to report. Nothing outside this crate
+    /// constructs a `Lexicon`.
+    feelings: Vec<Feeling>,
 }
 
 impl Lexicon {
     /// Loads the lexicon compiled into the binary, so the mind never depends on
     /// a file being present at runtime.
     pub fn load_embedded() -> Result<Self, AffectError> {
+        Self::load_sources(EMBEDDED)
+    }
+
+    /// Loads a lexicon from YAML sources, in embedded order.
+    ///
+    /// The loader refuses a lexicon it cannot trust. An empty lexicon has no
+    /// label to report; a feeling with no bias cannot move behaviour, so it is
+    /// a label and not a feeling; a bias naming a parameter the loop does not
+    /// read is a no-op; and a canonical point outside the range the affect
+    /// space is written in would put a feeling somewhere no state can reach.
+    fn load_sources(sources: &[&str]) -> Result<Self, AffectError> {
         let mut feelings = Vec::new();
-        for source in EMBEDDED {
+        for source in sources {
             let parsed: Vec<RawFeeling> = serde_yaml::from_str(source)?;
             for raw in parsed {
+                if raw.bias.is_empty() {
+                    return Err(AffectError::EmptyBias(raw.id.clone()));
+                }
+                check_axis(&raw.id, "valence", raw.valence)?;
+                check_axis(&raw.id, "arousal", raw.arousal)?;
+                check_axis(&raw.id, "tension", raw.tension)?;
+
                 let mut bias = BTreeMap::new();
                 for (key, value) in raw.bias {
                     let parameter = parse_parameter(&key).ok_or_else(|| {
@@ -3916,6 +4177,7 @@ impl Lexicon {
         if feelings.is_empty() {
             return Err(AffectError::Empty);
         }
+        check_nearest(&feelings)?;
         Ok(Lexicon { feelings })
     }
 
@@ -3929,6 +4191,11 @@ impl Lexicon {
         self.feelings.is_empty()
     }
 
+    /// The feelings, in embedded order.
+    pub fn feelings(&self) -> &[Feeling] {
+        &self.feelings
+    }
+
     /// Finds a feeling by id.
     pub fn get(&self, id: &str) -> Option<&Feeling> {
         self.feelings.iter().find(|f| f.id == id)
@@ -3938,21 +4205,136 @@ impl Lexicon {
     ///
     /// The runner-up is always reported, because a feeling is only meaningful
     /// relative to the one it nearly was.
+    ///
+    /// Ties are broken by the position of the feeling in the embedded lexicon:
+    /// file order, then line order. A tie is two feelings at the same distance
+    /// from the state, and it is detected as one: the squared distances are
+    /// compared within [`SQUARED_DISTANCE_TOLERANCE`], a band wide enough to
+    /// absorb the rounding of a float32 coordinate and narrow enough that two
+    /// feelings which really are at different distances never share it. So the
+    /// feeling that comes first in the embedded lexicon wins the tie, and the
+    /// rule is the one the data is written against.
+    ///
+    /// The lexicon this crate ships has no two feelings at the same canonical
+    /// point, and `tools/validate_lexicon.py` refuses a lexicon in which one
+    /// does, so at the 250 canonical points the primary is never in doubt. A
+    /// caller that hands `label` a lexicon of its own still gets this
+    /// documented order rather than an arbitrary one.
     pub fn label(&self, affect: Affect) -> FeelingMatch {
-        let mut ranked: Vec<(&Feeling, f32)> = self
+        let mut ranked: Vec<(f64, usize, &Feeling)> = self
             .feelings
             .iter()
-            .map(|f| (f, affect.distance(f.point())))
+            .enumerate()
+            .map(|(position, feeling)| {
+                (affect.squared_distance(feeling.point()), position, feeling)
+            })
             .collect();
-        ranked.sort_by(|a, b| a.1.total_cmp(&b.1));
-        let (primary, distance) = ranked[0];
-        let runner_up = ranked.get(1).map(|(f, _)| (*f).clone());
+        ranked.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
+
+        let (primary, runner_up) = first_two(&ranked);
+        let primary = primary.expect("a lexicon with no feelings has no label to report");
         FeelingMatch {
             primary: primary.clone(),
-            runner_up,
-            distance,
+            runner_up: runner_up.cloned(),
+            distance: affect.distance(primary.point()),
+            runner_up_distance: runner_up.map(|feeling| affect.distance(feeling.point())),
         }
     }
+}
+
+/// The width of the band two squared distances must fall inside to count as a
+/// tie.
+///
+/// The coordinates are written to two decimals, so two canonical points that
+/// differ at all differ by at least 0.01 in one axis, and their squared
+/// distances from a point on the same grid differ by at least 0.0001. This
+/// band is ten times finer than that, so it can never merge two distances
+/// that are genuinely different.
+///
+/// It is also far wider than the noise it has to absorb. The coordinates are
+/// float32, so two feelings that are exactly equidistant from a state come out
+/// up to about 1e-7 apart in squared distance. Without a band this wide the
+/// float noise would pick the neighbour instead of the tie-break, and the
+/// documented order would never fire.
+const SQUARED_DISTANCE_TOLERANCE: f64 = 1e-5;
+
+/// The first two feelings in the documented order.
+///
+/// The feelings are ranked by squared distance. Feelings whose squared
+/// distances fall inside [`SQUARED_DISTANCE_TOLERANCE`] of each other are a
+/// tie, and a tie is settled by the position of the feeling in the embedded
+/// lexicon rather than by the float noise between their coordinates.
+fn first_two<'a>(
+    ranked: &'a [(f64, usize, &'a Feeling)],
+) -> (Option<&'a Feeling>, Option<&'a Feeling>) {
+    let mut ordered: Vec<(usize, &Feeling)> = Vec::new();
+    let mut start = 0;
+    while start < ranked.len() && ordered.len() < 2 {
+        let anchor = ranked[start].0;
+        let mut end = start;
+        while end < ranked.len() && ranked[end].0 - anchor <= SQUARED_DISTANCE_TOLERANCE {
+            end += 1;
+        }
+        let mut tied: Vec<(usize, &Feeling)> = ranked[start..end]
+            .iter()
+            .map(|(_, position, feeling)| (*position, *feeling))
+            .collect();
+        tied.sort_by_key(|(position, _)| *position);
+        ordered.extend(tied);
+        start = end;
+    }
+    (
+        ordered.first().map(|(_, feeling)| *feeling),
+        ordered.get(1).map(|(_, feeling)| *feeling),
+    )
+}
+
+/// Checks that every `nearest` list can be trusted.
+///
+/// The loader is the place a caller starts trusting the field, so the lists
+/// have to be well formed before the lexicon is handed over: a list may not
+/// name the feeling itself, may not repeat an id, and may not name an id that
+/// is not in the lexicon. Whether the lists are the three *nearest* feelings
+/// is the derived rule's business, and `tools/validate_lexicon.py` checks it.
+fn check_nearest(feelings: &[Feeling]) -> Result<(), AffectError> {
+    let ids: HashSet<&str> = feelings.iter().map(|f| f.id.as_str()).collect();
+    for feeling in feelings {
+        if feeling.nearest.contains(&feeling.id) {
+            return Err(AffectError::InvalidNearest(
+                feeling.id.clone(),
+                "it names the feeling itself".to_string(),
+            ));
+        }
+        let mut seen: HashSet<&str> = HashSet::new();
+        for name in &feeling.nearest {
+            if !seen.insert(name.as_str()) {
+                return Err(AffectError::InvalidNearest(
+                    feeling.id.clone(),
+                    format!("it repeats '{name}'"),
+                ));
+            }
+            if !ids.contains(name.as_str()) {
+                return Err(AffectError::InvalidNearest(
+                    feeling.id.clone(),
+                    format!("'{name}' is not in the lexicon"),
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Checks one canonical axis against the range the affect space is written in.
+fn check_axis(id: &str, axis: &str, value: f32) -> Result<(), AffectError> {
+    if !(AXIS_MIN..=AXIS_MAX).contains(&value) {
+        return Err(AffectError::AxisOutOfRange(
+            id.to_string(),
+            axis.to_string(),
+            value,
+            (AXIS_MIN, AXIS_MAX),
+        ));
+    }
+    Ok(())
 }
 
 /// Resolves a YAML bias key to its registry parameter.
@@ -3995,7 +4377,7 @@ pub mod lexicon;
 pub use affect::Affect;
 pub use bias::{CognitionParameter, CognitionParameters};
 pub use feeling::Feeling;
-pub use lexicon::{FeelingMatch, Lexicon};
+pub use lexicon::{AffectError, FeelingMatch, Lexicon};
 ```
 
 - [ ] **Step 4: Run the test to verify it passes**
