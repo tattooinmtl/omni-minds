@@ -954,6 +954,20 @@ Expected: FAIL — `Project` is not defined.
 use crate::event::Event;
 use crate::store::{Log, LogError};
 
+/// The sequence number the first event of a log carries.
+///
+/// SQLite's `AUTOINCREMENT` hands out 1 for the first row, and the
+/// append-only triggers mean a row can never be removed to make room for
+/// another, so a fold always starts here.
+const FIRST_EVENT_SEQ: u64 = 1;
+
+/// How many events one page of a fold reads at a time.
+///
+/// Folding reads the whole log in pages rather than in one query, so a long
+/// log does not have to fit in memory at once. The size only trades queries
+/// against memory; it does not change the result.
+const FOLD_PAGE_SIZE: u32 = 512;
+
 /// Folds a stream of events into a state.
 pub trait Project {
     /// The state this projection produces.
@@ -969,20 +983,24 @@ impl Log {
     ///
     /// Passing a sequence beyond the end folds the whole log.
     pub fn fold_to<P: Project>(&self, seq: u64, mut projector: P) -> Result<P::State, LogError> {
-        let mut cursor = 1u64;
+        let mut cursor = FIRST_EVENT_SEQ;
         loop {
-            let page = self.events(cursor, 512)?;
+            let page = self.events(cursor, FOLD_PAGE_SIZE)?;
             if page.is_empty() {
                 break;
             }
-            for event in page {
+            // The page is iterated by reference so it is still available for
+            // the length check below.
+            for event in &page {
                 if event.seq > seq {
                     return Ok(projector.finish());
                 }
-                projector.apply(&event);
+                projector.apply(event);
                 cursor = event.seq + 1;
             }
-            if page.len() < 512 {
+            // The cast is lossless: the page size fits in a `usize` on every
+            // target Rust supports.
+            if page.len() < FOLD_PAGE_SIZE as usize {
                 break;
             }
         }
