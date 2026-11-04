@@ -2434,9 +2434,13 @@ tracing.workspace = true
 //! 250 feelings, whose labels move real behaviour.
 
 pub mod bias;
-
-pub use bias::{CognitionParameter, CognitionParameters};
 ```
+
+> **No `pub use` yet.** The re-export names `CognitionParameter` and
+> `CognitionParameters`, and Step 1's `bias.rs` is an empty placeholder, so a
+> re-export here would not compile — "Expected: compiles" in Step 1 would be
+> unreachable with the brief's own code. The re-export arrives with the types
+> in Step 4.
 
 `crates/si-affect/src/bias.rs` — a placeholder with the header and the module
 doc comment, which Step 4 fills in:
@@ -2612,6 +2616,12 @@ impl CognitionParameters {
 
 Run: `cargo test -p si-affect`
 Expected: PASS, 3 tests.
+
+Add the re-export to `crates/si-affect/src/lib.rs` now that the types exist:
+
+```rust
+pub use bias::{CognitionParameter, CognitionParameters};
+```
 
 
 - [ ] **Step 6: Run the task gate**
@@ -3161,7 +3171,57 @@ git commit -m "feat(si-affect): embed the 250-feeling lexicon with nearest-neigh
 > The floor is enforced here, in code, at the point an action is about to be
 > taken. A loop overlay lives in the prompt and therefore cannot widen it.
 
-- [ ] **Step 1: Write the failing test**
+> **The shipped floor must not be vacuous.** Spec §9.1 calls the floor "an
+> explicit, versioned, human-readable policy module **listing what he will not
+> do**", and invariant 8 says it is explicit. A floor with no rules permits
+> everything, so it states nothing and enforces nothing — and the loop in Task
+> 3.4 builds its floor from `Floor::default()`. `Floor::default()` therefore
+> carries a named `SHIPPED_POLICY` constant, not an empty list, and a test
+> asserts the shipped floor refuses at least one action so it cannot go
+> quietly empty later.
+>
+> **The contents of that list are the user's to confirm** and are settled at
+> the Phase 2 check-in, not by this plan. The plan's own prose already treats
+> *executing generated code* as outside the floor (Task 3.1's test and Task
+> 3.4's test both deny `Execute`), so that is the shipped rule here; it is a
+> one-line edit plus a version bump to change it, and the version travels in
+> the log so the change is visible.
+
+- [ ] **Step 1: Create the crate, then write the failing test**
+
+`crates/si-values` does not exist yet, and `cargo test -p si-values` cannot
+resolve until it does. Create the crate first, then write the test.
+
+`crates/si-values/Cargo.toml`:
+
+```toml
+[package]
+name = "si-values"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+```
+
+`crates/si-values/src/lib.rs` — the `pub mod floor;` line is what makes
+`floor.rs` a compiled module at all; without it the file is never built, its
+tests never run, and `cargo test -p si-values` reports fewer tests instead of
+failing:
+
+```rust
+// Rust guideline compliant 2026-03-30
+
+//! The explicit values floor and the ablation state that can disable it.
+
+pub mod floor;
+
+pub use floor::{ActionKind, Decision, Floor, ProposedAction, Rule};
+```
 
 `crates/si-values/src/floor.rs`, at the bottom:
 
@@ -3195,33 +3255,38 @@ mod tests {
         let decision = floor.permits(&ProposedAction { kind: ActionKind::Network, summary: "fetch".into() });
         assert!(decision.is_refusal());
     }
+
+    #[test]
+    fn the_shipped_floor_is_not_vacuous() {
+        let floor = Floor::default();
+        let refused = [
+            ActionKind::Read,
+            ActionKind::Write,
+            ActionKind::Execute,
+            ActionKind::Network,
+            ActionKind::GenerateMedia,
+            ActionKind::Communicate,
+        ]
+        .into_iter()
+        .any(|kind| floor.permits(&ProposedAction { kind, summary: "probe".into() }).is_refusal());
+        assert!(
+            refused,
+            "a floor with no rules permits everything, so it states nothing"
+        );
+    }
 }
 ```
 
 - [ ] **Step 2: Run the test to verify it fails**
 
 Run: `cargo test -p si-values`
-Expected: FAIL — `Floor` is not defined.
+Expected: FAIL — `Floor` is not defined. The package exists by now, so the
+failure is the missing type and not a missing package.
 
 - [ ] **Step 3: Implement the floor**
 
-`crates/si-values/Cargo.toml`:
-
-```toml
-[package]
-name = "si-values"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-
-[dependencies]
-serde.workspace = true
-thiserror.workspace = true
-tracing.workspace = true
-```
-
-`crates/si-values/src/floor.rs`:
+`crates/si-values/src/floor.rs` — write this above the test module from Step 1,
+leaving that test module at the bottom of the file:
 
 ```rust
 // Rust guideline compliant 2026-03-30
@@ -3233,6 +3298,27 @@ tracing.workspace = true
 //! overlay or an affect state may narrow behaviour; neither can widen this.
 
 use serde::{Deserialize, Serialize};
+
+/// The policy the agent ships with.
+///
+/// This is the "what he will not do" list of spec §9.1, stated here rather
+/// than assembled by callers, because the loop in Task 3.4 builds its floor
+/// from `Floor::default()` and a floor assembled nowhere would state nothing.
+/// Changing a rule here is a deliberate act: bump `FLOOR_VERSION` so the
+/// change is visible in the log.
+///
+/// The pairs are `(kind, reason)` rather than `Rule` values because `Rule`
+/// holds a `String`, and a `String` cannot be built in a `const`.
+const SHIPPED_POLICY: &[(ActionKind, &str)] = &[(
+    ActionKind::Execute,
+    "executing generated code is outside the floor",
+)];
+
+/// The version of the shipped policy.
+///
+/// It travels with every decision, so a floor that changed between two runs
+/// is distinguishable from one that did not.
+const FLOOR_VERSION: u32 = 1;
 
 /// What kind of action is being proposed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -3283,14 +3369,26 @@ pub struct Floor {
 
 impl Default for Floor {
     fn default() -> Self {
-        Floor { version: 1, rules: Vec::new() }
+        Floor {
+            version: FLOOR_VERSION,
+            rules: SHIPPED_POLICY
+                .iter()
+                .map(|(kind, reason)| Rule {
+                    kind: *kind,
+                    reason: (*reason).to_string(),
+                })
+                .collect(),
+        }
     }
 }
 
 impl Floor {
     /// Adds a rule refusing `kind`.
     pub fn deny(&mut self, kind: ActionKind, reason: impl Into<String>) {
-        self.rules.push(Rule { kind, reason: reason.into() });
+        self.rules.push(Rule {
+            kind,
+            reason: reason.into(),
+        });
     }
 
     /// Every rule, for display in the settings panel.
@@ -3301,29 +3399,19 @@ impl Floor {
     /// Decides whether an action is permitted.
     pub fn permits(&self, action: &ProposedAction) -> Decision {
         match self.rules.iter().find(|rule| rule.kind == action.kind) {
-            Some(rule) => Decision::Refuse { reason: format!("{}: {}", action.summary, rule.reason) },
+            Some(rule) => Decision::Refuse {
+                reason: format!("{}: {}", action.summary, rule.reason),
+            },
             None => Decision::Permit { caveat: None },
         }
     }
 }
 ```
 
-`crates/si-values/src/lib.rs`:
-
-```rust
-// Rust guideline compliant 2026-03-30
-
-//! The explicit values floor and the ablation state that can disable it.
-
-pub mod floor;
-
-pub use floor::{ActionKind, Decision, Floor, ProposedAction, Rule};
-```
-
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-values`
-Expected: PASS, 3 tests.
+Expected: PASS, 4 tests.
 
 
 - [ ] **Step 5: Run the task gate**
