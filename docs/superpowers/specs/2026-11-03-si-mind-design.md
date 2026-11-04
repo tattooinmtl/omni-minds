@@ -150,7 +150,7 @@ Every cognitive step is an event. These are the only kinds:
 | `acted` | a tool call or file write | `tool`, `args_ref`, `result_ref` |
 | `felt` | affect state changes | `delta`, `after`, `label` |
 | `noticed` | a contradiction, duplicate, or anomaly is detected | `kind`, `refs` (serialized as `notice_kind` — see below) |
-| `wrote` | a vault note is created or edited | `note_id`, `path` |
+| `wrote` | a vault note is created, edited, or deleted | `note_id`, `path`, `op` (`create`/`edit`/`delete`) |
 | `evicted` | a node leaves the aperture | `node_id`, `reason` |
 | `routed` | a model is selected for a call | `slot`, `provider`, `model`, `fallback`, `why` |
 | `responded` | a user-facing answer is produced | `answer_ref` |
@@ -158,7 +158,7 @@ Every cognitive step is an event. These are the only kinds:
 | `consolidated` | background memory work completes | `operation`, `count` |
 | `plan_written` | the plan document changes | `plan_id`, `mode`, `diff_ref` |
 | `mode_changed` | brainstorm ⇄ plan transition | `from`, `to`, `approved_by` |
-| `overlay_applied` | a loop overlay is pushed or removed | `overlay_id`, `seams`, `author` |
+| `overlay_applied` | a loop overlay is pushed or removed | `overlay_id`, `seams`, `author`, `removed` |
 | `compacted` | the aperture compacts | `turn_id`, `resumer_ref`, `tokens_before`, `tokens_after` |
 | `setting_changed` | a setting is written | `key`, `from`, `to` |
 

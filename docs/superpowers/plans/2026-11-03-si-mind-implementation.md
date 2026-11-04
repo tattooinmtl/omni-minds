@@ -229,7 +229,13 @@ pub const CRATE_VERSION: &str = env!("CARGO_PKG_VERSION");
 Run: `cargo build`
 Expected: compiles, no warnings other than any dependency notes.
 
-- [ ] **Step 4: Commit**
+
+- [ ] **Step 4: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 5: Commit**
 
 ```bash
 git add Cargo.toml Cargo.lock crates/si-log .gitignore
@@ -429,7 +435,13 @@ pub struct Event {
 Run: `cargo test -p si-log`
 Expected: PASS, 2 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-log
@@ -726,7 +738,13 @@ fn unix_micros() -> i64 {
 Run: `cargo test -p si-log --test store`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-log
@@ -871,7 +889,13 @@ impl Log {
 Run: `cargo test -p si-log --test fold`
 Expected: PASS, 2 tests.
 
-- [ ] **Step 5: Run the whole crate and commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Run the whole crate and commit**
 
 Run: `cargo test -p si-log`
 Expected: PASS, 7 tests.
@@ -1158,7 +1182,13 @@ tempfile = "3"
 Run: `cargo test -p si-vault`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-vault
@@ -1377,7 +1407,13 @@ mod tests {
 Run: `cargo test -p si-vault`
 Expected: PASS, 6 tests.
 
-- [ ] **Step 7: Commit**
+
+- [ ] **Step 7: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 8: Commit**
 
 ```bash
 git add crates/si-vault
@@ -1593,7 +1629,13 @@ And add `pub mod store;` plus `pub use store::Vault;` to `lib.rs`.
 Run: `cargo test -p si-vault`
 Expected: PASS, 10 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-vault
@@ -1840,7 +1882,13 @@ impl CognitionParameters {
 Run: `cargo test -p si-affect`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 6: Commit**
+
+- [ ] **Step 6: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add crates/si-affect Cargo.toml
@@ -1980,7 +2028,13 @@ impl Affect {
 Run: `cargo test -p si-affect`
 Expected: PASS, 5 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-affect
@@ -2245,7 +2299,13 @@ Expected: PASS, 9 tests.
 Run: `python tools/validate_lexicon.py`
 Expected: `lexicon valid`.
 
-- [ ] **Step 6: Commit**
+
+- [ ] **Step 6: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add crates/si-affect
@@ -2440,7 +2500,13 @@ pub use floor::{ActionKind, Decision, Floor, ProposedAction, Rule};
 Run: `cargo test -p si-values`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-values
@@ -2731,7 +2797,13 @@ pub use seam::Seam;
 
 > `loop`, `state` and `tool` are added in Task 3.4.
 
-- [ ] **Step 7: Commit**
+
+- [ ] **Step 7: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 8: Commit**
 
 ```bash
 git add crates/si-cognition
@@ -2855,7 +2927,13 @@ impl std::fmt::Display for Seam {
 Run: `cargo test -p si-cognition`
 Expected: PASS, 5 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-cognition
@@ -3291,7 +3369,13 @@ pub use state::MindState;
 Run: `cargo test -p si-cognition`
 Expected: PASS, 7 tests.
 
-- [ ] **Step 6: Commit**
+
+- [ ] **Step 6: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add crates/si-cognition
@@ -3450,7 +3534,13 @@ Add `pub mod compact;` and `pub use compact::{Compaction, DEFAULT_COMPACTION_THR
 Run: `cargo test -p si-cognition`
 Expected: PASS, 10 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-cognition
@@ -3736,7 +3826,13 @@ pub fn by_id(id: ProviderId) -> Option<&'static Provider> {
 Run: `cargo test -p si-provider`
 Expected: PASS, 4 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-provider
@@ -4011,7 +4107,13 @@ And call it from the fetch path (Task 4.3).
 Run: `cargo test -p si-provider`
 Expected: PASS, 7 tests.
 
-- [ ] **Step 7: Commit**
+
+- [ ] **Step 7: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 8: Commit**
 
 ```bash
 git add crates/si-provider
@@ -4206,7 +4308,13 @@ Extend `ProviderError` in `parse.rs`:
 Run: `cargo test -p si-provider`
 Expected: PASS, 10 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-provider
@@ -4379,7 +4487,13 @@ impl Credentials {
 Run: `cargo test -p si-provider`
 Expected: PASS, 13 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-provider
@@ -4788,7 +4902,13 @@ pub fn capability_manifest(catalogs: &HashMap<ProviderId, Catalog>) -> String {
 Run: `cargo test -p si-router`
 Expected: PASS, 5 tests.
 
-- [ ] **Step 7: Commit**
+
+- [ ] **Step 7: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 8: Commit**
 
 ```bash
 git add crates/si-router
@@ -5354,7 +5474,13 @@ wiremock.workspace = true
 Run: `cargo test -p si-minimax`
 Expected: PASS, 5 tests.
 
-- [ ] **Step 6: Commit**
+
+- [ ] **Step 6: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add crates/si-minimax
@@ -5731,7 +5857,13 @@ tokio.workspace = true
 Run: `cargo test -p si-router`
 Expected: PASS, 8 tests.
 
-- [ ] **Step 6: Commit**
+
+- [ ] **Step 6: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add crates/si-router
@@ -6073,7 +6205,13 @@ impl Camera {
 Run: `cargo test -p si-view`
 Expected: PASS, 4 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-view
@@ -6251,7 +6389,13 @@ pub fn render_position(vault_position: Vec3, salience: f32) -> Vec3 {
 Run: `cargo test -p si-view`
 Expected: PASS, 8 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-view
@@ -6515,7 +6659,13 @@ impl Scene {
 Run: `cargo test -p si-view`
 Expected: PASS, 10 tests.
 
-- [ ] **Step 6: Commit**
+
+- [ ] **Step 6: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add crates/si-view
@@ -7094,7 +7244,13 @@ pub use value::SettingValue;
 Run: `cargo test -p si-settings`
 Expected: PASS, 4 tests.
 
-- [ ] **Step 6: Commit**
+
+- [ ] **Step 6: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add crates/si-settings
@@ -7349,7 +7505,13 @@ pub use stack::OverlayStack;
 Run: `cargo test -p si-overlay`
 Expected: PASS, 4 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-overlay
@@ -7496,7 +7658,13 @@ pub use instructions::{Instructions, DEFAULT_AGENTS_MD};
 Run: `cargo test -p si-vault`
 Expected: PASS, 13 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-vault
@@ -7692,7 +7860,13 @@ pub use generate::{generate, OverlayDraft, OverlayError, OverlayModel, OverlayRe
 Run: `cargo test -p si-overlay`
 Expected: PASS, 7 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-overlay
@@ -8001,7 +8175,13 @@ pub use metrics::{MetricName, Metrics, PersonalityError, NEUTRAL};
 Run: `cargo test -p si-personality`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-personality
@@ -8143,7 +8323,13 @@ pub fn falsification_holds(log: &si_log::Log) -> Result<bool, PersonalityError> 
 Run: `cargo test -p si-personality`
 Expected: PASS, 4 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-personality
@@ -8403,7 +8589,13 @@ pub use plan::{Plan, PlanError, PlanItem};
 Run: `cargo test -p si-plan`
 Expected: PASS, 1 test.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-plan
@@ -8594,7 +8786,13 @@ pub use resumer::{ContextHistory, Resumer};
 Run: `cargo test -p si-plan`
 Expected: PASS, 2 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-plan
@@ -8787,7 +8985,13 @@ pub mod okf;
 Run: `cargo test -p si-vault`
 Expected: PASS, 15 tests.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-vault
@@ -9017,7 +9221,13 @@ Expected: PASS, 10 tests.
 > and the Task 0.4 fold test. The fold walks the log through `events`, which
 > takes and releases the lock per page, so it cannot deadlock.
 
-- [ ] **Step 5: Commit**
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add crates/si-log
@@ -9853,7 +10063,13 @@ fn native_options() -> eframe::NativeOptions {
 > pub use egui;
 > ```
 
-- [ ] **Step 7: Commit**
+
+- [ ] **Step 7: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 8: Commit**
 
 ```bash
 git add crates/si-mind crates/si-view Cargo.toml
@@ -10542,7 +10758,13 @@ and inside `serve`, before the router is built:
 Run: `cargo test -p si-mind`
 Expected: PASS, 6 tests.
 
-- [ ] **Step 7: Commit**
+
+- [ ] **Step 7: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 8: Commit**
 
 ```bash
 git add crates/si-mind crates/si-cognition
@@ -11591,7 +11813,13 @@ Expected: PASS, 14 tests.
 Run: `cargo build -p si-mind --bins`
 Expected: both binaries compile.
 
-- [ ] **Step 12: Commit**
+
+- [ ] **Step 12: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
+
+- [ ] **Step 13: Commit**
 
 ```bash
 git add crates/si-view crates/si-mind
