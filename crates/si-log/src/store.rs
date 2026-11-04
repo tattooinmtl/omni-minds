@@ -14,6 +14,7 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use crate::event::{AffectSnapshot, Event, EventId, EventKind, TurnId};
+use crate::finite::finite;
 
 /// Failures the append-only store can produce.
 #[derive(Debug, Error)]
@@ -122,6 +123,12 @@ impl Log {
     /// the `payload` JSON, and the returned [`Event`] carries the sequence
     /// number the row was given.
     ///
+    /// Every number the event carries is repaired to a finite value before
+    /// the row is written: the log is append-only, so a number that is not
+    /// finite would be permanent, and SQLite cannot store a NaN at all. The
+    /// event that comes back is the event the log holds, and a repair is
+    /// reported as a `log.event.repaired` trace.
+    ///
     /// # Errors
     ///
     /// Returns [`LogError::Sqlite`] when the row cannot be written.
@@ -140,11 +147,47 @@ impl Log {
     ) -> Result<Event, LogError> {
         let id = EventId(Uuid::now_v7());
         let ts_us = unix_micros();
+        // The log is append-only, so a number that is not finite would be
+        // permanent. It is repaired here, before the row is written, and
+        // never after.
+        let (kind, mut repaired) = kind.repaired();
         let payload = serde_json::to_string(&kind).expect("event kind serializes");
+        let affect = match affect {
+            Some(original) => {
+                let snapshot = AffectSnapshot {
+                    valence: finite(original.valence),
+                    arousal: finite(original.arousal),
+                    tension: finite(original.tension),
+                };
+                if snapshot.valence != original.valence {
+                    repaired.push("valence");
+                }
+                if snapshot.arousal != original.arousal {
+                    repaired.push("arousal");
+                }
+                if snapshot.tension != original.tension {
+                    repaired.push("tension");
+                }
+                Some(snapshot)
+            }
+            None => None,
+        };
         let (valence, arousal, tension) = match affect {
             Some(a) => (Some(a.valence), Some(a.arousal), Some(a.tension)),
             None => (None, None, None),
         };
+        let repaired_salience = finite(salience);
+        if repaired_salience != salience {
+            repaired.push("salience");
+        }
+        if !repaired.is_empty() {
+            tracing::warn!(
+                name: "log.event.repaired",
+                stage = "write",
+                fields = %repaired.join(", "),
+                "an event was written with numbers that were not finite, repaired to finite ones"
+            );
+        }
         self.conn.execute(
             "INSERT INTO event (id, ts_us, turn_id, payload, valence, arousal, tension, salience)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
@@ -156,7 +199,7 @@ impl Log {
                 valence,
                 arousal,
                 tension,
-                salience
+                repaired_salience
             ],
         )?;
         // `seq` is the rowid alias, so the row just written already knows its
@@ -171,7 +214,7 @@ impl Log {
             turn_id: turn_id.cloned(),
             kind,
             affect,
-            salience,
+            salience: repaired_salience,
         })
     }
 
@@ -276,9 +319,9 @@ fn row_to_event(row: &rusqlite::Row<'_>) -> rusqlite::Result<Event> {
 
     let affect = match (valence, arousal, tension) {
         (Some(v), Some(a), Some(t)) => Some(AffectSnapshot {
-            valence: v,
-            arousal: a,
-            tension: t,
+            valence: repaired_column("valence", v),
+            arousal: repaired_column("arousal", a),
+            tension: repaired_column("tension", t),
         }),
         _ => None,
     };
@@ -296,8 +339,27 @@ fn row_to_event(row: &rusqlite::Row<'_>) -> rusqlite::Result<Event> {
         turn_id: turn_id.map(TurnId),
         kind,
         affect,
-        salience,
+        salience: repaired_column("salience", salience),
     })
+}
+
+/// Repairs one number read back out of the log, saying so when it changes.
+///
+/// Nothing this crate writes is ever not finite, so a number that needs
+/// repairing came from a log written before the repair, or from a hand. The
+/// repair is reported rather than silent: a log that holds one is telling
+/// something about how it was written.
+fn repaired_column(field: &'static str, value: f32) -> f32 {
+    let repaired = finite(value);
+    if repaired != value {
+        tracing::warn!(
+            name: "log.event.repaired",
+            stage = "read",
+            field = field,
+            "a stored number was not finite and has been repaired"
+        );
+    }
+    repaired
 }
 
 /// Current wall-clock time in microseconds since the Unix epoch.
@@ -318,4 +380,148 @@ fn io_failure(err: std::io::Error) -> LogError {
         rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_IOERR),
         Some(err.to_string()),
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::fmt::Debug;
+    use std::sync::{Arc, Mutex};
+
+    use tracing::field::{Field, Visit};
+    use tracing::span::{Attributes, Id, Record};
+    use tracing::subscriber::{self, Subscriber};
+    use tracing::{Event, Metadata};
+
+    /// A subscriber that keeps the events it is given.
+    ///
+    /// The crate has no dependency on a tracing subscriber, so the recorder
+    /// is written here rather than pulled in: the store only needs to know
+    /// that a repair was reported.
+    #[derive(Clone, Default)]
+    struct Recorder {
+        events: Arc<Mutex<Vec<(String, String)>>>,
+    }
+
+    impl Recorder {
+        /// The name of every event that was reported.
+        fn names(&self) -> Vec<String> {
+            self.events
+                .lock()
+                .expect("the recorder must not be poisoned")
+                .iter()
+                .map(|(name, _)| name.clone())
+                .collect()
+        }
+    }
+
+    impl Subscriber for Recorder {
+        fn enabled(&self, _metadata: &Metadata<'_>) -> bool {
+            true
+        }
+
+        fn new_span(&self, _span: &Attributes<'_>) -> Id {
+            Id::from_u64(1)
+        }
+
+        fn record(&self, _span: &Id, _values: &Record<'_>) {}
+
+        fn record_follows_from(&self, _span: &Id, _follows: &Id) {}
+
+        fn event(&self, event: &Event<'_>) {
+            let mut fields = Fields {
+                message: String::new(),
+            };
+            event.record(&mut fields);
+            // `name: "..."` in the tracing macro is the name of the event, not
+            // a field, so the name comes from the metadata.
+            self.events
+                .lock()
+                .expect("the recorder must not be poisoned")
+                .push((event.metadata().name().to_string(), fields.message));
+        }
+
+        fn enter(&self, _span: &Id) {}
+
+        fn exit(&self, _span: &Id) {}
+    }
+
+    /// The message of one store event.
+    struct Fields {
+        message: String,
+    }
+
+    impl Visit for Fields {
+        fn record_debug(&mut self, field: &Field, value: &dyn Debug) {
+            if field.name() == "message" {
+                self.message = format!("{value:?}");
+            }
+        }
+
+        fn record_str(&mut self, field: &Field, value: &str) {
+            if field.name() == "message" {
+                self.message = value.to_string();
+            }
+        }
+    }
+
+    /// A repair is reported, not swallowed.
+    ///
+    /// A number that is not finite is a fault in whatever produced it, and a
+    /// fault that is repaired silently is a fault that happens again.
+    #[test]
+    fn a_repair_is_reported_rather_than_silent() {
+        let log = Log::open_in_memory().expect("open");
+        let recorder = Recorder::default();
+        subscriber::with_default(recorder.clone(), || {
+            log.append(
+                EventKind::Thought {
+                    text_ref: "t".into(),
+                    confidence: f32::NAN,
+                },
+                None,
+                Some(AffectSnapshot {
+                    valence: f32::NAN,
+                    arousal: 0.1,
+                    tension: 0.2,
+                }),
+                f32::NAN,
+            )
+            .expect("append");
+        });
+        let names = recorder.names();
+        assert!(
+            names.contains(&"log.event.repaired".to_string()),
+            "a repair must be reported, got {names:?}"
+        );
+    }
+
+    /// An event that needs no repair says nothing.
+    #[test]
+    fn an_event_that_needs_no_repair_says_nothing() {
+        let log = Log::open_in_memory().expect("open");
+        let recorder = Recorder::default();
+        subscriber::with_default(recorder.clone(), || {
+            log.append(
+                EventKind::Thought {
+                    text_ref: "t".into(),
+                    confidence: 0.5,
+                },
+                None,
+                Some(AffectSnapshot {
+                    valence: 0.1,
+                    arousal: 0.2,
+                    tension: 0.3,
+                }),
+                0.5,
+            )
+            .expect("append");
+        });
+        let names = recorder.names();
+        assert!(
+            names.is_empty(),
+            "a finite event needs no repair, got {names:?}"
+        );
+    }
 }

@@ -6,6 +6,12 @@ pub mod event;
 pub mod fold;
 pub mod store;
 
+/// Keeps every number in the log finite.
+///
+/// Private to the crate: the repair is part of writing and reading an event,
+/// not part of the vocabulary the rest of the project sees.
+mod finite;
+
 #[doc(inline)]
 pub use event::{AffectSnapshot, Event, EventId, EventKind, EvictReason, TurnId, WriteOp};
 #[doc(inline)]
