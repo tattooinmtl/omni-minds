@@ -587,12 +587,15 @@ pub struct Provider {
 
 `ReasoningStyle` is one of:
 
-- `None` — the provider takes no reasoning parameter (`minimax.io` as pinned, `xkiro`,
-  `atria`).
-- `Effort` — a `reasoning_effort` parameter, with per-model levels where published.
+- `None` — the provider takes no reasoning parameter (`xkiro`, `atria`, `agnes`).
+- `Effort` — a `reasoning_effort` parameter, with per-model levels where published. MiniMax
+  international accepts it (verified live 2026-11-03: `low` → 8 reasoning tokens in ~2.9 s,
+  `high` → 13 in ~3.2 s), so `minimax.io` and `nvidia` are both `Effort`.
 - `EchoReasoning` — `reflection` only: Beam requires every earlier assistant message to carry
   back the `reasoning_content` that produced it, or the request fails with
-  *"Missing required parameter: `messages[2].reasoning_content`"*.
+  *"Missing required parameter: `messages[2].reasoning_content`"*. This is a **superset** of
+  `Effort`: reflection also always receives an explicit `reasoning_effort`, because omitting it
+  makes the server apply its own `max` default — the most expensive tier.
 
 ### 11.3 Normalized model descriptor
 
