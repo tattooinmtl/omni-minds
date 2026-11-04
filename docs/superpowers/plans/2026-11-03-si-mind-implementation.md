@@ -6694,7 +6694,7 @@ git commit -m "feat(si-view): the 3D scene with aperture, filaments and affect c
   - `si_settings::SettingKey` — newtype over `String`.
   - `si_settings::SettingGroup` — the ten groups from §12.2.
   - `si_settings::SettingKind` — `Bool | Int | Float | Text | Secret | Enum | Model`.
-  - `si_settings::SettingValue` — `Bool | Int | Float | Text | Secret | Enum`.
+  - `si_settings::SettingValue` — `Bool | Int | Float | Text | Secret | Enum`; `redacted()` returns the value as it may be written to the event log, replacing a secret with `si_settings::REDACTED_MARKER`.
   - `si_settings::SettingSpec` — `{ key, label, group, kind, default, help }`.
   - `si_settings::schema() -> &'static [SettingSpec]`.
   - `si_settings::Settings` — `load(dir)`, `get(key)`, `set(key, value)`, `reset(group)`, `reset_all()`.
@@ -6766,6 +6766,24 @@ fn reset_restores_only_the_requested_group() {
     settings.reset(Some(SettingGroup::Model)).expect("reset");
     assert_eq!(settings.get(&model.key), model.default);
     assert_eq!(settings.get(&budget.key), SettingValue::Int(9999));
+}
+
+#[test]
+fn a_secret_value_is_never_shown_in_the_clear() {
+    let secret = "sk-never-printed";
+    let value = SettingValue::Secret(secret.to_string());
+
+    let debug = format!("{value:?}");
+    assert!(
+        !debug.contains(secret),
+        "the debug form must not carry the secret: {debug}"
+    );
+
+    let redacted = value.redacted().to_string();
+    assert!(
+        !redacted.contains(secret),
+        "the redacted form must not carry the secret: {redacted}"
+    );
 }
 ```
 
@@ -7042,7 +7060,7 @@ sourced from the settings store).
 use serde::{Deserialize, Serialize};
 
 /// A stored setting value.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", content = "value", rename_all = "snake_case")]
 pub enum SettingValue {
     Bool(bool),
@@ -7054,7 +7072,41 @@ pub enum SettingValue {
     Enum(String),
 }
 
+/// What stands in for a secret wherever the value would otherwise be shown.
+pub const REDACTED_MARKER: &str = "<redacted>";
+
+impl std::fmt::Debug for SettingValue {
+    /// Prints the value with any secret replaced by [`REDACTED_MARKER`].
+    ///
+    /// The derived `Debug` would print a secret's contents, and every
+    /// `tracing` field built from a setting would then carry the key.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SettingValue::Bool(v) => f.debug_tuple("Bool").field(v).finish(),
+            SettingValue::Int(v) => f.debug_tuple("Int").field(v).finish(),
+            SettingValue::Float(v) => f.debug_tuple("Float").field(v).finish(),
+            SettingValue::Text(v) => f.debug_tuple("Text").field(v).finish(),
+            SettingValue::Secret(_) => f.debug_tuple("Secret").field(&REDACTED_MARKER).finish(),
+            SettingValue::Enum(v) => f.debug_tuple("Enum").field(v).finish(),
+        }
+    }
+}
+
 impl SettingValue {
+    /// The value as it may be written to the event log.
+    ///
+    /// A secret becomes [`REDACTED_MARKER`]: the log records that a secret
+    /// changed, never what it changed to. The log serialises a setting
+    /// value verbatim, so the redaction belongs here rather than at the
+    /// write site, where it would have to be remembered.
+    pub fn redacted(&self) -> serde_json::Value {
+        match self {
+            SettingValue::Secret(_) => {
+                serde_json::json!({ "kind": "secret", "value": REDACTED_MARKER })
+            }
+            other => serde_json::to_value(other).unwrap_or(serde_json::Value::Null),
+        }
+    }
     /// Reads a value as a float, whatever its kind.
     pub fn as_float(&self) -> Option<f32> {
         match self {
@@ -9289,6 +9341,33 @@ async fn a_setting_change_is_written_and_logged() {
         si_settings::SettingValue::Float(0.9)
     );
 }
+
+#[tokio::test]
+async fn a_secret_setting_is_refused_and_never_reaches_the_log() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let api = Api::open(dir.path()).expect("api");
+    let secret = "sk-never-logged";
+
+    let refused = api
+        .set_setting(
+            "model.temperature",
+            si_settings::SettingValue::Secret(secret.to_string()),
+        )
+        .await;
+    assert!(
+        refused.is_err(),
+        "a secret must not be stored as a setting value"
+    );
+
+    let events = api.mind().log.events(0, 100).expect("events");
+    for event in &events {
+        let text = format!("{:?}", event.kind);
+        assert!(
+            !text.contains(secret),
+            "the secret must never reach the event log: {text}"
+        );
+    }
+}
 ```
 
 - [ ] **Step 2: Run the test to verify it fails**
@@ -9531,8 +9610,9 @@ impl Api {
         self.mind.log.append(
             si_log::EventKind::SettingChanged {
                 key: key.to_string(),
-                from: serde_json::to_value(&previous).unwrap_or(serde_json::Value::Null),
-                to: serde_json::to_value(&current).unwrap_or(serde_json::Value::Null),
+                // A secret setting is recorded as changed, never as changed-to.
+                from: previous.redacted(),
+                to: current.redacted(),
             },
             None,
             None,
