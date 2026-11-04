@@ -4,11 +4,12 @@
 Checks, in order:
   1. every entry has the required schema fields
   2. ids are unique across all family files
-  3. axis values are within [-1, 1]
-  4. every feeling carries a non-empty bias, and every bias key is inside the
-     closed registry
+  3. axis values are within [-1, 1], and are whole numbers of hundredths, so
+     the `nearest` rule is defined for them
+  4. every feeling carries a non-empty bias, every bias key is inside the
+     closed registry, and every bias value is within [-1, 1]
   5. no two feelings share a canonical point
-  6. every `nearest` list is exactly the three nearest feelings by Euclidean
+  6. every `nearest` list is exactly the three nearest feelings by exact
      distance, never names the feeling itself, and never repeats an id
   7. the total entry count equals EXPECTED_TOTAL
 
@@ -17,14 +18,21 @@ family: `pride` (positive_activation) is genuinely nearest to `self-trust`
 (moral_self), so a cross-family reference is correct rather than a defect.
 
 `nearest` is a derived field. The rule that defines it — the three closest
-canonical points, ties broken by the position of the feeling in the embedded
-lexicon — lives in `tools/regenerate_nearest.py`, and this validator checks
-the data against that same rule, so the lists cannot drift away from their own
-definition the way hand-written ones did.
+canonical points, compared as exact integers, ties broken by the position of
+the feeling in the embedded lexicon — lives in `tools/regenerate_nearest.py`,
+and this validator checks the data against that same rule, so the lists cannot
+drift away from their own definition the way hand-written ones did.
+
+The comparison is exact: every coordinate is a hundredth, so the squared
+distance scaled by 10000 is an exact integer, and the rule compares those
+integers. Comparing floating-point distances cannot do this — the square root
+of the same squared sum rounds differently depending on the order the terms
+were added, so two feelings that are exactly equidistant come out at different
+distances and float noise picks the neighbour instead of the rule.
 
 Run:  python tools/validate_lexicon.py [--fix]
        --fix rewrites every `nearest` list to the three nearest feelings by
-             distance, and reports how many lists it rewrote.
+             exact distance, and reports how many lists it rewrote.
 
 Exit code 0 when valid, 1 otherwise.
 """
@@ -92,6 +100,13 @@ def validate(entries: list[Entry]) -> list[str]:
                 problems.append(f"{entry.location}: axis '{axis}' is not a number (id={entry.id})")
             elif not -1.0 <= value <= 1.0:
                 problems.append(f"{entry.location}: axis '{axis}'={value} outside [-1, 1] (id={entry.id})")
+            elif entry.hundredths(axis) is None:
+                # The rule is defined on whole hundredths, so a coordinate
+                # written to a finer scale has no exact nearest neighbours.
+                problems.append(
+                    f"{entry.location}: axis '{axis}'={value} is not a whole number of "
+                    f"hundredths, so the nearest rule is not defined for it (id={entry.id})"
+                )
 
         # The anti-wallpaper rule, enforced: a feeling must be able to move behaviour,
         # and it may only move parameters the cognition loop actually reads.
@@ -105,6 +120,11 @@ def validate(entries: list[Entry]) -> list[str]:
             problems.append(
                 f"{entry.location}: bias key(s) {unknown} outside the registry (id={entry.id})"
             )
+        for name, amount in sorted(entry.bias.items()):
+            if not -1.0 <= amount <= 1.0:
+                problems.append(
+                    f"{entry.location}: bias '{name}'={amount} outside [-1, 1] (id={entry.id})"
+                )
 
     seen: dict[str, Entry] = {}
     for entry in entries:
@@ -120,15 +140,14 @@ def validate(entries: list[Entry]) -> list[str]:
     # Two feelings at one canonical point make the labeller's choice between
     # them an accident of file order, and leave the later of the two unable to
     # be the primary label at all. The point has to be impossible to write.
-    points: dict[tuple[float, float, float], Entry] = {}
+    points: dict[tuple[int, int, int], Entry] = {}
     for entry in entries:
-        point = entry.point()
-        if any(value is None for value in point):
+        point = entry.exact_point()
+        if point is None:
             continue
-        key = (point[0], point[1], point[2])
-        first = points.get(key)
+        first = points.get(point)
         if first is None:
-            points[key] = entry
+            points[point] = entry
         else:
             problems.append(
                 f"{entry.location}: canonical point ({entry.fields['valence']}, "
@@ -137,10 +156,10 @@ def validate(entries: list[Entry]) -> list[str]:
                 f"labeller's choice an accident (id={entry.id})"
             )
 
-    # `nearest` is derived: the three closest canonical points, ties broken by
-    # the position of the feeling in the embedded lexicon. The same rule that
-    # writes the lists checks them, so the data cannot drift from its
-    # definition.
+    # `nearest` is derived: the three closest canonical points, compared as
+    # exact integers, ties broken by the position of the feeling in the
+    # embedded lexicon. The same rule that writes the lists checks them, so
+    # the data cannot drift from its definition.
     canonical = canonical_nearest(entries)
     all_ids = {entry.id for entry in entries}
 
@@ -167,8 +186,8 @@ def validate(entries: list[Entry]) -> list[str]:
         expected = canonical.get(entry.id, [])
         if entry.nearest != expected:
             problems.append(
-                f"{entry.location}: nearest is not the {NEAREST_COUNT} nearest feelings - "
-                f"expected {expected}, found {entry.nearest} (id={entry.id})"
+                f"{entry.location}: nearest is not the {NEAREST_COUNT} nearest feelings by "
+                f"exact distance - expected {expected}, found {entry.nearest} (id={entry.id})"
             )
 
     if len(entries) != EXPECTED_TOTAL:

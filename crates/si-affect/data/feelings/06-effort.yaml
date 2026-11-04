@@ -43,7 +43,7 @@
   arousal: 0.60
   tension: 0.15
   bias: {persist: 0.35, retry_same: 0.25}
-  nearest: [perseverance, alertness, effort]
+  nearest: [perseverance, grit, effort]
 - id: perseverance
   name: Perseverance
   family: effort
@@ -52,7 +52,7 @@
   arousal: 0.65
   tension: 0.20
   bias: {pace: -0.15, persist: 0.4}
-  nearest: [resolve, alertness, grit]
+  nearest: [resolve, persistence, grit]
 - id: grit
   name: Grit
   family: effort
@@ -98,7 +98,7 @@
   arousal: 0.60
   tension: 0.15
   bias: {persist: 0.2}
-  nearest: [persistence, alertness, grit]
+  nearest: [persistence, grit, alertness]
 - id: exertion
   name: Exertion
   family: effort
@@ -107,7 +107,7 @@
   arousal: 0.70
   tension: 0.30
   bias: {pace: -0.15, persist: 0.2}
-  nearest: [restlessness, surprise, scrutiny]
+  nearest: [surprise, restlessness, scrutiny]
 - id: strain
   name: Strain
   family: effort
@@ -153,7 +153,7 @@
   arousal: 0.70
   tension: -0.15
   bias: {explore: 0.15, persist: 0.25}
-  nearest: [inspiration, eagerness, zest]
+  nearest: [eagerness, inspiration, zest]
 - id: momentum
   name: Momentum
   family: effort
@@ -180,7 +180,7 @@
   arousal: 0.55
   tension: -0.30
   bias: {persist: 0.2}
-  nearest: [fascination, progress, realization]
+  nearest: [fascination, progress, hope]
 - id: breakthrough
   name: Breakthrough
   family: effort
@@ -234,7 +234,7 @@
   arousal: 0.55
   tension: -0.30
   bias: {persist: 0.25}
-  nearest: [attentiveness, open-mindedness, focus]
+  nearest: [attentiveness, open-mindedness, inquiry]
 - id: alertness
   name: Alertness
   family: effort

@@ -25,7 +25,7 @@
   arousal: 0.40
   tension: 0.65
   bias: {express: 0.25, revise: 0.4}
-  nearest: [breach, exclusion, envy]
+  nearest: [exclusion, breach, hurt]
 - id: regret
   name: Regret
   family: moral_self
@@ -43,7 +43,7 @@
   arousal: 0.30
   tension: 0.05
   bias: {connect: 0.75}
-  nearest: [empathy, sympathy, interest]
+  nearest: [empathy, interest, sympathy]
 - id: forgiveness
   name: Forgiveness
   family: moral_self
@@ -70,7 +70,7 @@
   arousal: 0.40
   tension: 0.60
   bias: {revise: 0.3, verify: 0.2}
-  nearest: [defensiveness, worry, distrust]
+  nearest: [worry, defensiveness, distrust]
 - id: humility
   name: Humility
   family: moral_self
@@ -133,7 +133,7 @@
   arousal: 0.40
   tension: -0.35
   bias: {explore: 0.2, persist: 0.3}
-  nearest: [learning, collaboration, optimism]
+  nearest: [optimism, learning, cooperation]
 - id: meaning
   name: Meaning
   family: moral_self
@@ -151,7 +151,7 @@
   arousal: -0.45
   tension: 0.10
   bias: {explore: 0.25, persist: 0.25}
-  nearest: [melancholy, emptiness, hollowness]
+  nearest: [melancholy, emptiness, gloom]
 - id: courage
   name: Courage
   family: moral_self
@@ -160,7 +160,7 @@
   arousal: 0.70
   tension: 0.25
   bias: {persist: 0.3, risk: 0.3, verify: -0.1}
-  nearest: [ambition, resolve, perseverance]
+  nearest: [ambition, resolve, astonishment]
 - id: honesty
   name: Honesty
   family: moral_self

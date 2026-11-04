@@ -7,6 +7,18 @@ as Euclidean distance in the three-axis affect space:
 
     nearest(f) = the three ids closest to f, excluding f itself
 
+The comparison is **exact**. Every coordinate in the lexicon is written to two
+decimals, so a coordinate is an exact whole number of hundredths and the
+squared distance between two canonical points, scaled by 10000 — that is,
+`(dx² + dy² + dz²) × 10000` — is an exact integer. The rule compares those
+integers.
+
+Comparing *distances* in floating point cannot do this. The square root of the
+same squared sum rounds differently depending on the order the terms were
+added, so two feelings that are exactly equidistant come out at different
+distances, and float noise picks the neighbour instead of the rule. On this
+lexicon that noise changed the answer on 68 of the 250 lists.
+
 Ties are broken by the position of the feeling in the embedded lexicon — file
 order first, then line order within a file — so the result is deterministic.
 `tools/validate_lexicon.py` recomputes this rule with the same code that
@@ -28,11 +40,21 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 # How many neighbours a feeling names. Three is the number the brief fixes:
 # enough to describe a neighbourhood, few enough to stay readable in the data.
 NEAREST_COUNT = 3
+
+# The scale the rule is defined at.
+#
+# Every coordinate in the lexicon is written to two decimals, so a coordinate is
+# an exact whole number of hundredths. A difference of two such coordinates is
+# therefore a whole number of hundredths too, and the sum of the squared
+# differences is already the squared distance scaled by 10000 — an exact
+# integer, whatever order the terms are added in.
+COORDINATE_SCALE = 100
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "crates" / "si-affect" / "data" / "feelings"
 
@@ -65,9 +87,34 @@ class Entry:
         except ValueError:
             return None
 
+    def hundredths(self, key: str) -> int | None:
+        """The coordinate as an exact whole number of hundredths.
+
+        The rule is defined on the hundredths the coordinates are written in,
+        so this is where the exactness comes from: no float ever enters the
+        comparison. A coordinate that is not a whole number of hundredths
+        returns None, because the rule is not defined for it.
+        """
+        raw = self.fields.get(key, "").strip()
+        try:
+            exact = Decimal(raw)
+        except InvalidOperation:
+            return None
+        scaled = exact * COORDINATE_SCALE
+        if scaled != scaled.to_integral_value():
+            return None
+        return int(scaled)
+
     def point(self) -> tuple[float | None, float | None, float | None]:
         """The canonical point in the three-axis affect space."""
         return (self.axis("valence"), self.axis("arousal"), self.axis("tension"))
+
+    def exact_point(self) -> tuple[int, int, int] | None:
+        """The canonical point as exact whole numbers of hundredths."""
+        axes = [self.hundredths(axis) for axis in ("valence", "arousal", "tension")]
+        if any(axis is None for axis in axes):
+            return None
+        return (axes[0], axes[1], axes[2])
 
 
 def lexicon_paths() -> list[Path]:
@@ -125,29 +172,33 @@ def parse_files(paths: list[Path]) -> list[Entry]:
     return entries
 
 
-def distance(a: tuple[float | None, ...], b: tuple[float | None, ...]) -> float:
-    """Euclidean distance between two canonical points.
+def scaled_squared_distance(a: tuple[int, int, int], b: tuple[int, int, int]) -> int:
+    """The squared distance between two canonical points, scaled by 10000.
 
-    A point with an unreadable axis is infinitely far from everything: the
-    validator reports the unreadable axis separately, and a feeling whose
-    position cannot be read must never win a nearest-neighbour contest.
+    The coordinates count hundredths, so each squared difference is already
+    the squared distance scaled by 10000, and the sum of the three is an exact
+    integer. Two distances that are equal are equal integers, whatever order
+    the terms were added in, so the comparison that follows is exact.
     """
-    if any(value is None for value in (*a, *b)):
-        return float("inf")
-    return sum((x - y) ** 2 for x, y in zip(a, b)) ** 0.5
+    return sum((x - y) ** 2 for x, y in zip(a, b))
 
 
 def canonical_nearest(entries: list[Entry]) -> dict[str, list[str]]:
     """The canonical `nearest` list for every feeling.
 
-    The three closest canonical points, excluding the feeling itself. Ties are
-    broken by the position of the feeling in the embedded lexicon — file order,
-    then line order — which is the index of the entry in `entries`.
+    The three closest canonical points, excluding the feeling itself, compared
+    as exact integers. Ties are broken by the position of the feeling in the
+    embedded lexicon — file order, then line order — which is the index of the
+    entry in `entries`.
 
     Ids are taken once, at their first occurrence, so a list never repeats an
     id even if the data does: a duplicate id is a defect the validator reports
     separately, and it must not be able to produce a list the validator would
     then reject.
+
+    A feeling whose point cannot be read exactly is left without neighbours
+    rather than given wrong ones; the validator reports the unreadable
+    coordinate separately.
     """
     unique: list[Entry] = []
     seen: set[str] = set()
@@ -157,17 +208,27 @@ def canonical_nearest(entries: list[Entry]) -> dict[str, list[str]]:
         seen.add(entry.id)
         unique.append(entry)
 
-    points = {entry.id: entry.point() for entry in unique}
+    points = {entry.id: entry.exact_point() for entry in unique}
     order = {entry.id: index for index, entry in enumerate(unique)}
 
     nearest: dict[str, list[str]] = {}
     for entry in unique:
-        ranked = sorted(
-            (distance(points[entry.id], points[other.id]), order[other.id], other.id)
-            for other in unique
-            if other.id != entry.id
-        )
-        nearest[entry.id] = [item[2] for item in ranked[:NEAREST_COUNT]]
+        ranked: list[tuple[bool, int, int, str]] = []
+        for other in unique:
+            if other.id == entry.id:
+                continue
+            here = points[entry.id]
+            there = points[other.id]
+            if here is None or there is None:
+                # An unreadable point is infinitely far from everything: it
+                # must never win a nearest-neighbour contest.
+                ranked.append((True, 0, order[other.id], other.id))
+                continue
+            ranked.append(
+                (False, scaled_squared_distance(here, there), order[other.id], other.id)
+            )
+        ranked.sort()
+        nearest[entry.id] = [item[3] for item in ranked[:NEAREST_COUNT]]
     return nearest
 
 

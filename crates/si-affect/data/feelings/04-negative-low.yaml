@@ -7,7 +7,7 @@
   arousal: -0.65
   tension: -0.10
   bias: {explore: 0.25, persist: -0.15}
-  nearest: [slack, indifference, apathy]
+  nearest: [slack, apathy, indifference]
 - id: weariness
   name: Weariness
   family: negative_low
@@ -79,7 +79,7 @@
   arousal: -0.45
   tension: 0.25
   bias: {connect: 0.1}
-  nearest: [discouragement, melancholy, aimlessness]
+  nearest: [melancholy, discouragement, aimlessness]
 - id: despair
   name: Despair
   family: negative_low
@@ -160,7 +160,7 @@
   arousal: -0.45
   tension: 0.35
   bias: {explore: -0.1, retry_same: -0.2}
-  nearest: [gloom, resignation, dejection]
+  nearest: [gloom, resignation, sadness]
 - id: resignation
   name: Resignation
   family: negative_low
@@ -187,7 +187,7 @@
   arousal: -0.50
   tension: 0.50
   bias: {connect: 0.2, persist: -0.3}
-  nearest: [defeat, despondency, hopelessness]
+  nearest: [despondency, defeat, hopelessness]
 - id: dissatisfaction
   name: Dissatisfaction
   family: negative_low
@@ -205,7 +205,7 @@
   arousal: 0.30
   tension: 0.40
   bias: {explore: 0.15}
-  nearest: [skepticism, puzzlement, vagueness]
+  nearest: [skepticism, puzzlement, annoyance]
 - id: lethargy
   name: Lethargy
   family: negative_low

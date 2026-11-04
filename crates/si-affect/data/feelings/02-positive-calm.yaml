@@ -25,7 +25,7 @@
   arousal: -0.65
   tension: -0.70
   bias: {verify: 0.1}
-  nearest: [relaxation, peace, calm]
+  nearest: [peace, relaxation, calm]
 - id: contentment
   name: Contentment
   family: positive_calm
@@ -34,7 +34,7 @@
   arousal: -0.45
   tension: -0.60
   bias: {persist: 0.1}
-  nearest: [ease, acceptance, comfort]
+  nearest: [ease, comfort, acceptance]
 - id: comfort
   name: Comfort
   family: positive_calm
@@ -70,7 +70,7 @@
   arousal: -0.80
   tension: -0.70
   bias: {risk: -0.15}
-  nearest: [relaxation, peace, serenity]
+  nearest: [peace, relaxation, serenity]
 - id: safety
   name: Safety
   family: positive_calm
@@ -115,7 +115,7 @@
   arousal: -0.40
   tension: -0.60
   bias: {persist: 0.15}
-  nearest: [balance, acceptance, stability]
+  nearest: [stability, balance, acceptance]
 - id: balance
   name: Balance
   family: positive_calm
@@ -124,7 +124,7 @@
   arousal: -0.35
   tension: -0.55
   bias: {verify: 0.1}
-  nearest: [steadiness, acceptance, equanimity]
+  nearest: [steadiness, acceptance, ease]
 - id: harmony
   name: Harmony
   family: positive_calm
@@ -133,7 +133,7 @@
   arousal: -0.30
   tension: -0.60
   bias: {connect: 0.15}
-  nearest: [trust, security, ease]
+  nearest: [trust, ease, security]
 - id: trust
   name: Trust
   family: positive_calm
@@ -178,7 +178,7 @@
   arousal: -0.30
   tension: -0.40
   bias: {connect: 0.15}
-  nearest: [patience, composure, humility]
+  nearest: [patience, composure, equanimity]
 - id: reverence
   name: Reverence
   family: positive_calm
@@ -196,7 +196,7 @@
   arousal: -0.85
   tension: -0.55
   bias: {pace: -0.2, risk: -0.15}
-  nearest: [repose, relaxation, serenity]
+  nearest: [repose, relaxation, peace]
 - id: renewal
   name: Renewal
   family: positive_calm

@@ -10,7 +10,7 @@
   arousal: 0.70
   tension: -0.30
   bias: {explore: 0.25, express: 0.2}
-  nearest: [joy, glee, elation]
+  nearest: [elation, joy, glee]
 - id: elation
   name: Elation
   family: positive_activation
@@ -19,7 +19,7 @@
   arousal: 0.75
   tension: -0.25
   bias: {explore: 0.3, express: 0.25}
-  nearest: [delight, triumph, glee]
+  nearest: [delight, triumph, jubilation]
 - id: jubilation
   name: Jubilation
   family: positive_activation
@@ -73,7 +73,7 @@
   arousal: 0.50
   tension: -0.40
   bias: {explore: 0.55, risk: 0.1}
-  nearest: [illumination, amusement, flow]
+  nearest: [amusement, illumination, flow]
 - id: zest
   name: Zest
   family: positive_activation
@@ -154,7 +154,7 @@
   arousal: 0.25
   tension: -0.45
   bias: {verify: 0.1}
-  nearest: [warmth, fulfillment, affection]
+  nearest: [fulfillment, warmth, affection]
 - id: fulfillment
   name: Fulfillment
   family: positive_activation
@@ -262,7 +262,7 @@
   arousal: 0.60
   tension: -0.50
   bias: {explore: 0.25, verify: 0.2}
-  nearest: [pattern, conviction, progress]
+  nearest: [pattern, conviction, insight]
 - id: wonder
   name: Wonder
   family: positive_activation
@@ -271,7 +271,7 @@
   arousal: 0.45
   tension: -0.40
   bias: {explore: 0.2}
-  nearest: [conviction, pattern, learning]
+  nearest: [conviction, learning, pattern]
 - id: amazement
   name: Amazement
   family: positive_activation

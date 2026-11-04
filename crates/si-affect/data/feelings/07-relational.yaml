@@ -26,7 +26,7 @@
   arousal: 0.30
   tension: -0.40
   bias: {connect: 0.25, express: 0.15}
-  nearest: [warmth, companionship, closeness]
+  nearest: [warmth, closeness, companionship]
 - id: closeness
   name: Closeness
   family: relational
@@ -36,7 +36,7 @@
   arousal: 0.25
   tension: -0.45
   bias: {connect: 0.45}
-  nearest: [tenderness, companionship, connection]
+  nearest: [tenderness, connection, belonging]
 - id: caring
   name: Caring
   family: relational
@@ -63,7 +63,7 @@
   arousal: 0.35
   tension: 0.55
   bias: {connect: 0.55, risk: 0.15}
-  nearest: [ambiguity, skepticism, puzzlement]
+  nearest: [ambiguity, puzzlement, skepticism]
 - id: guardedness
   name: Guardedness
   family: relational
@@ -81,7 +81,7 @@
   arousal: 0.45
   tension: 0.60
   bias: {connect: -0.25, express: 0.3}
-  nearest: [dissonance, suspicion, disbelief]
+  nearest: [suspicion, dissonance, worry]
 - id: mistrust
   name: Mistrust
   family: relational
@@ -145,7 +145,7 @@
   arousal: 0.45
   tension: 0.60
   bias: {connect: 0.5}
-  nearest: [guilt, exclusion, shame]
+  nearest: [exclusion, guilt, shame]
 - id: abandonment
   name: Abandonment
   family: relational
@@ -154,7 +154,7 @@
   arousal: 0.35
   tension: 0.70
   bias: {connect: 0.55}
-  nearest: [misery, sorrow, hurt]
+  nearest: [misery, grief, sorrow]
 - id: exclusion
   name: Exclusion
   family: relational
@@ -163,7 +163,7 @@
   arousal: 0.40
   tension: 0.60
   bias: {connect: 0.45}
-  nearest: [rejection, guilt, deception]
+  nearest: [rejection, deception, breach]
 - id: isolation
   name: Isolation
   family: relational
@@ -227,7 +227,7 @@
   arousal: 0.35
   tension: -0.35
   bias: {connect: 0.5}
-  nearest: [respect, development, collaboration]
+  nearest: [respect, collaboration, development]
 - id: collaboration
   name: Collaboration
   family: relational
@@ -236,7 +236,7 @@
   arousal: 0.40
   tension: -0.30
   bias: {connect: 0.3}
-  nearest: [learning, growth, purpose]
+  nearest: [learning, cooperation, growth]
 - id: coordination
   name: Coordination
   family: relational
@@ -245,7 +245,7 @@
   arousal: 0.35
   tension: -0.30
   bias: {connect: 0.2, revise: 0.15}
-  nearest: [meaning, development, open-mindedness]
+  nearest: [development, meaning, open-mindedness]
 - id: partnership
   name: Partnership
   family: relational
@@ -281,7 +281,7 @@
   arousal: 0.45
   tension: 0.60
   bias: {connect: 0.2, verify: 0.2}
-  nearest: [guilt, exclusion, remorse]
+  nearest: [exclusion, guilt, remorse]
 - id: loyalty
   name: Loyalty
   family: relational
@@ -308,4 +308,4 @@
   arousal: 0.30
   tension: -0.40
   bias: {connect: 0.15, revise: 0.2}
-  nearest: [respect, partnership, companionship]
+  nearest: [respect, companionship, partnership]
