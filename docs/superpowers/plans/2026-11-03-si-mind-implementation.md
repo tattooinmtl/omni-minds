@@ -248,7 +248,7 @@ git commit -m "chore: cargo workspace skeleton with si-log crate"
 - Produces:
   - `si_log::EventId` — newtype over `uuid::Uuid`.
   - `si_log::TurnId` — newtype over `String`.
-  - `si_log::EventKind` — the 19 variants listed in §4.
+  - `si_log::EventKind` — the 18 variants listed in §4.
   - `si_log::Event` — `{ id: EventId, seq: u64, ts_us: i64, turn_id: Option<TurnId>, kind: EventKind, affect: Option<AffectSnapshot>, salience: f32 }`.
   - `si_log::AffectSnapshot` — `{ valence: f32, arousal: f32, tension: f32 }`.
 
