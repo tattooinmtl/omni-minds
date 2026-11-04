@@ -231,9 +231,13 @@ Expected: compiles, no warnings other than any dependency notes.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add Cargo.toml crates/si-log .gitignore
+git add Cargo.toml Cargo.lock crates/si-log .gitignore
 git commit -m "chore: cargo workspace skeleton with si-log crate"
 ```
+
+> `Cargo.lock` is committed: it is what pins `uuid 1.29.0` and therefore what
+> makes the declared MSRV of 1.89 true for this workspace. Leaving it out
+> would let a later `cargo update` silently move the floor.
 
 ---
 
@@ -1599,7 +1603,67 @@ git commit -m "feat(si-vault): on-disk vault with a write guard on self/"
 > not an absolute. The loop holds the base value; the affect layer applies a
 > scaled delta on top.
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Join the workspace**
+
+This crate's data already exists — `crates/si-affect/data/feelings/*.yaml`, 250
+feelings across 8 files, committed in the design phase — but the crate itself
+does not. Two things must happen before `cargo test -p si-affect` can run at
+all:
+
+1. **Remove the temporary workspace exclude.** Task 0.1 added
+   `exclude = ["crates/si-affect"]` and three comment lines to the root
+   `Cargo.toml`, because Cargo requires every directory matched by
+   `members = ["crates/*"]` to be a valid package and the data directory was
+   already there. Delete the `exclude` line and its comment lines from the
+   root `Cargo.toml` **before** creating the manifest: with the exclude gone
+   and no manifest yet, the workspace does not load at all.
+2. **Create the crate manifest and a module skeleton**, so the package exists
+   and `cargo test -p si-affect` resolves.
+
+`crates/si-affect/Cargo.toml`:
+
+```toml
+[package]
+name = "si-affect"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+```
+
+`crates/si-affect/src/lib.rs`:
+
+```rust
+// Rust guideline compliant 2026-03-30
+
+//! The affect engine: a continuous three-axis state, labelled by a lexicon of
+//! 250 feelings, whose labels move real behaviour.
+
+pub mod bias;
+
+pub use bias::{CognitionParameter, CognitionParameters};
+```
+
+`crates/si-affect/src/bias.rs` — a placeholder with the header and the module
+doc comment, which Step 4 fills in:
+
+```rust
+// Rust guideline compliant 2026-03-30
+
+//! The closed registry of cognition parameters.
+```
+
+Run: `cargo build -p si-affect`
+Expected: compiles. The crate is in the workspace and has no behaviour yet.
+
+- [ ] **Step 2: Write the failing test**
 
 `crates/si-affect/src/bias.rs`, at the bottom:
 
@@ -1637,44 +1701,16 @@ mod tests {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [ ] **Step 3: Run the test to verify it fails**
 
 Run: `cargo test -p si-affect`
-Expected: FAIL — `CognitionParameter` is not defined.
+Expected: FAIL — `CognitionParameter` is not defined. The package exists by
+now, so the failure is the missing type and not a missing package.
 
-- [ ] **Step 3: Implement the registry**
+- [ ] **Step 4: Implement the registry**
 
-> **First, remove the temporary workspace exclude.** Task 0.1 added
-> `exclude = ["crates/si-affect"]` and three comment lines to the root
-> `Cargo.toml`, because the 250-feeling lexicon YAML files were already
-> committed under `crates/si-affect/` before the crate had a manifest, and
-> Cargo requires every directory matched by `members = ["crates/*"]` to be a
-> valid package. Now that this task creates that manifest, delete the
-> `exclude` line and its comment lines — otherwise `cargo test -p si-affect`
-> fails with *"package ID specification `si-affect` did not match any
-> packages"*, which is this task's own acceptance command.
-
-`crates/si-affect/Cargo.toml`:
-
-```toml
-[package]
-name = "si-affect"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-
-[dependencies]
-serde.workspace = true
-serde_json.workspace = true
-serde_yaml.workspace = true
-thiserror.workspace = true
-tracing.workspace = true
-
-[build-dependencies]
-```
-
-`crates/si-affect/src/bias.rs`:
+`crates/si-affect/src/bias.rs` — replace the placeholder with this, keeping the
+test module from Step 2 at the bottom:
 
 ```rust
 // Rust guideline compliant 2026-03-30
@@ -1779,30 +1815,20 @@ impl CognitionParameters {
 }
 ```
 
-`crates/si-affect/src/lib.rs`:
-
-```rust
-// Rust guideline compliant 2026-03-30
-
-//! The affect engine: a continuous three-axis state, labelled by a lexicon of
-//! 250 feelings, whose labels move real behaviour.
-
-pub mod bias;
-
-pub use bias::{CognitionParameter, CognitionParameters};
-```
-
-- [ ] **Step 4: Run the test to verify it passes**
+- [ ] **Step 5: Run the test to verify it passes**
 
 Run: `cargo test -p si-affect`
 Expected: PASS, 3 tests.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add crates/si-affect
+git add crates/si-affect Cargo.toml
 git commit -m "feat(si-affect): closed registry of 13 cognition parameters"
 ```
+
+> `Cargo.toml` is staged because this task removes the temporary
+> `exclude = ["crates/si-affect"]` from it.
 
 ---
 
