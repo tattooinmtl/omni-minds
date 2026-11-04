@@ -694,7 +694,9 @@ impl Log {
     /// Opens or creates the log at `path`, applying the schema.
     pub fn open(path: &Path) -> Result<Self, LogError> {
         if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).map_err(LogError::Sqlite)?;
+            // `create_dir_all` succeeds when the directory already exists, and
+            // treats the empty parent of a bare file name as nothing to do.
+            std::fs::create_dir_all(parent).map_err(io_failure)?;
         }
         let conn = Connection::open(path)?;
         Self::prepare(conn)
@@ -823,6 +825,18 @@ fn unix_micros() -> i64 {
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_micros() as i64)
         .unwrap_or(0)
+}
+
+/// Turns an operating-system error into a store error.
+///
+/// [`LogError`] carries the three variants the plan fixes, so a failure to
+/// create the database directory is reported as the I/O failure it is:
+/// `SQLITE_IOERR` with the operating system's message attached.
+fn io_failure(err: std::io::Error) -> LogError {
+    LogError::Sqlite(rusqlite::Error::SqliteFailure(
+        rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_IOERR),
+        Some(err.to_string()),
+    ))
 }
 ```
 
