@@ -2,6 +2,11 @@
 
 //! Append-only event log: the single source of truth for the mind.
 
+pub mod event;
+
+#[doc(inline)]
+pub use event::{AffectSnapshot, Event, EventId, EventKind, EvictReason, TurnId, WriteOp};
+
 /// The crate version string, inherited from the workspace package version.
 ///
 /// `env!("CARGO_PKG_VERSION")` resolves to the inherited workspace version
