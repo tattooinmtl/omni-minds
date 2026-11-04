@@ -3,7 +3,9 @@
 //! The vault: an Obsidian-compatible markdown store of everything the mind knows.
 
 pub mod frontmatter;
+pub mod graph;
 pub mod note;
+pub mod wikilink;
 
 use thiserror::Error;
 
@@ -23,4 +25,8 @@ pub enum VaultError {
 }
 
 #[doc(inline)]
+pub use graph::{graph, Edge, EdgeKind};
+#[doc(inline)]
 pub use note::{parse_note, render_note, Note};
+#[doc(inline)]
+pub use wikilink::{extract_wikilinks, Wikilink};
