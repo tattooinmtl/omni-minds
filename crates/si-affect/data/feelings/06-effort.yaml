@@ -7,7 +7,7 @@
   arousal: 0.65
   tension: -0.20
   bias: {explore: -0.2, persist: 0.35, verify: 0.1}
-  nearest: [concentration, attention, flow]
+  nearest: [concentration, attention, readiness]
 - id: concentration
   name: Concentration
   family: effort
@@ -16,7 +16,7 @@
   arousal: 0.60
   tension: -0.15
   bias: {persist: 0.45}
-  nearest: [focus, attention, determination]
+  nearest: [attention, focus, attentiveness]
 - id: determination
   name: Determination
   family: effort
@@ -25,7 +25,7 @@
   arousal: 0.70
   tension: 0.10
   bias: {persist: 0.35, retry_same: 0.2}
-  nearest: [resolve, perseverance, persistence]
+  nearest: [resolve, alertness, perseverance]
 - id: resolve
   name: Resolve
   family: effort
@@ -34,7 +34,7 @@
   arousal: 0.65
   tension: 0.20
   bias: {persist: 0.3}
-  nearest: [determination, perseverance, discipline]
+  nearest: [perseverance, ambition, anticipation]
 - id: persistence
   name: Persistence
   family: effort
@@ -43,7 +43,7 @@
   arousal: 0.60
   tension: 0.15
   bias: {persist: 0.35, retry_same: 0.25}
-  nearest: [perseverance, determination, grit]
+  nearest: [perseverance, alertness, effort]
 - id: perseverance
   name: Perseverance
   family: effort
@@ -52,7 +52,7 @@
   arousal: 0.65
   tension: 0.20
   bias: {pace: -0.15, persist: 0.4}
-  nearest: [persistence, determination, grit]
+  nearest: [resolve, alertness, grit]
 - id: grit
   name: Grit
   family: effort
@@ -71,7 +71,7 @@
   arousal: -0.30
   tension: -0.35
   bias: {pace: -0.25, retry_same: 0.15}
-  nearest: [tolerance, composure, equanimity]
+  nearest: [tolerance, humility, composure]
 - id: diligence
   name: Diligence
   family: effort
@@ -80,7 +80,7 @@
   arousal: 0.45
   tension: -0.05
   bias: {persist: 0.15, verify: 0.3}
-  nearest: [discipline, focus, interest]
+  nearest: [discipline, interest, attention]
 - id: discipline
   name: Discipline
   family: effort
@@ -89,7 +89,7 @@
   arousal: 0.50
   tension: -0.05
   bias: {persist: 0.3, verify: 0.15}
-  nearest: [diligence, resolve, persistence]
+  nearest: [diligence, attention, concentration]
 - id: effort
   name: Effort
   family: effort
@@ -98,7 +98,7 @@
   arousal: 0.60
   tension: 0.15
   bias: {persist: 0.2}
-  nearest: [exertion, strain, struggle]
+  nearest: [persistence, alertness, grit]
 - id: exertion
   name: Exertion
   family: effort
@@ -107,7 +107,7 @@
   arousal: 0.70
   tension: 0.30
   bias: {pace: -0.15, persist: 0.2}
-  nearest: [effort, strain, struggle]
+  nearest: [restlessness, surprise, scrutiny]
 - id: strain
   name: Strain
   family: effort
@@ -116,7 +116,7 @@
   arousal: 0.65
   tension: 0.60
   bias: {pace: -0.25, persist: -0.15}
-  nearest: [struggle, exertion, exhaustion]
+  nearest: [rivalry, agitation, struggle]
 - id: struggle
   name: Struggle
   family: effort
@@ -125,7 +125,7 @@
   arousal: 0.60
   tension: 0.65
   bias: {explore: -0.15, retry_same: 0.25}
-  nearest: [strain, frustration, exertion]
+  nearest: [strain, frustration, rivalry]
 - id: drive
   name: Drive
   family: effort
@@ -134,7 +134,7 @@
   arousal: 0.75
   tension: -0.10
   bias: {explore: 0.2, persist: 0.3}
-  nearest: [motivation, momentum, ambition]
+  nearest: [momentum, motivation, curiosity]
 - id: ambition
   name: Ambition
   family: effort
@@ -143,7 +143,7 @@
   arousal: 0.65
   tension: 0.20
   bias: {explore: 0.2, persist: 0.25}
-  nearest: [drive, purpose, determination]
+  nearest: [resolve, perseverance, anticipation]
 - id: motivation
   name: Motivation
   family: effort
@@ -153,7 +153,7 @@
   arousal: 0.70
   tension: -0.15
   bias: {explore: 0.15, persist: 0.25}
-  nearest: [drive, determination, enthusiasm]
+  nearest: [inspiration, eagerness, zest]
 - id: momentum
   name: Momentum
   family: effort
@@ -162,7 +162,7 @@
   arousal: 0.75
   tension: -0.20
   bias: {explore: 0.1, persist: 0.25}
-  nearest: [drive, progress, flow]
+  nearest: [drive, motivation, absorption]
 - id: progress
   name: Progress
   family: effort
@@ -171,7 +171,7 @@
   arousal: 0.50
   tension: -0.35
   bias: {explore: 0.15, persist: 0.25}
-  nearest: [momentum, accomplishment, advance]
+  nearest: [learning, pattern, wonder]
 - id: advance
   name: Advance
   family: effort
@@ -180,7 +180,7 @@
   arousal: 0.55
   tension: -0.30
   bias: {persist: 0.2}
-  nearest: [progress, breakthrough, momentum]
+  nearest: [fascination, progress, realization]
 - id: breakthrough
   name: Breakthrough
   family: effort
@@ -189,7 +189,7 @@
   arousal: 0.75
   tension: -0.25
   bias: {create: 0.2, explore: 0.3}
-  nearest: [advance, insight, triumph]
+  nearest: [mirth, triumph, epiphany]
 - id: flow
   name: Flow
   family: effort
@@ -198,7 +198,7 @@
   arousal: 0.60
   tension: -0.45
   bias: {explore: -0.1, persist: 0.7}
-  nearest: [absorption, focus, momentum]
+  nearest: [joy, playfulness, love]
 - id: absorption
   name: Absorption
   family: effort
@@ -207,7 +207,7 @@
   arousal: 0.65
   tension: -0.30
   bias: {persist: 0.5}
-  nearest: [flow, fascination, concentration]
+  nearest: [amazement, fascination, realization]
 - id: restlessness
   name: Restlessness
   family: effort
@@ -216,7 +216,7 @@
   arousal: 0.60
   tension: 0.40
   bias: {explore: 0.25, pace: 0.15, persist: -0.25}
-  nearest: [impatience, agitation, urgency]
+  nearest: [competition, impatience, scrutiny]
 - id: urgency
   name: Urgency
   family: effort
@@ -225,7 +225,7 @@
   arousal: 0.85
   tension: 0.65
   bias: {pace: 0.35, verify: -0.25}
-  nearest: [alarm, impatience, shock]
+  nearest: [shock, startle, agitation]
 - id: readiness
   name: Readiness
   family: effort
@@ -234,7 +234,7 @@
   arousal: 0.55
   tension: -0.30
   bias: {persist: 0.25}
-  nearest: [anticipation, alertness, resolve]
+  nearest: [attentiveness, open-mindedness, focus]
 - id: alertness
   name: Alertness
   family: effort
@@ -243,7 +243,7 @@
   arousal: 0.70
   tension: 0.15
   bias: {persist: 0.15, verify: 0.25}
-  nearest: [vigilance, readiness, attentiveness]
+  nearest: [perseverance, persistence, determination]
 - id: exhaustion
   name: Exhaustion
   family: effort
@@ -252,7 +252,7 @@
   arousal: -0.85
   tension: 0.25
   bias: {pace: -0.4, persist: -0.25}
-  nearest: [burnout, depletion, weariness]
+  nearest: [depletion, stagnation, burnout]
 - id: depletion
   name: Depletion
   family: effort
@@ -261,7 +261,7 @@
   arousal: -0.80
   tension: 0.20
   bias: {pace: -0.35, persist: -0.2}
-  nearest: [exhaustion, fatigue, weariness]
+  nearest: [exhaustion, stagnation, weariness]
 - id: burnout
   name: Burnout
   family: effort
@@ -279,7 +279,7 @@
   arousal: -0.70
   tension: 0.25
   bias: {explore: 0.25, persist: -0.25}
-  nearest: [burnout, inertia, dejection]
+  nearest: [dejection, resignation, depletion]
 - id: inertia
   name: Inertia
   family: effort
@@ -288,7 +288,7 @@
   arousal: -0.75
   tension: 0.05
   bias: {explore: 0.2, persist: -0.15}
-  nearest: [stagnation, listlessness, slack]
+  nearest: [listlessness, weariness, numbness]
 - id: slack
   name: Slack
   family: effort
@@ -297,7 +297,7 @@
   arousal: -0.70
   tension: -0.15
   bias: {explore: 0.2}
-  nearest: [inertia, listlessness, apathy]
+  nearest: [indifference, boredom, lethargy]
 - id: recovery
   name: Recovery
   family: effort
@@ -306,7 +306,7 @@
   arousal: -0.60
   tension: -0.55
   bias: {persist: 0.15}
-  nearest: [renewal, rest, repose]
+  nearest: [calm, relaxation, stability]
 - id: composure
   name: Composure
   family: effort
@@ -315,7 +315,7 @@
   arousal: -0.25
   tension: -0.50
   bias: {pace: -0.25, retry_same: 0.1}
-  nearest: [serenity, patience, equanimity]
+  nearest: [equanimity, tolerance, balance]
 - id: equanimity
   name: Equanimity
   family: effort
@@ -324,4 +324,4 @@
   arousal: -0.30
   tension: -0.55
   bias: {pace: -0.2}
-  nearest: [composure, serenity, tolerance]
+  nearest: [composure, balance, steadiness]

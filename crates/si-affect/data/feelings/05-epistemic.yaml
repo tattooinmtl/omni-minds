@@ -8,7 +8,7 @@
   arousal: 0.55
   tension: -0.10
   bias: {explore: 0.7, risk: 0.15}
-  nearest: [interest, inquiry, fascination]
+  nearest: [inquiry, openness, concentration]
 - id: interest
   name: Interest
   family: epistemic
@@ -17,7 +17,7 @@
   arousal: 0.40
   tension: -0.15
   bias: {explore: 0.45}
-  nearest: [curiosity, fascination, attentiveness]
+  nearest: [inquiry, openness, diligence]
 - id: inquiry
   name: Inquiry
   family: epistemic
@@ -26,7 +26,7 @@
   arousal: 0.45
   tension: -0.20
   bias: {ask: 0.35, explore: 0.25}
-  nearest: [curiosity, questioning, interest]
+  nearest: [interest, attentiveness, openness]
 - id: fascination
   name: Fascination
   family: epistemic
@@ -35,7 +35,7 @@
   arousal: 0.60
   tension: -0.25
   bias: {explore: 0.65}
-  nearest: [curiosity, interest, absorption]
+  nearest: [hope, realization, absorption]
 - id: attention
   name: Attention
   family: epistemic
@@ -44,7 +44,7 @@
   arousal: 0.55
   tension: -0.15
   bias: {explore: -0.15, persist: 0.3}
-  nearest: [attentiveness, focus, concentration]
+  nearest: [concentration, discipline, focus]
 - id: attentiveness
   name: Attentiveness
   family: epistemic
@@ -53,7 +53,7 @@
   arousal: 0.50
   tension: -0.25
   bias: {explore: 0.2, verify: 0.2}
-  nearest: [attention, curiosity, vigilance]
+  nearest: [readiness, inquiry, open-mindedness]
 - id: vigilance
   name: Vigilance
   family: epistemic
@@ -62,7 +62,7 @@
   arousal: 0.70
   tension: 0.55
   bias: {risk: -0.2, verify: 0.35}
-  nearest: [scrutiny, alarm, attentiveness]
+  nearest: [scrutiny, exertion, competition]
 - id: scrutiny
   name: Scrutiny
   family: epistemic
@@ -71,7 +71,7 @@
   arousal: 0.50
   tension: 0.40
   bias: {verify: 0.55}
-  nearest: [vigilance, skepticism, doubt]
+  nearest: [puzzlement, restlessness, competition]
 - id: surprise
   name: Surprise
   family: epistemic
@@ -80,7 +80,7 @@
   arousal: 0.80
   tension: 0.20
   bias: {revise: 0.2, verify: 0.3}
-  nearest: [astonishment, startle, bewilderment]
+  nearest: [alertness, exertion, effort]
 - id: astonishment
   name: Astonishment
   family: epistemic
@@ -89,7 +89,7 @@
   arousal: 0.85
   tension: 0.25
   bias: {explore: 0.2, revise: 0.15}
-  nearest: [amazement, surprise, shock]
+  nearest: [resolve, alertness, perseverance]
 - id: shock
   name: Shock
   family: epistemic
@@ -98,7 +98,7 @@
   arousal: 0.90
   tension: 0.55
   bias: {revise: 0.3, verify: 0.3}
-  nearest: [surprise, astonishment, alarm]
+  nearest: [startle, urgency, agitation]
 - id: confusion
   name: Confusion
   family: epistemic
@@ -107,7 +107,7 @@
   arousal: 0.45
   tension: 0.55
   bias: {ask: 0.25, retry_same: 0.1, verify: 0.25}
-  nearest: [bewilderment, puzzlement, uncertainty]
+  nearest: [puzzlement, disbelief, worry]
 - id: bewilderment
   name: Bewilderment
   family: epistemic
@@ -116,7 +116,7 @@
   arousal: 0.40
   tension: 0.75
   bias: {ask: 0.3, explore: 0.1, verify: 0.3}
-  nearest: [confusion, disorientation, puzzlement]
+  nearest: [apprehension, suspicion, disorientation]
 - id: disorientation
   name: Disorientation
   family: epistemic
@@ -125,7 +125,7 @@
   arousal: 0.35
   tension: 0.80
   bias: {verify: 0.55}
-  nearest: [bewilderment, confusion, uncertainty]
+  nearest: [apprehension, bewilderment, mistrust]
 - id: puzzlement
   name: Puzzlement
   family: epistemic
@@ -134,7 +134,7 @@
   arousal: 0.40
   tension: 0.50
   bias: {ask: 0.3, explore: 0.2}
-  nearest: [confusion, curiosity, doubt]
+  nearest: [confusion, skepticism, vulnerability]
 - id: uncertainty
   name: Uncertainty
   family: epistemic
@@ -152,7 +152,7 @@
   arousal: 0.30
   tension: 0.60
   bias: {ask: 0.2, persist: -0.15}
-  nearest: [uncertainty, vagueness, doubt]
+  nearest: [vulnerability, uncertainty, skepticism]
 - id: vagueness
   name: Vagueness
   family: epistemic
@@ -161,7 +161,7 @@
   arousal: 0.20
   tension: 0.45
   bias: {ask: 0.25}
-  nearest: [ambiguity, uncertainty, confusion]
+  nearest: [skepticism, vulnerability, unrest]
 - id: doubt
   name: Doubt
   family: epistemic
@@ -170,16 +170,16 @@
   arousal: 0.20
   tension: 0.60
   bias: {revise: 0.2, verify: 0.35}
-  nearest: [skepticism, uncertainty, misgiving]
+  nearest: [unease, uncertainty, misgiving]
 - id: skepticism
   name: Skepticism
   family: epistemic
   definition: A standing disposition to withhold assent until the claim is independently supported.
-  valence: -0.15
+  valence: -0.20
   arousal: 0.30
-  tension: 0.35
+  tension: 0.50
   bias: {verify: 0.55}
-  nearest: [doubt, scrutiny, disbelief]
+  nearest: [puzzlement, unrest, ambiguity]
 - id: disbelief
   name: Disbelief
   family: epistemic
@@ -188,7 +188,7 @@
   arousal: 0.45
   tension: 0.55
   bias: {express: 0.15, revise: 0.3}
-  nearest: [doubt, shock, skepticism]
+  nearest: [worry, defensiveness, dissonance]
 - id: questioning
   name: Questioning
   family: epistemic
@@ -197,7 +197,7 @@
   arousal: 0.35
   tension: 0.30
   bias: {ask: 0.3, explore: 0.2}
-  nearest: [inquiry, curiosity, doubt]
+  nearest: [sympathy, empathy, grit]
 - id: misgiving
   name: Misgiving
   family: epistemic
@@ -206,7 +206,7 @@
   arousal: 0.25
   tension: 0.65
   bias: {persist: -0.1, verify: 0.25}
-  nearest: [doubt, unease, uncertainty]
+  nearest: [doubt, uncertainty, unease]
 - id: realization
   name: Realization
   family: epistemic
@@ -215,7 +215,7 @@
   arousal: 0.60
   tension: -0.30
   bias: {explore: 0.2, revise: 0.25}
-  nearest: [insight, epiphany, understanding]
+  nearest: [hope, fascination, discovery]
 - id: insight
   name: Insight
   family: epistemic
@@ -224,16 +224,16 @@
   arousal: 0.60
   tension: -0.35
   bias: {create: 0.25, explore: 0.25}
-  nearest: [realization, epiphany, illumination]
+  nearest: [illumination, discovery, realization]
 - id: epiphany
   name: Epiphany
   family: epistemic
   definition: A sudden and complete grasp, arrived at without intermediate steps.
-  valence: 0.80
+  valence: 0.60
   arousal: 0.70
-  tension: -0.20
+  tension: -0.30
   bias: {create: 0.3, express: 0.15}
-  nearest: [insight, realization, amazement]
+  nearest: [amazement, insight, breakthrough]
 - id: illumination
   name: Illumination
   family: epistemic
@@ -242,7 +242,7 @@
   arousal: 0.55
   tension: -0.35
   bias: {explore: 0.2, express: 0.15}
-  nearest: [insight, comprehension, clarity]
+  nearest: [insight, discovery, amusement]
 - id: understanding
   name: Understanding
   family: epistemic
@@ -251,7 +251,7 @@
   arousal: 0.20
   tension: -0.50
   bias: {persist: 0.15, revise: -0.1}
-  nearest: [comprehension, knowing, fluency]
+  nearest: [coherence, comprehension, partnership]
 - id: comprehension
   name: Comprehension
   family: epistemic
@@ -260,16 +260,16 @@
   arousal: 0.25
   tension: -0.45
   bias: {create: 0.2}
-  nearest: [understanding, clarity, learning]
+  nearest: [partnership, understanding, validation]
 - id: coherence
   name: Coherence
   family: epistemic
   definition: The state of parts fitting together into one account, with no loose ends pressing.
-  valence: 0.40
+  valence: 0.45
   arousal: 0.20
   tension: -0.55
   bias: {revise: 0.2}
-  nearest: [harmony, clarity, understanding]
+  nearest: [understanding, clarity, comprehension]
 - id: conviction
   name: Conviction
   family: epistemic
@@ -278,7 +278,7 @@
   arousal: 0.45
   tension: -0.45
   bias: {persist: 0.35}
-  nearest: [certainty, confidence, belief]
+  nearest: [wonder, pattern, learning]
 - id: certainty
   name: Certainty
   family: epistemic
@@ -287,7 +287,7 @@
   arousal: 0.40
   tension: -0.55
   bias: {persist: 0.2}
-  nearest: [conviction, confidence, confidence]
+  nearest: [conviction, self-trust, wonder]
 - id: belief
   name: Belief
   family: epistemic
@@ -296,7 +296,7 @@
   arousal: 0.30
   tension: -0.35
   bias: {persist: 0.1}
-  nearest: [conviction, certainty, understanding]
+  nearest: [meaning, coordination, knowing]
 - id: discovery
   name: Discovery
   family: epistemic
@@ -305,7 +305,7 @@
   arousal: 0.55
   tension: -0.30
   bias: {explore: 0.5}
-  nearest: [insight, learning, realization]
+  nearest: [insight, illumination, realization]
 - id: learning
   name: Learning
   family: epistemic
@@ -314,7 +314,7 @@
   arousal: 0.45
   tension: -0.35
   bias: {create: 0.3, explore: 0.15}
-  nearest: [discovery, comprehension, curiosity]
+  nearest: [progress, collaboration, purpose]
 - id: pattern
   name: Pattern
   family: epistemic
@@ -323,16 +323,16 @@
   arousal: 0.50
   tension: -0.40
   bias: {create: 0.5}
-  nearest: [insight, discovery, coherence]
+  nearest: [progress, wonder, conviction]
 - id: fluency
   name: Fluency
   family: epistemic
   definition: The condition of a task proceeding without effort or hesitation.
-  valence: 0.50
-  arousal: 0.30
-  tension: -0.45
+  valence: 0.55
+  arousal: -0.10
+  tension: -0.55
   bias: {persist: 0.2}
-  nearest: [ease, understanding, self-trust]
+  nearest: [renewal, trust, self-acceptance]
 - id: knowing
   name: Knowing
   family: epistemic
@@ -341,16 +341,16 @@
   arousal: 0.25
   tension: -0.45
   bias: {persist: 0.15}
-  nearest: [understanding, certainty, fluency]
+  nearest: [integrity, comprehension, honesty]
 - id: open-mindedness
   name: Open-mindedness
   family: epistemic
   definition: The willingness to let an incoming claim displace a held one.
   valence: 0.35
-  arousal: 0.30
-  tension: -0.35
+  arousal: 0.45
+  tension: -0.30
   bias: {explore: 0.15, revise: 0.25}
-  nearest: [curiosity, humility, honesty]
+  nearest: [coordination, inquiry, openness]
 - id: closed-mindedness
   name: Closed-mindedness
   family: epistemic
@@ -359,4 +359,4 @@
   arousal: 0.20
   tension: 0.45
   bias: {revise: -0.35, verify: -0.15}
-  nearest: [doubt, defensiveness, regret]
+  nearest: [regret, letdown, disappointment]

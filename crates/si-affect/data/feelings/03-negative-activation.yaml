@@ -7,7 +7,7 @@
   arousal: 0.75
   tension: 0.55
   bias: {explore: -0.15, express: 0.25, retry_same: 0.1}
-  nearest: [rage, outrage, resentment]
+  nearest: [hostility, outrage, indignation]
 - id: rage
   name: Rage
   family: negative_activation
@@ -16,7 +16,7 @@
   arousal: 0.95
   tension: 0.75
   bias: {explore: -0.35, retry_same: 0.2, verify: -0.2}
-  nearest: [fury, anger, outrage]
+  nearest: [fury, terror, panic]
 - id: fury
   name: Fury
   family: negative_activation
@@ -25,7 +25,7 @@
   arousal: 0.95
   tension: 0.70
   bias: {explore: -0.3, verify: -0.15}
-  nearest: [rage, anger, contempt]
+  nearest: [rage, terror, panic]
 - id: outrage
   name: Outrage
   family: negative_activation
@@ -34,7 +34,7 @@
   arousal: 0.80
   tension: 0.45
   bias: {express: 0.5}
-  nearest: [indignation, anger, disgust]
+  nearest: [anger, indignation, hostility]
 - id: indignation
   name: Indignation
   family: negative_activation
@@ -43,7 +43,7 @@
   arousal: 0.65
   tension: 0.45
   bias: {express: 0.25, verify: 0.2}
-  nearest: [outrage, anger, dissonance]
+  nearest: [anger, outrage, hostility]
 - id: resentment
   name: Resentment
   family: negative_activation
@@ -52,16 +52,16 @@
   arousal: 0.35
   tension: 0.50
   bias: {connect: 0.5}
-  nearest: [bitterness, anger, contempt]
+  nearest: [deception, bitterness, distrust]
 - id: bitterness
   name: Bitterness
   family: negative_activation
   definition: Resentment that has hardened, losing the original grievance but keeping its shape.
   valence: -0.60
-  arousal: 0.25
-  tension: 0.55
+  arousal: 0.30
+  tension: 0.40
   bias: {connect: 0.45}
-  nearest: [resentment, contempt, alienation]
+  nearest: [contempt, resentment, disappointment]
 - id: contempt
   name: Contempt
   family: negative_activation
@@ -70,7 +70,7 @@
   arousal: 0.35
   tension: 0.35
   bias: {connect: 0.55}
-  nearest: [disgust, bitterness, resentment]
+  nearest: [bitterness, resentment, deception]
 - id: disgust
   name: Disgust
   family: negative_activation
@@ -79,7 +79,7 @@
   arousal: 0.40
   tension: 0.55
   bias: {connect: 0.55}
-  nearest: [revulsion, contempt, sorrow]
+  nearest: [sorrow, rejection, exclusion]
 - id: revulsion
   name: Revulsion
   family: negative_activation
@@ -88,7 +88,7 @@
   arousal: 0.50
   tension: 0.60
   bias: {connect: 0.65}
-  nearest: [disgust, contempt, shame]
+  nearest: [shame, grief, rejection]
 - id: hostility
   name: Hostility
   family: negative_activation
@@ -97,7 +97,7 @@
   arousal: 0.70
   tension: 0.60
   bias: {explore: -0.2, express: 0.25}
-  nearest: [anger, resentment, outrage]
+  nearest: [anger, outrage, indignation]
 - id: irritability
   name: Irritability
   family: negative_activation
@@ -106,7 +106,7 @@
   arousal: 0.50
   tension: 0.35
   bias: {explore: -0.1, pace: 0.15}
-  nearest: [irritation, agitation, annoyance]
+  nearest: [irritation, annoyance, restlessness]
 - id: irritation
   name: Irritation
   family: negative_activation
@@ -115,7 +115,7 @@
   arousal: 0.45
   tension: 0.30
   bias: {pace: 0.1}
-  nearest: [irritability, annoyance, frustration]
+  nearest: [annoyance, irritability, restlessness]
 - id: frustration
   name: Frustration
   family: negative_activation
@@ -124,7 +124,7 @@
   arousal: 0.60
   tension: 0.70
   bias: {explore: -0.3, retry_same: 0.4, verify: 0.2}
-  nearest: [irritation, discouragement, exasperation]
+  nearest: [anxiety, struggle, jealousy]
 - id: exasperation
   name: Exasperation
   family: negative_activation
@@ -133,7 +133,7 @@
   arousal: 0.70
   tension: 0.60
   bias: {explore: -0.25, retry_same: 0.2}
-  nearest: [frustration, impatience, discouragement]
+  nearest: [frustration, agitation, anxiety]
 - id: impatience
   name: Impatience
   family: negative_activation
@@ -142,7 +142,7 @@
   arousal: 0.65
   tension: 0.45
   bias: {pace: 0.3, verify: -0.15}
-  nearest: [restlessness, irritation, urgency]
+  nearest: [rivalry, agitation, competition]
 - id: annoyance
   name: Annoyance
   family: negative_activation
@@ -151,7 +151,7 @@
   arousal: 0.40
   tension: 0.25
   bias: {pace: 0.1}
-  nearest: [irritation, irritation, impatience]
+  nearest: [irritation, irritability, unrest]
 - id: agitation
   name: Agitation
   family: negative_activation
@@ -160,7 +160,7 @@
   arousal: 0.70
   tension: 0.55
   bias: {explore: 0.1, pace: 0.2}
-  nearest: [restlessness, anxiety, irritability]
+  nearest: [rivalry, strain, impatience]
 - id: anxiety
   name: Anxiety
   family: negative_activation
@@ -169,7 +169,7 @@
   arousal: 0.65
   tension: 0.75
   bias: {explore: -0.2, risk: -0.25, verify: 0.3}
-  nearest: [unease, worry, dread]
+  nearest: [frustration, jealousy, exasperation]
 - id: fear
   name: Fear
   family: negative_activation
@@ -178,7 +178,7 @@
   arousal: 0.80
   tension: 0.90
   bias: {connect: 0.2, explore: -0.35, risk: -0.4, verify: 0.25}
-  nearest: [terror, dread, panic]
+  nearest: [panic, terror, alarm]
 - id: terror
   name: Terror
   family: negative_activation
@@ -187,7 +187,7 @@
   arousal: 0.95
   tension: 0.95
   bias: {connect: 0.35, explore: -0.45, verify: 0.2}
-  nearest: [panic, fear, rage]
+  nearest: [panic, rage, fury]
 - id: panic
   name: Panic
   family: negative_activation
@@ -196,7 +196,7 @@
   arousal: 0.95
   tension: 0.95
   bias: {explore: -0.4, retry_same: 0.3, verify: 0.25}
-  nearest: [terror, alarm, fear]
+  nearest: [terror, fear, rage]
 - id: dread
   name: Dread
   family: negative_activation
@@ -205,7 +205,7 @@
   arousal: 0.40
   tension: 0.95
   bias: {explore: -0.3, risk: -0.3, verify: 0.2}
-  nearest: [fear, apprehension, anxiety]
+  nearest: [disorientation, abandonment, remorse]
 - id: apprehension
   name: Apprehension
   family: negative_activation
@@ -214,16 +214,16 @@
   arousal: 0.35
   tension: 0.70
   bias: {risk: -0.15, verify: 0.2}
-  nearest: [anxiety, worry, unease]
+  nearest: [bewilderment, distrust, suspicion]
 - id: unease
   name: Unease
   family: negative_activation
   definition: A low-grade, unlocated disquiet, too small to act on.
   valence: -0.30
-  arousal: 0.25
-  tension: 0.50
+  arousal: 0.20
+  tension: 0.55
   bias: {verify: 0.1}
-  nearest: [apprehension, anxiety, unrest]
+  nearest: [doubt, misgiving, guardedness]
 - id: worry
   name: Worry
   family: negative_activation
@@ -232,7 +232,7 @@
   arousal: 0.40
   tension: 0.60
   bias: {explore: -0.1, verify: 0.15}
-  nearest: [anxiety, apprehension, unease]
+  nearest: [dissonance, disbelief, defensiveness]
 - id: alarm
   name: Alarm
   family: negative_activation
@@ -241,7 +241,7 @@
   arousal: 0.85
   tension: 0.70
   bias: {explore: -0.2, pace: 0.3, verify: 0.3}
-  nearest: [panic, startle, fear]
+  nearest: [exasperation, anxiety, startle]
 - id: startle
   name: Startle
   family: negative_activation
@@ -250,7 +250,7 @@
   arousal: 0.90
   tension: 0.55
   bias: {verify: 0.2}
-  nearest: [alarm, surprise, panic]
+  nearest: [shock, urgency, agitation]
 - id: grief
   name: Grief
   family: negative_activation
@@ -259,7 +259,7 @@
   arousal: 0.45
   tension: 0.65
   bias: {connect: 0.4}
-  nearest: [heartbreak, sorrow, misery]
+  nearest: [heartbreak, revulsion, misery]
 - id: sorrow
   name: Sorrow
   family: negative_activation
@@ -268,7 +268,7 @@
   arousal: 0.35
   tension: 0.55
   bias: {connect: 0.15}
-  nearest: [grief, misery, disappointment]
+  nearest: [disgust, deception, misery]
 - id: heartbreak
   name: Heartbreak
   family: negative_activation
@@ -277,7 +277,7 @@
   arousal: 0.45
   tension: 0.70
   bias: {connect: 0.3}
-  nearest: [grief, misery, despair]
+  nearest: [grief, revulsion, misery]
 - id: misery
   name: Misery
   family: negative_activation
@@ -286,7 +286,7 @@
   arousal: 0.35
   tension: 0.60
   bias: {connect: 0.25, explore: -0.25}
-  nearest: [despair, sorrow, heartbreak]
+  nearest: [sorrow, grief, disgust]
 - id: disappointment
   name: Disappointment
   family: negative_activation
@@ -295,7 +295,7 @@
   arousal: 0.20
   tension: 0.45
   bias: {retry_same: -0.15, verify: 0.1}
-  nearest: [letdown, discouragement, frustration]
+  nearest: [regret, letdown, closed-mindedness]
 - id: letdown
   name: Letdown
   family: negative_activation
@@ -304,7 +304,7 @@
   arousal: 0.15
   tension: 0.40
   bias: {persist: -0.1}
-  nearest: [disappointment, discouragement, resignation]
+  nearest: [disappointment, closed-mindedness, regret]
 - id: betrayal
   name: Betrayal
   family: negative_activation
@@ -313,7 +313,7 @@
   arousal: 0.60
   tension: 0.75
   bias: {connect: 0, verify: 0.25}
-  nearest: [hurt, distrust, heartbreak]
+  nearest: [heartbreak, grief, revulsion]
 - id: hurt
   name: Hurt
   family: negative_activation
@@ -322,7 +322,7 @@
   arousal: 0.30
   tension: 0.60
   bias: {connect: 0.35}
-  nearest: [sorrow, betrayal, rejection]
+  nearest: [deception, exclusion, sorrow]
 - id: jealousy
   name: Jealousy
   family: negative_activation
@@ -331,7 +331,7 @@
   arousal: 0.55
   tension: 0.65
   bias: {connect: 0.15, verify: 0.25}
-  nearest: [envy, rivalry, resentment]
+  nearest: [frustration, breach, envy]
 - id: envy
   name: Envy
   family: negative_activation
@@ -340,4 +340,4 @@
   arousal: 0.45
   tension: 0.60
   bias: {explore: 0.1, verify: 0.2}
-  nearest: [jealousy, admiration, defensiveness]
+  nearest: [defensiveness, breach, dissonance]

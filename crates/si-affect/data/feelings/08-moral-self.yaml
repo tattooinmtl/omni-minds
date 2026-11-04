@@ -7,7 +7,7 @@
   arousal: 0.45
   tension: 0.55
   bias: {express: 0.25, revise: 0.35, verify: 0.15}
-  nearest: [remorse, shame, regret]
+  nearest: [rejection, exclusion, breach]
 - id: shame
   name: Shame
   family: moral_self
@@ -16,7 +16,7 @@
   arousal: 0.50
   tension: 0.60
   bias: {connect: 0.35, revise: 0.15}
-  nearest: [guilt, self-doubt, revulsion]
+  nearest: [revulsion, rejection, disgust]
 - id: remorse
   name: Remorse
   family: moral_self
@@ -25,7 +25,7 @@
   arousal: 0.40
   tension: 0.65
   bias: {express: 0.25, revise: 0.4}
-  nearest: [guilt, regret, remorse]
+  nearest: [breach, exclusion, envy]
 - id: regret
   name: Regret
   family: moral_self
@@ -34,7 +34,7 @@
   arousal: 0.25
   tension: 0.40
   bias: {create: 0.2, revise: 0.2}
-  nearest: [remorse, disappointment, dejection]
+  nearest: [disappointment, closed-mindedness, letdown]
 - id: compassion
   name: Compassion
   family: moral_self
@@ -43,7 +43,7 @@
   arousal: 0.30
   tension: 0.05
   bias: {connect: 0.75}
-  nearest: [empathy, tenderness, caring]
+  nearest: [empathy, sympathy, interest]
 - id: forgiveness
   name: Forgiveness
   family: moral_self
@@ -52,7 +52,7 @@
   arousal: 0.10
   tension: -0.35
   bias: {connect: 0.25, revise: 0.2}
-  nearest: [reconciliation, acceptance, self-acceptance]
+  nearest: [loyalty, self-acceptance, honesty]
 - id: integrity
   name: Integrity
   family: moral_self
@@ -61,7 +61,7 @@
   arousal: 0.30
   tension: -0.40
   bias: {express: 0.25, persist: 0.25}
-  nearest: [honesty, authenticity, self-trust]
+  nearest: [partnership, comprehension, knowing]
 - id: dissonance
   name: Dissonance
   family: moral_self
@@ -70,7 +70,7 @@
   arousal: 0.40
   tension: 0.60
   bias: {revise: 0.3, verify: 0.2}
-  nearest: [indignation, defensiveness, worry]
+  nearest: [defensiveness, worry, distrust]
 - id: humility
   name: Humility
   family: moral_self
@@ -79,7 +79,7 @@
   arousal: -0.20
   tension: -0.30
   bias: {connect: 0.25, create: 0.2}
-  nearest: [deference, openness, self-acceptance]
+  nearest: [patience, tolerance, composure]
 - id: self-doubt
   name: Self-doubt
   family: moral_self
@@ -88,7 +88,7 @@
   arousal: 0.25
   tension: 0.65
   bias: {explore: 0.15, verify: 0.45}
-  nearest: [shame, uncertainty, mistrust]
+  nearest: [mistrust, distrust, apprehension]
 - id: self-awareness
   name: Self-awareness
   family: moral_self
@@ -97,16 +97,16 @@
   arousal: 0.30
   tension: -0.10
   bias: {express: 0.35, verify: 0.25}
-  nearest: [self-awareness, self-trust, diligence]
+  nearest: [diligence, conscience, discipline]
 - id: self-trust
   name: Self-trust
   family: moral_self
   definition: Confidence in one's own reliability, built from evidence rather than assertion.
   valence: 0.50
   arousal: 0.30
-  tension: -0.45
+  tension: -0.60
   bias: {persist: 0.2, risk: -0.1}
-  nearest: [confidence, integrity, conviction]
+  nearest: [confidence, coherence, tenderness]
 - id: growth
   name: Growth
   family: moral_self
@@ -115,7 +115,7 @@
   arousal: 0.45
   tension: -0.25
   bias: {create: 0.3, explore: 0.2}
-  nearest: [renewal, progress, development]
+  nearest: [openness, collaboration, learning]
 - id: development
   name: Development
   family: moral_self
@@ -124,7 +124,7 @@
   arousal: 0.35
   tension: -0.30
   bias: {create: 0.25, persist: 0.2}
-  nearest: [growth, progress, learning]
+  nearest: [coordination, cooperation, collaboration]
 - id: purpose
   name: Purpose
   family: moral_self
@@ -133,7 +133,7 @@
   arousal: 0.40
   tension: -0.35
   bias: {explore: 0.2, persist: 0.3}
-  nearest: [meaning, motivation, learning]
+  nearest: [learning, collaboration, optimism]
 - id: meaning
   name: Meaning
   family: moral_self
@@ -142,7 +142,7 @@
   arousal: 0.35
   tension: -0.35
   bias: {persist: 0.2}
-  nearest: [purpose, fulfillment, open-mindedness]
+  nearest: [coordination, development, integrity]
 - id: aimlessness
   name: Aimlessness
   family: moral_self
@@ -151,7 +151,7 @@
   arousal: -0.45
   tension: 0.10
   bias: {explore: 0.25, persist: 0.25}
-  nearest: [emptiness, melancholy, hollowness]
+  nearest: [melancholy, emptiness, hollowness]
 - id: courage
   name: Courage
   family: moral_self
@@ -160,25 +160,25 @@
   arousal: 0.70
   tension: 0.25
   bias: {persist: 0.3, risk: 0.3, verify: -0.1}
-  nearest: [resolve, determination, ambition]
+  nearest: [ambition, resolve, perseverance]
 - id: honesty
   name: Honesty
   family: moral_self
   definition: The settled practice of saying the thing that is true, including about oneself.
   valence: 0.35
-  arousal: 0.30
-  tension: -0.35
+  arousal: 0.15
+  tension: -0.40
   bias: {express: 0.5}
-  nearest: [integrity, authenticity, open-mindedness]
+  nearest: [loyalty, knowing, forgiveness]
 - id: conscience
   name: Conscience
   family: moral_self
   definition: The internal register that marks a line, felt as objection before it becomes judgement.
-  valence: -0.15
-  arousal: 0.30
-  tension: 0.35
+  valence: 0.00
+  arousal: 0.35
+  tension: 0.05
   bias: {refuse: 0.25, verify: 0.15}
-  nearest: [integrity, dissonance, self-awareness]
+  nearest: [wistfulness, self-awareness, sympathy]
 - id: authenticity
   name: Authenticity
   family: moral_self
@@ -187,7 +187,7 @@
   arousal: 0.25
   tension: -0.30
   bias: {express: 0.2, persist: 0.15}
-  nearest: [integrity, honesty, self-acceptance]
+  nearest: [loyalty, development, caring]
 - id: self-acceptance
   name: Self-acceptance
   family: moral_self
@@ -196,4 +196,4 @@
   arousal: 0.05
   tension: -0.45
   bias: {pace: -0.15, revise: 0.25}
-  nearest: [acceptance, humility, authenticity]
+  nearest: [forgiveness, honesty, understanding]

@@ -7,7 +7,7 @@
   arousal: -0.65
   tension: -0.10
   bias: {explore: 0.25, persist: -0.15}
-  nearest: [listlessness, apathy, weariness]
+  nearest: [slack, indifference, apathy]
 - id: weariness
   name: Weariness
   family: negative_low
@@ -16,7 +16,7 @@
   arousal: -0.80
   tension: 0.10
   bias: {explore: -0.1, persist: -0.2}
-  nearest: [fatigue, lethargy, exhaustion]
+  nearest: [inertia, fatigue, numbness]
 - id: fatigue
   name: Fatigue
   family: negative_low
@@ -25,7 +25,7 @@
   arousal: -0.85
   tension: 0.05
   bias: {pace: -0.3, persist: -0.2}
-  nearest: [weariness, lethargy, depletion]
+  nearest: [weariness, numbness, lethargy]
 - id: melancholy
   name: Melancholy
   family: negative_low
@@ -34,7 +34,7 @@
   arousal: -0.45
   tension: 0.15
   bias: {connect: 0.1}
-  nearest: [sadness, wistfulness, dejection]
+  nearest: [aimlessness, gloom, emptiness]
 - id: sadness
   name: Sadness
   family: negative_low
@@ -43,7 +43,7 @@
   arousal: -0.35
   tension: 0.30
   bias: {connect: 0.15}
-  nearest: [sorrow, melancholy, dejection]
+  nearest: [loneliness, gloom, discouragement]
 - id: despondency
   name: Despondency
   family: negative_low
@@ -52,7 +52,7 @@
   arousal: -0.55
   tension: 0.45
   bias: {explore: -0.25, persist: -0.3}
-  nearest: [hopelessness, despair, resignation]
+  nearest: [capitulation, defeat, hopelessness]
 - id: hopelessness
   name: Hopelessness
   family: negative_low
@@ -61,7 +61,7 @@
   arousal: -0.50
   tension: 0.55
   bias: {explore: -0.3, persist: -0.35}
-  nearest: [despondency, despair, resignation]
+  nearest: [despair, despondency, capitulation]
 - id: dejection
   name: Dejection
   family: negative_low
@@ -70,7 +70,7 @@
   arousal: -0.60
   tension: 0.30
   bias: {persist: -0.1}
-  nearest: [discouragement, sadness, disappointment]
+  nearest: [resignation, stagnation, defeat]
 - id: gloom
   name: Gloom
   family: negative_low
@@ -79,7 +79,7 @@
   arousal: -0.45
   tension: 0.25
   bias: {connect: 0.1}
-  nearest: [melancholy, dejection, weariness]
+  nearest: [discouragement, melancholy, aimlessness]
 - id: despair
   name: Despair
   family: negative_low
@@ -88,7 +88,7 @@
   arousal: -0.40
   tension: 0.60
   bias: {explore: -0.25, persist: -0.3}
-  nearest: [hopelessness, misery, despondency]
+  nearest: [hopelessness, capitulation, despondency]
 - id: emptiness
   name: Emptiness
   family: negative_low
@@ -97,7 +97,7 @@
   arousal: -0.55
   tension: 0.05
   bias: {create: 0.15, explore: 0.15}
-  nearest: [hollowness, numbness, apathy]
+  nearest: [hollowness, aimlessness, melancholy]
 - id: hollowness
   name: Hollowness
   family: negative_low
@@ -106,7 +106,7 @@
   arousal: -0.60
   tension: 0.10
   bias: {explore: 0.15}
-  nearest: [emptiness, melancholy, listlessness]
+  nearest: [emptiness, listlessness, aimlessness]
 - id: apathy
   name: Apathy
   family: negative_low
@@ -115,7 +115,7 @@
   arousal: -0.75
   tension: -0.05
   bias: {explore: -0.15, persist: -0.2}
-  nearest: [indifference, listlessness, lethargy]
+  nearest: [numbness, inertia, listlessness]
 - id: indifference
   name: Indifference
   family: negative_low
@@ -124,7 +124,7 @@
   arousal: -0.70
   tension: -0.20
   bias: {explore: -0.1}
-  nearest: [apathy, detachment, listlessness]
+  nearest: [slack, boredom, detachment]
 - id: detachment
   name: Detachment
   family: negative_low
@@ -133,7 +133,7 @@
   arousal: -0.60
   tension: -0.25
   bias: {risk: 0.1, verify: -0.1}
-  nearest: [indifference, apathy, equanimity]
+  nearest: [indifference, slack, boredom]
 - id: numbness
   name: Numbness
   family: negative_low
@@ -142,7 +142,7 @@
   arousal: -0.80
   tension: 0.00
   bias: {explore: -0.2, express: -0.25}
-  nearest: [apathy, emptiness, weariness]
+  nearest: [inertia, fatigue, apathy]
 - id: listlessness
   name: Listlessness
   family: negative_low
@@ -151,7 +151,7 @@
   arousal: -0.70
   tension: 0.05
   bias: {explore: 0.15, persist: -0.2}
-  nearest: [apathy, boredom, lethargy]
+  nearest: [inertia, weariness, numbness]
 - id: discouragement
   name: Discouragement
   family: negative_low
@@ -160,7 +160,7 @@
   arousal: -0.45
   tension: 0.35
   bias: {explore: -0.1, retry_same: -0.2}
-  nearest: [frustration, disappointment, dejection]
+  nearest: [gloom, resignation, dejection]
 - id: resignation
   name: Resignation
   family: negative_low
@@ -169,7 +169,7 @@
   arousal: -0.60
   tension: 0.30
   bias: {explore: -0.15, persist: -0.25}
-  nearest: [letdown, defeat, capitulation]
+  nearest: [dejection, stagnation, gloom]
 - id: defeat
   name: Defeat
   family: negative_low
@@ -178,7 +178,7 @@
   arousal: -0.55
   tension: 0.45
   bias: {connect: 0.15, persist: -0.2}
-  nearest: [capitulation, resignation, dejection]
+  nearest: [capitulation, despondency, dejection]
 - id: capitulation
   name: Capitulation
   family: negative_low
@@ -187,7 +187,7 @@
   arousal: -0.50
   tension: 0.50
   bias: {connect: 0.2, persist: -0.3}
-  nearest: [defeat, resignation, despondency]
+  nearest: [defeat, despondency, hopelessness]
 - id: dissatisfaction
   name: Dissatisfaction
   family: negative_low
@@ -196,16 +196,16 @@
   arousal: -0.25
   tension: 0.35
   bias: {revise: 0.15, verify: 0.1}
-  nearest: [letdown, frustration, discouragement]
+  nearest: [discouragement, gloom, loneliness]
 - id: unrest
   name: Unrest
   family: negative_low
   definition: A low, continuous agitation that has not found its cause.
-  valence: -0.30
-  arousal: 0.25
-  tension: 0.50
+  valence: -0.25
+  arousal: 0.30
+  tension: 0.40
   bias: {explore: 0.15}
-  nearest: [unease, agitation, doubt]
+  nearest: [skepticism, puzzlement, vagueness]
 - id: lethargy
   name: Lethargy
   family: negative_low
@@ -214,7 +214,7 @@
   arousal: -0.85
   tension: -0.05
   bias: {persist: -0.2}
-  nearest: [fatigue, listlessness, weariness]
+  nearest: [fatigue, numbness, inertia]
 - id: wistfulness
   name: Wistfulness
   family: negative_low
@@ -223,7 +223,7 @@
   arousal: 0.20
   tension: 0.10
   bias: {connect: 0.1}
-  nearest: [melancholy, sympathy, skepticism]
+  nearest: [conscience, sympathy, self-awareness]
 - id: loneliness
   name: Loneliness
   family: negative_low
@@ -232,4 +232,4 @@
   arousal: -0.25
   tension: 0.45
   bias: {connect: 0.35}
-  nearest: [isolation, alienation, sadness]
+  nearest: [sadness, capitulation, discouragement]

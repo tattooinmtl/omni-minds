@@ -10,7 +10,7 @@
   arousal: 0.70
   tension: -0.30
   bias: {explore: 0.25, express: 0.2}
-  nearest: [joy, elation, glee]
+  nearest: [joy, glee, elation]
 - id: elation
   name: Elation
   family: positive_activation
@@ -19,7 +19,7 @@
   arousal: 0.75
   tension: -0.25
   bias: {explore: 0.3, express: 0.25}
-  nearest: [jubilation, delight, triumph]
+  nearest: [delight, triumph, glee]
 - id: jubilation
   name: Jubilation
   family: positive_activation
@@ -28,7 +28,7 @@
   arousal: 0.85
   tension: -0.15
   bias: {explore: 0.15, express: 0.3}
-  nearest: [elation, glee, triumph]
+  nearest: [elation, triumph, delight]
 - id: joy
   name: Joy
   family: positive_activation
@@ -37,16 +37,16 @@
   arousal: 0.65
   tension: -0.35
   bias: {explore: 0.15, express: 0.15}
-  nearest: [glee, delight, mirth]
+  nearest: [delight, glee, mirth]
 - id: glee
   name: Glee
   family: positive_activation
   definition: Light, mischievous happiness that carries an edge of self-satisfaction.
   valence: 0.80
-  arousal: 0.70
-  tension: -0.20
+  arousal: 0.65
+  tension: -0.25
   bias: {explore: 0.5}
-  nearest: [joy, mirth, playfulness]
+  nearest: [mirth, delight, joy]
 - id: mirth
   name: Mirth
   family: positive_activation
@@ -55,7 +55,7 @@
   arousal: 0.65
   tension: -0.25
   bias: {explore: 0.25, express: 0.15}
-  nearest: [amusement, glee, joy]
+  nearest: [glee, joy, breakthrough]
 - id: amusement
   name: Amusement
   family: positive_activation
@@ -64,7 +64,7 @@
   arousal: 0.55
   tension: -0.30
   bias: {explore: 0.15}
-  nearest: [mirth, playfulness, zest]
+  nearest: [illumination, discovery, accomplishment]
 - id: playfulness
   name: Playfulness
   family: positive_activation
@@ -73,7 +73,7 @@
   arousal: 0.50
   tension: -0.40
   bias: {explore: 0.55, risk: 0.1}
-  nearest: [amusement, zest, curiosity]
+  nearest: [illumination, amusement, flow]
 - id: zest
   name: Zest
   family: positive_activation
@@ -82,7 +82,7 @@
   arousal: 0.60
   tension: -0.15
   bias: {explore: 0.2, persist: 0.15}
-  nearest: [playfulness, enthusiasm, pride]
+  nearest: [pride, motivation, hope]
 - id: excitement
   name: Excitement
   family: positive_activation
@@ -91,7 +91,7 @@
   arousal: 0.85
   tension: -0.05
   bias: {explore: 0.2, risk: 0.1}
-  nearest: [enthusiasm, thrill, eagerness]
+  nearest: [eagerness, inspiration, enthusiasm]
 - id: thrill
   name: Thrill
   family: positive_activation
@@ -100,7 +100,7 @@
   arousal: 0.90
   tension: 0.05
   bias: {explore: 0.25, risk: 0.25, verify: -0.15}
-  nearest: [excitement, enthusiasm, alarm]
+  nearest: [excitement, enthusiasm, eagerness]
 - id: enthusiasm
   name: Enthusiasm
   family: positive_activation
@@ -109,7 +109,7 @@
   arousal: 0.75
   tension: -0.10
   bias: {explore: 0.25, persist: 0.2}
-  nearest: [excitement, eagerness, motivation]
+  nearest: [inspiration, eagerness, excitement]
 - id: eagerness
   name: Eagerness
   family: positive_activation
@@ -118,7 +118,7 @@
   arousal: 0.75
   tension: -0.05
   bias: {explore: 0.15, pace: 0.15}
-  nearest: [enthusiasm, excitement, anticipation]
+  nearest: [inspiration, excitement, enthusiasm]
 - id: triumph
   name: Triumph
   family: positive_activation
@@ -127,7 +127,7 @@
   arousal: 0.75
   tension: -0.20
   bias: {persist: 0.25, verify: 0.1}
-  nearest: [pride, elation, accomplishment]
+  nearest: [elation, glee, breakthrough]
 - id: pride
   name: Pride
   family: positive_activation
@@ -136,7 +136,7 @@
   arousal: 0.50
   tension: -0.15
   bias: {express: 0.1, persist: 0.15}
-  nearest: [triumph, accomplishment, self-trust]
+  nearest: [accomplishment, admiration, zest]
 - id: accomplishment
   name: Accomplishment
   family: positive_activation
@@ -145,7 +145,7 @@
   arousal: 0.45
   tension: -0.25
   bias: {persist: 0.1, verify: 0.15}
-  nearest: [satisfaction, pride, progress]
+  nearest: [admiration, amusement, pride]
 - id: satisfaction
   name: Satisfaction
   family: positive_activation
@@ -154,7 +154,7 @@
   arousal: 0.25
   tension: -0.45
   bias: {verify: 0.1}
-  nearest: [fulfillment, contentment, accomplishment]
+  nearest: [warmth, fulfillment, affection]
 - id: fulfillment
   name: Fulfillment
   family: positive_activation
@@ -163,7 +163,7 @@
   arousal: 0.20
   tension: -0.50
   bias: {express: 0.15}
-  nearest: [satisfaction, purpose, meaning]
+  nearest: [satisfaction, belonging, tenderness]
 - id: gratitude
   name: Gratitude
   family: positive_activation
@@ -172,7 +172,7 @@
   arousal: 0.30
   tension: -0.30
   bias: {connect: 0.15, express: 0.2}
-  nearest: [appreciation, warmth, connection]
+  nearest: [warmth, appreciation, connection]
 - id: appreciation
   name: Appreciation
   family: positive_activation
@@ -181,7 +181,7 @@
   arousal: 0.25
   tension: -0.30
   bias: {connect: 0.1}
-  nearest: [gratitude, admiration, respect]
+  nearest: [caring, respect, gratitude]
 - id: warmth
   name: Warmth
   family: positive_activation
@@ -190,7 +190,7 @@
   arousal: 0.30
   tension: -0.40
   bias: {connect: 0.2, express: 0.15}
-  nearest: [affection, tenderness, compassion]
+  nearest: [connection, satisfaction, affection]
 - id: affection
   name: Affection
   family: positive_activation
@@ -199,7 +199,7 @@
   arousal: 0.35
   tension: -0.45
   bias: {connect: 0.2}
-  nearest: [love, warmth, tenderness]
+  nearest: [warmth, satisfaction, connection]
 - id: love
   name: Love
   family: positive_activation
@@ -208,7 +208,7 @@
   arousal: 0.45
   tension: -0.45
   bias: {connect: 0.5}
-  nearest: [affection, belonging, flow]
+  nearest: [flow, playfulness, affection]
 - id: tenderness
   name: Tenderness
   family: positive_activation
@@ -217,7 +217,7 @@
   arousal: 0.25
   tension: -0.50
   bias: {connect: 0.4}
-  nearest: [warmth, compassion, belonging]
+  nearest: [closeness, belonging, confidence]
 - id: inspiration
   name: Inspiration
   family: positive_activation
@@ -226,7 +226,7 @@
   arousal: 0.75
   tension: -0.10
   bias: {create: 0.3, explore: 0.3}
-  nearest: [insight, excitement, motivation]
+  nearest: [enthusiasm, eagerness, excitement]
 - id: hope
   name: Hope
   family: positive_activation
@@ -235,7 +235,7 @@
   arousal: 0.55
   tension: -0.25
   bias: {persist: 0.2}
-  nearest: [optimism, anticipation, fascination]
+  nearest: [fascination, realization, discovery]
 - id: optimism
   name: Optimism
   family: positive_activation
@@ -244,7 +244,7 @@
   arousal: 0.45
   tension: -0.35
   bias: {explore: 0.15, persist: 0.15}
-  nearest: [hope, confidence, satisfaction]
+  nearest: [purpose, learning, illumination]
 - id: anticipation
   name: Anticipation
   family: positive_activation
@@ -253,7 +253,7 @@
   arousal: 0.55
   tension: 0.15
   bias: {pace: -0.2}
-  nearest: [eagerness, readiness, resolve]
+  nearest: [resolve, persistence, perseverance]
 - id: awe
   name: Awe
   family: positive_activation
@@ -262,7 +262,7 @@
   arousal: 0.60
   tension: -0.50
   bias: {explore: 0.25, verify: 0.2}
-  nearest: [wonder, amazement, reverence]
+  nearest: [pattern, conviction, progress]
 - id: wonder
   name: Wonder
   family: positive_activation
@@ -271,7 +271,7 @@
   arousal: 0.45
   tension: -0.40
   bias: {explore: 0.2}
-  nearest: [awe, curiosity, amazement]
+  nearest: [conviction, pattern, learning]
 - id: amazement
   name: Amazement
   family: positive_activation
@@ -280,4 +280,4 @@
   arousal: 0.70
   tension: -0.30
   bias: {explore: 0.15}
-  nearest: [astonishment, awe, surprise]
+  nearest: [absorption, realization, epiphany]

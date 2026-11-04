@@ -4,13 +4,27 @@
 Checks, in order:
   1. every entry has the required schema fields
   2. ids are unique across all family files
-  3. every `nearest` reference resolves to a real id in the same file's family
-  4. axis values are within [-1, 1]
-  5. the total entry count equals EXPECTED_TOTAL
+  3. axis values are within [-1, 1]
+  4. every feeling carries a non-empty bias, and every bias key is inside the
+     closed registry
+  5. no two feelings share a canonical point
+  6. every `nearest` list is exactly the three nearest feelings by Euclidean
+     distance, never names the feeling itself, and never repeats an id
+  7. the total entry count equals EXPECTED_TOTAL
+
+`nearest` references resolve against the whole lexicon, not against one
+family: `pride` (positive_activation) is genuinely nearest to `self-trust`
+(moral_self), so a cross-family reference is correct rather than a defect.
+
+`nearest` is a derived field. The rule that defines it — the three closest
+canonical points, ties broken by the position of the feeling in the embedded
+lexicon — lives in `tools/regenerate_nearest.py`, and this validator checks
+the data against that same rule, so the lists cannot drift away from their own
+definition the way hand-written ones did.
 
 Run:  python tools/validate_lexicon.py [--fix]
-       --fix rewrites dangling `nearest` references to the nearest valid ids
-             in the same family, and reports (but does not perform) trimming.
+       --fix rewrites every `nearest` list to the three nearest feelings by
+             distance, and reports how many lists it rewrote.
 
 Exit code 0 when valid, 1 otherwise.
 """
@@ -18,12 +32,28 @@ Exit code 0 when valid, 1 otherwise.
 from __future__ import annotations
 
 import argparse
-import re
 import sys
 from pathlib import Path
 
+# The parser and the rule that defines `nearest` live with the tool that writes
+# it, so the validator and the regenerator cannot disagree about what a
+# correct list is. The sibling module is imported by path, so both tools work
+# from any working directory. The bytecode cache that import would leave in a
+# hand-maintained tools directory is noise, so it is not written.
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from regenerate_nearest import (  # noqa: E402  (the path has to be set first)
+    DATA_DIR,
+    Entry,
+    NEAREST_COUNT,
+    canonical_nearest,
+    lexicon_paths,
+    parse_files,
+    write_nearest,
+)
+
 EXPECTED_TOTAL = 250
-DATA_DIR = Path(__file__).resolve().parent.parent / "crates" / "si-affect" / "data" / "feelings"
 
 # The closed set of cognition parameters the loop actually reads. A bias naming
 # anything outside this registry is a no-op, so the lexicon and the loop cannot
@@ -46,77 +76,8 @@ BIAS_REGISTRY = {
 
 REQUIRED_FIELDS = ("id", "name", "family", "definition", "valence", "arousal", "tension", "bias", "nearest")
 
-ENTRY_RE = re.compile(r"^- id: (?P<id>.+)$")
-FIELD_RE = re.compile(r"^  (?P<key>[a-z_]+):(?P<value>.*)$")
-NEAREST_RE = re.compile(r"^\[(?P<items>.*)\]$")
 
-
-class Entry:
-    """One feeling, with the file it came from and its line offset."""
-
-    def __init__(self, entry_id: str, family: str, path: Path, line_no: int) -> None:
-        self.id = entry_id
-        self.family = family
-        self.path = path
-        self.line_no = line_no
-        self.fields: dict[str, str] = {}
-        self.nearest: list[str] = []
-        self.bias: dict[str, float] = {}
-
-    @property
-    def location(self) -> str:
-        return f"{self.path.name}:{self.line_no}"
-
-    def axis(self, key: str) -> float | None:
-        raw = self.fields.get(key, "").strip()
-        try:
-            return float(raw)
-        except ValueError:
-            return None
-
-
-def parse_files(paths: list[Path]) -> list[Entry]:
-    """Parse the lexicon YAML files into entries without requiring a YAML dependency."""
-    entries: list[Entry] = []
-    for path in paths:
-        current: Entry | None = None
-        for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-            stripped = line.strip()
-            if stripped.startswith("#") or not stripped:
-                continue
-            id_match = ENTRY_RE.match(line)
-            if id_match:
-                entry_id = id_match.group("id").strip()
-                current = Entry(entry_id, "", path, line_no)
-                current.fields["id"] = entry_id
-                entries.append(current)
-                continue
-            field_match = FIELD_RE.match(line)
-            if field_match and current is not None:
-                key = field_match.group("key")
-                value = field_match.group("value").strip()
-                current.fields[key] = value
-                if key == "family":
-                    current.family = value
-                if key == "nearest":
-                    nearest_match = NEAREST_RE.match(value)
-                    if nearest_match:
-                        current.nearest = [
-                            item.strip() for item in nearest_match.group("items").split(",") if item.strip()
-                        ]
-                if key == "bias":
-                    for pair in value.strip("{}").split(","):
-                        if ":" not in pair:
-                            continue
-                        name, _, amount = pair.partition(":")
-                        try:
-                            current.bias[name.strip()] = float(amount.strip())
-                        except ValueError:
-                            pass
-    return entries
-
-
-def validate(entries: list[Entry], fix: bool) -> list[str]:
+def validate(entries: list[Entry]) -> list[str]:
     """Return a list of problem descriptions; empty means the lexicon is valid."""
     problems: list[str] = []
 
@@ -156,10 +117,32 @@ def validate(entries: list[Entry], fix: bool) -> list[str]:
         else:
             seen[entry.id] = entry
 
-    by_family: dict[str, set[str]] = {}
-    all_ids = {entry.id for entry in entries}
+    # Two feelings at one canonical point make the labeller's choice between
+    # them an accident of file order, and leave the later of the two unable to
+    # be the primary label at all. The point has to be impossible to write.
+    points: dict[tuple[float, float, float], Entry] = {}
     for entry in entries:
-        by_family.setdefault(entry.family, set()).add(entry.id)
+        point = entry.point()
+        if any(value is None for value in point):
+            continue
+        key = (point[0], point[1], point[2])
+        first = points.get(key)
+        if first is None:
+            points[key] = entry
+        else:
+            problems.append(
+                f"{entry.location}: canonical point ({entry.fields['valence']}, "
+                f"{entry.fields['arousal']}, {entry.fields['tension']}) is shared with "
+                f"'{first.id}' at {first.location} - two feelings at one point make the "
+                f"labeller's choice an accident (id={entry.id})"
+            )
+
+    # `nearest` is derived: the three closest canonical points, ties broken by
+    # the position of the feeling in the embedded lexicon. The same rule that
+    # writes the lists checks them, so the data cannot drift from its
+    # definition.
+    canonical = canonical_nearest(entries)
+    all_ids = {entry.id for entry in entries}
 
     for entry in entries:
         # Cross-family neighbours are intentional: `pride` (positive_activation) is
@@ -170,6 +153,24 @@ def validate(entries: list[Entry], fix: bool) -> list[str]:
                 f"{entry.location}: dangling nearest reference(s) {dangling} (id={entry.id}, family={entry.family})"
             )
 
+        if entry.id in entry.nearest:
+            problems.append(
+                f"{entry.location}: nearest names the feeling itself ('{entry.id}') (id={entry.id})"
+            )
+
+        repeated = sorted({ref for ref in entry.nearest if entry.nearest.count(ref) > 1})
+        if repeated:
+            problems.append(
+                f"{entry.location}: nearest repeats {repeated} (id={entry.id})"
+            )
+
+        expected = canonical.get(entry.id, [])
+        if entry.nearest != expected:
+            problems.append(
+                f"{entry.location}: nearest is not the {NEAREST_COUNT} nearest feelings - "
+                f"expected {expected}, found {entry.nearest} (id={entry.id})"
+            )
+
     if len(entries) != EXPECTED_TOTAL:
         problems.append(f"entry count is {len(entries)}, expected {EXPECTED_TOTAL}")
 
@@ -177,81 +178,41 @@ def validate(entries: list[Entry], fix: bool) -> list[str]:
 
 
 def apply_nearest_fixes(entries: list[Entry]) -> int:
-    """Rewrite dangling `nearest` refs to the genuinely closest valid entries.
+    """Rewrite every `nearest` list to the canonical three nearest ids.
 
-    Distance is Euclidean in the three-axis affect space, so a replacement is
-    semantically the nearest feeling rather than merely the first available one.
-    Returns the number of entries rewritten.
+    The rule is the one the validator checks, so a repaired lexicon is one the
+    checks then accept: `--fix` cannot write a list the validator would
+    reject. Returns the number of lists rewritten.
     """
-    valid = {entry.id: entry for entry in entries}
-    fixes = 0
-
-    for entry in entries:
-        if not entry.nearest:
-            continue
-        kept = [ref for ref in entry.nearest if ref in valid]
-        if len(kept) == len(entry.nearest):
-            continue
-
-        origin = (entry.axis("valence"), entry.axis("arousal"), entry.axis("tension"))
-        candidates = [
-            other
-            for other in entries
-            if other.id != entry.id and other.id not in kept and other.id in valid
-        ]
-
-        def distance(other: Entry) -> float:
-            if None in origin:
-                return 0.0
-            target = (other.axis("valence"), other.axis("arousal"), other.axis("tension"))
-            return sum((a - b) ** 2 for a, b in zip(origin, target)) ** 0.5
-
-        candidates.sort(key=distance)
-        needed = len(entry.nearest) - len(kept)
-        kept.extend(other.id for other in candidates[:needed])
-        entry.nearest = kept[: len(entry.nearest)]
-        entry.fields["nearest"] = "[" + ", ".join(entry.nearest) + "]"
-        fixes += 1
-    return fixes
-
-
-def write_back(entries: list[Entry]) -> None:
-    """Rewrite each source file, substituting updated `nearest` values in place."""
-    by_path: dict[Path, list[Entry]] = {}
-    for entry in entries:
-        by_path.setdefault(entry.path, []).append(entry)
-
-    for path, path_entries in by_path.items():
-        lines = path.read_text(encoding="utf-8").splitlines()
-        for entry in path_entries:
-            index = entry.line_no - 1
-            for offset in range(index, min(index + 12, len(lines))):
-                if lines[offset].lstrip().startswith("nearest:"):
-                    lines[offset] = f"  nearest: [{', '.join(entry.nearest)}]"
-                    break
-        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    nearest = canonical_nearest(entries)
+    stale = sum(1 for entry in entries if entry.nearest != nearest.get(entry.id, []))
+    write_nearest(entries, nearest)
+    return stale
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the SI.Mind feeling lexicon.")
-    parser.add_argument("--fix", action="store_true", help="rewrite dangling nearest references in place")
+    parser.add_argument(
+        "--fix",
+        action="store_true",
+        help="rewrite every nearest list to the three nearest feelings by distance",
+    )
     args = parser.parse_args()
 
-    paths = sorted(DATA_DIR.glob("*.yaml"))
+    paths = lexicon_paths()
     if not paths:
         print(f"no lexicon files found under {DATA_DIR}", file=sys.stderr)
         return 1
 
     entries = parse_files(paths)
-    problems = validate(entries, args.fix)
+    problems = validate(entries)
 
     if args.fix:
         fixes = apply_nearest_fixes(entries)
         if fixes:
-            write_back(entries)
-            print(f"repaired {fixes} dangling nearest reference set(s)")
+            print(f"repaired {fixes} nearest list(s)")
         entries = parse_files(paths)
-        problems = validate(entries, args.fix)
+        problems = validate(entries)
 
     counts: dict[str, int] = {}
     for entry in entries:
