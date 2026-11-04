@@ -3495,10 +3495,17 @@ git commit -m "feat(si-affect): continuous affect vector with exponential decay"
   - `si_affect::AffectError` — the error `load_embedded()` returns: a YAML failure, a bias naming a parameter outside the registry, an empty lexicon, an empty bias, or an axis value outside the range. Re-exported at the crate root as `si_affect::AffectError`.
 
 > **What `nearest` means.** The field holds the ids of the **three other feelings
-> whose canonical points are closest to this one's**, measured as Euclidean
-> distance in the three-axis space, with ties broken by the order the feelings
-> appear in the embedded lexicon (file order, then line order). It is a
-> **derived** field, not a curated one: `tools/validate_lexicon.py` recomputes
+> whose canonical points are closest to this one's**. The comparison is
+> **exact**: every coordinate is a hundredth, so the squared distance scaled by
+> 10000 — that is, `(dx² + dy² + dz²) × 10000` — is an exact integer, and the
+> rule compares those integers. Ties, which the rule must be able to detect and
+> not merely hope for, are broken by the order the feelings appear in the
+> embedded lexicon (file order, then line order). Comparing *distances* in
+> floating point cannot do this: the square root of the same squared sum
+> rounds differently depending on the order the terms were added, so two
+> feelings that are exactly equidistant come out different distances and the
+> tie-break never fires. It is a **derived** field, not a curated one:
+> `tools/validate_lexicon.py` recomputes
 > it and refuses a lexicon whose `nearest` lists disagree with that rule, so
 > the data can no longer drift away from its own definition the way it did when
 > the lists were hand-written. A feeling may never name itself, and no list may
@@ -3542,8 +3549,13 @@ git commit -m "feat(si-affect): continuous affect vector with exponential decay"
 > no feeling is shadowed by an identical twin, so all 250 are reachable as a
 > primary label and each one's bias can fire on its own. Two *different*
 > feelings can still be exactly equidistant from a third point — the axis grid
-> makes that common, and 22 of the 250 have a tied primary — so the tie-break is
-> load-bearing rather than hypothetical.
+> makes that common: under exact integer arithmetic **66 of the 250 feelings**
+> have two others at exactly the same distance from their own point, so the
+> runner-up slot there is decided by the tie-break. At the 250 canonical points
+> themselves the primary is never tied, so the tie-break never changes which
+> feeling is the primary there — but on a grid of arbitrary states exact primary
+> ties are common, and that is where the tie-break decides which label's bias
+> fires.
 >
 > **The tie-break is therefore load-bearing, and it is defined.** `label()` sorts
 > by distance with a stable sort, so two feelings at the same distance would be
@@ -3553,6 +3565,61 @@ git commit -m "feat(si-affect): continuous affect vector with exponential decay"
 >
 > **What the fix round must close.** The Task 2.3 review passed the task but
 > raised three MAJOR findings, and the fix has to close all of them:
+>
+> **What fix round 2 must close.** The re-review of the first fix round confirmed
+> that all three MAJOR findings and all seven minor findings are closed and
+> independently verified — the mapping test now bites when the parse is broken
+> (29 passed, 2 failed against the mutation), the eighteen coordinates match this
+> table exactly, and only `nearest` and axis lines changed in the data. It also
+> found two **Important** problems that are new, plus seven minors:
+>
+> 1. **The `nearest` field is validated against the implementation rather than
+>    against its own definition.** `tools/validate_lexicon.py` imports the rule
+>    from `tools/regenerate_nearest.py`, so the shipped data matches that code
+>    (0 disagreements) while violating the definition as written on **68 of 250
+>    lists — 34 of them with a different membership**. The validator's "0
+>    disagree" is therefore true and vacuous. The cause is floating point: the
+>    tool's f64 `sum(squares) ** 0.5` gives different answers from `math.dist`
+>    and from a reversed summation order on six and one lists respectively, and
+>    under **exact integer** arithmetic on 68. The fix is to put the rule on
+>    exact arithmetic — squared distance scaled by 10000 as integers — so that
+>    the code *is* the definition, then regenerate the 68 lists and let the
+>    validator check against it.
+> 2. **The documented tie-break is false, because `label()` compares in f32.**
+>    `Affect::distance` computes `(dv*dv + da*da + dt*dt).sqrt()` in f32, so
+>    exact geometric ties are almost never f32-equal, float noise decides
+>    instead, and the embedded-order tie-break never fires. Measured on a 0.05
+>    grid of states, **889 of 3 443** states with an exact primary tie get a
+>    *different* primary than the documented rule — for instance the state
+>    (-1.0, 0.7, 0.95) labels as `betrayal` in f32 but `terror` under the
+>    documented rule. The primary is never affected at the 250 canonical points
+>    (0 of 250), so this is not a live misbehaviour, but the documented contract
+>    is false and it decides which label's bias fires. The comparison must be
+>    robust to float noise — compare squared distances, and quantise so that an
+>    exact geometric tie is *detected* as a tie — and the doc comment must then
+>    be true. The quantisation must be at a resolution strictly finer than the
+>    1e-4 grid quantum of the coordinates, and it must not change the primary
+>    label at any of the 250 canonical points.
+> 3. **The validator does not range-check bias values.** A lexicon with
+>    `bias: {create: 3.7}` passes `tools/validate_lexicon.py` today; only the
+>    Rust unit test catches it. The `[-1, 1]` rule belongs in the validator.
+> 4. **The blend test no longer covers an exact tie.** It was moved to a
+>    tie-free point, so the suite never exercises the tie-break. It must go
+>    back to the point that has a three-way exact tie — joy, glee and mirth,
+>    all at d² = 3125 in millis² — with the expected pair updated to
+>    `{joy, glee}`. That test would have failed under the f32 comparison and
+>    exposed finding 2.
+> 5. **The empty-lexicon guard is a `debug_assert!`**, so it is compiled out in
+>    a release build and `ranked[0]` would still panic. `first().expect(...)`
+>    matches AGENTS.md's M-PANIC-IS-STOP better.
+> 6. **The Rust loader validates `bias` and the axes but not `nearest`**, so the
+>    loader is not yet a safe place to start trusting that field.
+>
+> Two things the re-review confirmed are *not* defects and must not be changed:
+> the 16 feelings that are nobody's nearest neighbour are a property of the
+> derived rule in a space this dense, and `nearest` is not read at runtime — the
+> labeller computes its own neighbours — so the field's drift has no live effect
+> today.
 >
 > 1. **The YAML key → `CognitionParameter` mapping is asserted by no Rust
 >    test.** The reviewer simulated `parse_parameter` always returning
