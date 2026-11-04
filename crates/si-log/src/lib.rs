@@ -2,5 +2,9 @@
 
 //! Append-only event log: the single source of truth for the mind.
 
-/// Crate version, used in the run header so a log can be attributed to a build.
+/// The crate version string, inherited from the workspace package version.
+///
+/// `env!("CARGO_PKG_VERSION")` resolves to the inherited workspace version
+/// (`0.1.0` today), so this is the same for every crate in the workspace and
+/// changes only on a workspace version bump. It does not identify a build.
 pub const CRATE_VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -2,14 +2,14 @@
 resolver = "2"
 members = ["crates/*"]
 # `crates/si-affect` already holds the 250-feeling lexicon data but gets its
-# Cargo.toml in Phase 2 (Task 2.x). Cargo requires every `crates/*` member to
+# Cargo.toml in Phase 2 (Task 2.1). Cargo requires every `crates/*` member to
 # have a manifest, so exclude it until then — drop this line when it lands.
 exclude = ["crates/si-affect"]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.80"
+rust-version = "1.89"
 license = "MIT"
 
 [workspace.dependencies]

@@ -6,7 +6,7 @@
 
 **Architecture:** One append-only SQLite event log is the only source of truth. Every other component is a pure function of it: the attention aperture, the markdown vault, the affect state, the personality projection, the plan, and the 3D scene. The daemon owns the log and runs continuously; the egui viewer is a separate process that subscribes over localhost SSE, so closing the window does not kill the mind.
 
-**Tech Stack:** Rust 2021 (MSRV 1.80), Cargo workspace, SQLite via `rusqlite` (bundled), Tokio, `reqwest` (rustls), `serde`/`serde_json`/`serde_yaml`, `thiserror` in library crates and `eyre` in application crates, `tracing`, `egui`/`eframe`, `mimalloc`, `criterion`, `insta`, `wiremock`.
+**Tech Stack:** Rust 2021 (MSRV 1.89), Cargo workspace, SQLite via `rusqlite` (bundled), Tokio, `reqwest` (rustls), `serde`/`serde_json`/`serde_yaml`, `thiserror` in library crates and `eyre` in application crates, `tracing`, `egui`/`eframe`, `mimalloc`, `criterion`, `insta`, `wiremock`.
 
 **Specification of record:** `docs/superpowers/specs/2026-11-03-si-mind-design.md` (rev 2). Section references (`§N`) below point into it.
 
@@ -16,7 +16,7 @@
 
 Every task below implicitly includes these. They are copied verbatim from the spec and `AGENTS.md`.
 
-- **Language / platform:** Rust 2021, MSRV 1.80, Windows-first but portable. Workspace at `C:\SI.Mind`.
+- **Language / platform:** Rust 2021, MSRV 1.89, Windows-first but portable. Workspace at `C:\SI.Mind`.
 - **Backend:** MiniMax **international** (`api.minimax.io`), never `minimax.cn`. Six providers: `minimax.io`, `nvidia`, `xkiro`, `atria`, `reflection`, `agnes`.
 - **Default model:** `MiniMax-M3.1-Flash` on minimax.io. (`MiniMax-M3.1-Flash-Preview` is an accepted alias that resolves to it; the catalog id is canonical.)
 - **Rust guidelines:** Microsoft Pragmatic Rust Guidelines, compliance date **2026-03-30**.
@@ -145,11 +145,15 @@ SI.Mind/
 [workspace]
 resolver = "2"
 members = ["crates/*"]
+# `crates/si-affect` already holds the 250-feeling lexicon data but gets its
+# Cargo.toml in Phase 2 (Task 2.1). Cargo requires every `crates/*` member to
+# have a manifest, so exclude it until then — drop this line when it lands.
+exclude = ["crates/si-affect"]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.80"
+rust-version = "1.89"
 license = "MIT"
 
 [workspace.dependencies]
@@ -177,6 +181,8 @@ futures-util = "0.3"
 ```
 
 > Version floors: `serde` 1, `rusqlite` 0.32, `reqwest` 0.12, `egui` 0.30, `thiserror` 2, `eyre` 0.6. If a newer major of any of these is current at implementation time, use it and update this file plus `AGENTS.md` in the same commit.
+>
+> The MSRV is **1.89**. `Cargo.lock` pins `uuid 1.29.0`, which requires rustc 1.89.0; raising any dependency that needs a newer rustc means raising this floor in the same commit.
 
 - [ ] **Step 2: Create the crate manifest**
 
@@ -211,7 +217,11 @@ tempfile = "3"
 
 //! Append-only event log: the single source of truth for the mind.
 
-/// Crate version, used in the run header so a log can be attributed to a build.
+/// The crate version string, inherited from the workspace package version.
+///
+/// `env!("CARGO_PKG_VERSION")` resolves to the inherited workspace version
+/// (`0.1.0` today), so this is the same for every crate in the workspace and
+/// changes only on a workspace version bump. It does not identify a build.
 pub const CRATE_VERSION: &str = env!("CARGO_PKG_VERSION");
 ```
 
@@ -1576,6 +1586,7 @@ git commit -m "feat(si-vault): on-disk vault with a write guard on self/"
 - Create: `crates/si-affect/Cargo.toml`
 - Create: `crates/si-affect/src/bias.rs`
 - Create: `crates/si-affect/src/lib.rs`
+- Modify: `Cargo.toml` (remove the temporary `exclude = ["crates/si-affect"]` added in Task 0.1)
 
 **Interfaces:**
 - Consumes: none.
@@ -1632,6 +1643,16 @@ Run: `cargo test -p si-affect`
 Expected: FAIL — `CognitionParameter` is not defined.
 
 - [ ] **Step 3: Implement the registry**
+
+> **First, remove the temporary workspace exclude.** Task 0.1 added
+> `exclude = ["crates/si-affect"]` and three comment lines to the root
+> `Cargo.toml`, because the 250-feeling lexicon YAML files were already
+> committed under `crates/si-affect/` before the crate had a manifest, and
+> Cargo requires every directory matched by `members = ["crates/*"]` to be a
+> valid package. Now that this task creates that manifest, delete the
+> `exclude` line and its comment lines — otherwise `cargo test -p si-affect`
+> fails with *"package ID specification `si-affect` did not match any
+> packages"*, which is this task's own acceptance command.
 
 `crates/si-affect/Cargo.toml`:
 
