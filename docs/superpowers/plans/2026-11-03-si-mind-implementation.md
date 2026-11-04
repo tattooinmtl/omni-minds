@@ -1787,6 +1787,15 @@ git commit -m "feat(si-vault): wikilink extraction and typed note graph"
 - Produces:
   - `si_vault::Vault` — `open(root)`, `write_note`, `read_note`, `delete_note`, `notes`, `graph`.
   - The **`self/` write guard**: `Vault::write_note` and `Vault::delete_note` refuse any note whose id names the vault's own `self/` folder.
+  - `si_vault::VaultError::IdCarriesExtension` — the error for an id that already ends in `.md`.
+
+> **The id model.** A note's id is its path relative to the vault root
+> **without the extension**: `beliefs/rust` is the id of
+> `<root>/beliefs/rust.md`. `read_note(id)` and `write_note(note)` both use
+> that mapping, so the id space is the folder tree and one note has exactly
+> one address. Two spellings of the same file are refused rather than
+> aliased, because a second write through the other spelling would silently
+> replace the first.
 
 > The `self/` guard is an invariant of the whole project (§8.3), so it belongs in
 > the vault itself rather than in a caller that could forget it.
@@ -1840,9 +1849,13 @@ const SELF_SPELLINGS: [&str; 4] = ["self/entry", "Self/entry", "SELF/entry", "se
 #[test]
 fn notes_round_trip_through_the_filesystem() {
     let (_dir, v) = vault();
-    v.write_note(&note("beliefs/rust", "Rust is fast.")).expect("write");
+    v.write_note(&note("beliefs/rust", "Rust is fast."))
+        .expect("write");
     let read = v.read_note("beliefs/rust").expect("read").expect("present");
-    assert_eq!(read.body, "Rust is fast.", "the body must come back exactly");
+    assert_eq!(
+        read.body, "Rust is fast.",
+        "the body must come back exactly"
+    );
 }
 
 #[test]
@@ -1868,10 +1881,13 @@ fn deleting_a_note_removes_it_from_the_projection() {
 #[test]
 fn the_graph_links_notes_by_wikilink() {
     let (_dir, v) = vault();
-    v.write_note(&note("beliefs/a", "see [[beliefs/b]]")).expect("write");
+    v.write_note(&note("beliefs/a", "see [[beliefs/b]]"))
+        .expect("write");
     v.write_note(&note("beliefs/b", "b")).expect("write");
     let edges = v.graph().expect("graph");
-    assert!(edges.iter().any(|e| e.from == "beliefs/a" && e.to == "beliefs/b"));
+    assert!(edges
+        .iter()
+        .any(|e| e.from == "beliefs/a" && e.to == "beliefs/b"));
 }
 
 #[test]
@@ -1897,15 +1913,23 @@ fn deleting_from_self_is_refused() {
 }
 
 #[test]
+fn the_id_self_is_a_file_beside_the_folder_not_inside_it() {
+    let (dir, v) = vault();
+    v.write_note(&note("self", "ordinary")).expect("write");
+    assert!(
+        dir.path().join("self.md").exists(),
+        "self.md is an ordinary file beside the folder"
+    );
+    assert!(v.read_note("self").expect("read").is_some());
+}
+
+#[test]
 fn a_note_id_cannot_escape_the_vault() {
     let (dir, v) = vault();
     for id in [
         "../escaped",
         "beliefs/../../escaped",
         "/absolute",
-        "C:/escaped",
-        "C:escaped",
-        "//server/share/escaped",
         ".. /escaped",
         ".../escaped",
     ] {
@@ -1919,8 +1943,51 @@ fn a_note_id_cannot_escape_the_vault() {
         );
     }
     assert!(
-        !dir.path().parent().expect("parent").join("escaped.md").exists(),
+        !dir.path()
+            .parent()
+            .expect("parent")
+            .join("escaped.md")
+            .exists(),
         "nothing may land beside the vault"
+    );
+}
+
+#[cfg(windows)]
+#[test]
+fn a_drive_prefixed_id_cannot_escape_the_vault() {
+    let (dir, v) = vault();
+    for id in ["C:/escaped", "C:escaped", "//server/share/escaped"] {
+        assert!(
+            v.write_note(&note(id, "x")).is_err(),
+            "{id} must not be written outside the vault"
+        );
+        assert!(
+            v.read_note(id).is_err(),
+            "{id} must not be read from outside the vault"
+        );
+    }
+    assert!(
+        !dir.path()
+            .parent()
+            .expect("parent")
+            .join("escaped.md")
+            .exists(),
+        "nothing may land beside the vault"
+    );
+}
+
+#[test]
+fn a_colon_in_an_id_is_refused() {
+    let (dir, v) = vault();
+    for id in ["beliefs/C:foo", "beliefs/file.md:stream"] {
+        assert!(
+            v.write_note(&note(id, "x")).is_err(),
+            "{id} must be refused: a colon names an alternate data stream"
+        );
+    }
+    assert!(
+        !dir.path().join("beliefs").exists(),
+        "a refused id must leave nothing behind"
     );
 }
 
@@ -1929,7 +1996,10 @@ fn a_folder_that_starts_with_self_is_not_self() {
     let (_dir, v) = vault();
     for id in ["selfish/notes", "self.journal/notes", "other/self/notes"] {
         v.write_note(&note(id, "ordinary")).expect("write");
-        assert!(v.read_note(id).expect("read").is_some(), "{id} is an ordinary folder");
+        assert!(
+            v.read_note(id).expect("read").is_some(),
+            "{id} is an ordinary folder"
+        );
     }
 }
 
@@ -1939,8 +2009,11 @@ fn one_unreadable_note_does_not_hide_the_others() {
     v.write_note(&note("beliefs/a", "a")).expect("write");
     v.write_note(&note("beliefs/b", "b")).expect("write");
     // A note whose frontmatter is not valid YAML.
-    std::fs::write(v.root().join("beliefs/broken.md"), "---\nid: [unclosed\n---\n\nbody\n")
-        .expect("write the broken note");
+    std::fs::write(
+        v.root().join("beliefs/broken.md"),
+        "---\nid: [unclosed\n---\n\nbody\n",
+    )
+    .expect("write the broken note");
     let notes = v.notes().expect("notes");
     assert!(
         notes.iter().any(|n| n.id == "beliefs/a"),
@@ -1960,9 +2033,69 @@ fn two_notes_with_the_same_file_name_get_different_ids() {
         )
         .expect("seed");
     }
-    let ids: Vec<String> = v.notes().expect("notes").into_iter().map(|n| n.id).collect();
+    let ids: Vec<String> = v
+        .notes()
+        .expect("notes")
+        .into_iter()
+        .map(|n| n.id)
+        .collect();
     assert!(ids.contains(&"hand/no-id".to_string()), "got {ids:?}");
     assert!(ids.contains(&"other/no-id".to_string()), "got {ids:?}");
+}
+
+#[test]
+fn an_author_written_id_is_left_alone() {
+    let (dir, v) = vault();
+    std::fs::create_dir_all(dir.path().join("hand")).expect("folder");
+    std::fs::write(
+        dir.path().join("hand").join("explicit.md"),
+        "---\nid: explicit\ntype: note\n---\n\nbody\n",
+    )
+    .expect("seed");
+    let ids: Vec<String> = v
+        .notes()
+        .expect("notes")
+        .into_iter()
+        .map(|n| n.id)
+        .collect();
+    assert!(
+        ids.contains(&"explicit".to_string()),
+        "an id the author wrote must survive, got {ids:?}"
+    );
+}
+
+#[test]
+fn reading_and_listing_agree_about_a_note() {
+    let (dir, v) = vault();
+    std::fs::create_dir_all(dir.path().join("hand")).expect("folder");
+    std::fs::write(
+        dir.path().join("hand").join("no-id.md"),
+        "---\ntype: note\n---\n\nbody\n",
+    )
+    .expect("seed");
+    let listed = v.notes().expect("notes");
+    let listed_id = listed
+        .iter()
+        .find(|n| n.id == "hand/no-id")
+        .expect("the note is listed")
+        .id
+        .clone();
+    let read = v.read_note(&listed_id).expect("read").expect("present");
+    assert_eq!(
+        read.id, listed_id,
+        "read_note and notes() must agree about the same file"
+    );
+}
+
+#[test]
+fn an_id_that_already_names_the_extension_is_refused() {
+    let (dir, v) = vault();
+    let result = v.write_note(&note("beliefs/a.md", "a"));
+    assert!(
+        matches!(result, Err(VaultError::IdCarriesExtension { .. })),
+        "one note must have one address, got {result:?}"
+    );
+    assert!(!dir.path().join("beliefs").exists());
 }
 
 #[test]
@@ -1975,15 +2108,33 @@ fn writing_a_note_leaves_no_temporary_file_behind() {
         .map(|e| e.file_name().to_string_lossy().to_string())
         .collect();
     names.sort();
-    assert_eq!(names, vec!["a.md".to_string()], "the write must not leave a temp file");
+    assert_eq!(
+        names,
+        vec!["a.md".to_string()],
+        "the write must not leave a temp file"
+    );
 }
 
 #[test]
-fn an_id_that_already_names_the_extension_is_not_doubled() {
+fn a_failed_write_leaves_the_previous_note_intact() {
     let (dir, v) = vault();
-    v.write_note(&note("beliefs/a.md", "a")).expect("write");
-    assert!(dir.path().join("beliefs").join("a.md").exists());
-    assert!(!dir.path().join("beliefs").join("a.md.md").exists());
+    // A directory where the note belongs: the rename onto it cannot succeed.
+    std::fs::create_dir_all(dir.path().join("beliefs").join("blocked.md")).expect("dir");
+    let result = v.write_note(&note("beliefs/blocked", "new"));
+    assert!(result.is_err(), "the write must fail");
+    assert!(
+        dir.path().join("beliefs").join("blocked.md").is_dir(),
+        "the previous note must survive a failed write"
+    );
+    let leftovers: Vec<String> = std::fs::read_dir(dir.path().join("beliefs"))
+        .expect("read")
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().to_string())
+        .collect();
+    assert!(
+        !leftovers.iter().any(|name| name.ends_with(".tmp")),
+        "a failed write must not leave a temp file: {leftovers:?}"
+    );
 }
 
 #[test]
@@ -1992,14 +2143,20 @@ fn notes_are_sorted_by_id() {
     for id in ["beliefs/c", "beliefs/a", "beliefs/b"] {
         v.write_note(&note(id, "x")).expect("write");
     }
-    let ids: Vec<String> = v.notes().expect("notes").into_iter().map(|n| n.id).collect();
+    let ids: Vec<String> = v
+        .notes()
+        .expect("notes")
+        .into_iter()
+        .map(|n| n.id)
+        .collect();
     assert_eq!(ids, vec!["beliefs/a", "beliefs/b", "beliefs/c"]);
 }
 
 #[test]
 fn a_crlf_body_survives_the_round_trip() {
     let (_dir, v) = vault();
-    v.write_note(&note("beliefs/crlf", "line one\r\nline two\r\n")).expect("write");
+    v.write_note(&note("beliefs/crlf", "line one\r\nline two\r\n"))
+        .expect("write");
     let read = v.read_note("beliefs/crlf").expect("read").expect("present");
     assert_eq!(read.body, "line one\r\nline two\r\n");
 }
@@ -2314,27 +2471,26 @@ And add `pub mod store;` plus `pub use store::Vault;` to `lib.rs`.
 > **Two conventions are settled here, so later tasks follow them.**
 >
 > *Tracing.* AGENTS.md asks for "named events in `<component>.<operation>.<state>`
-> dot notation and message templates". Two facts about `tracing` decide how
+> dot notation and message templates". Three facts about `tracing` decide how
 > that is satisfied here:
 >
-> 1. `tracing`'s metadata *name* is always `"event <file>:<line>"` — it is not
->    something a call site chooses — so the dotted identity cannot live there.
-> 2. `tracing::event!` does **not** accept a message literal together with the
->    `%`/`?` field sigils: `event!(Level::WARN, "name", path = %p)` fails to
->    parse, and so does mixing a plain field with a sigil field. The sigils
->    only work with the message **last**.
->
-> So the dotted name leads the **message template** and the details travel in
-> fields with the sigils:
+> 1. `tracing::warn!` accepts a `name:` override, and it becomes the event's
+>    **metadata name**: `metadata.name()` is then exactly
+>    `"vault.note.unparsable"`, which is what a subscriber filters on. The
+>    target stays the module path, so `RUST_LOG=si_vault=debug` keeps working.
+> 2. The `%`/`?` field sigils and a message template both work, but the
+>    message must come **last**: `warn!(name: "n", path = %p, "message")` is
+>    fine, while `event!(Level::WARN, "message", path = %p)` does not parse.
+> 3. `tracing::event!` does **not** accept `name:` — only the level-specific
+>    macros do — so the vault uses `warn!`.
 >
 > ```rust
-> tracing::warn!(path = %path.display(), error = %source, "vault.note.unparsable: skipping a note that could not be parsed");
+> tracing::warn!(name: "vault.note.unparsable", path = %path.display(), error = %source, "skipping a note that could not be parsed");
 > ```
 >
-> The target stays the module path, so `RUST_LOG=si_vault=debug` keeps
-> working, and every event line starts with its dotted name. A dotted **field**
-> name — the previous form — does not: the field is just a field, and
-> nothing identifies the event by it.
+> A dotted **field** name — the form this task started with — does not
+> satisfy the rule: the field is just a field, and nothing identifies the
+> event by it.
 >
 > *Rewriting a note.* `render_note` rebuilds the frontmatter from the note's
 > fields, so a rewritten note gains `tags:` and `links:` keys the author never
@@ -2345,7 +2501,7 @@ And add `pub mod store;` plus `pub use store::Vault;` to `lib.rs`.
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-vault`
-Expected: PASS, 23 tests — 10 unit (5 note, 4 wikilink, 1 graph) and 13 integration.
+Expected: PASS, 29 tests — 10 unit (5 note, 4 wikilink, 1 graph) and 19 integration.
 
 
 - [ ] **Step 5: Run the task gate**
@@ -2470,6 +2626,20 @@ mod tests {
     #[test]
     fn the_registry_has_exactly_thirteen_parameters() {
         assert_eq!(CognitionParameter::ALL.len(), 13);
+        assert_eq!(CognitionParameter::COUNT, 13);
+    }
+
+    #[test]
+    fn the_list_is_in_discriminant_order() {
+        // The values array is indexed by discriminant, so the registry's order
+        // is the array's order. If they drift, a parameter reads another's
+        // value.
+        for (index, parameter) in CognitionParameter::ALL.iter().enumerate() {
+            assert_eq!(
+                *parameter as usize, index,
+                "the registry must be in discriminant order"
+            );
+        }
     }
 
     #[test]
@@ -2520,64 +2690,69 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
 
-/// One parameter the cognition loop reads.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum CognitionParameter {
-    Explore,
-    RetrySame,
-    Verify,
-    Persist,
-    Abandon,
-    Risk,
-    Ask,
-    Connect,
-    Create,
-    Revise,
-    Express,
-    Refuse,
-    Pace,
+/// Declares the registry once and expands it into everything that has to agree
+/// with it: the enum, the list of every parameter, the count, and the name
+/// each parameter prints and serialises as.
+///
+/// One list is the point. The values array is indexed by discriminant, so a
+/// variant that was not in the list would index past the end of that array —
+/// a runtime panic in the middle of the cognition loop, with nothing to
+/// explain it. Declaring the variants once makes that impossible rather than
+/// merely discouraged.
+macro_rules! declare_parameters {
+    ($($variant:ident => $spelling:literal),+ $(,)?) => {
+        /// One parameter the cognition loop reads.
+        #[derive(
+            Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
+        )]
+        pub enum CognitionParameter {
+            $(
+                #[serde(rename = $spelling)]
+                $variant,
+            )+
+        }
+
+        impl CognitionParameter {
+            /// Every parameter, in registry order.
+            pub const ALL: [CognitionParameter; Self::COUNT] = [$(Self::$variant),+];
+
+            /// How many parameters the registry holds.
+            pub const COUNT: usize = {
+                let mut count = 0usize;
+                $( {
+                    let _ = Self::$variant;
+                    count += 1;
+                } )+
+                count
+            };
+        }
+
+        impl fmt::Display for CognitionParameter {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                let name = match self {
+                    $( Self::$variant => $spelling, )+
+                };
+                f.write_str(name)
+            }
+        }
+    };
 }
 
-impl CognitionParameter {
-    /// Every parameter, in registry order.
-    pub const ALL: [CognitionParameter; 13] = [
-        CognitionParameter::Explore,
-        CognitionParameter::RetrySame,
-        CognitionParameter::Verify,
-        CognitionParameter::Persist,
-        CognitionParameter::Abandon,
-        CognitionParameter::Risk,
-        CognitionParameter::Ask,
-        CognitionParameter::Connect,
-        CognitionParameter::Create,
-        CognitionParameter::Revise,
-        CognitionParameter::Express,
-        CognitionParameter::Refuse,
-        CognitionParameter::Pace,
-    ];
-}
-
-impl fmt::Display for CognitionParameter {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let name = match self {
-            CognitionParameter::Explore => "explore",
-            CognitionParameter::RetrySame => "retry_same",
-            CognitionParameter::Verify => "verify",
-            CognitionParameter::Persist => "persist",
-            CognitionParameter::Abandon => "abandon",
-            CognitionParameter::Risk => "risk",
-            CognitionParameter::Ask => "ask",
-            CognitionParameter::Connect => "connect",
-            CognitionParameter::Create => "create",
-            CognitionParameter::Revise => "revise",
-            CognitionParameter::Express => "express",
-            CognitionParameter::Refuse => "refuse",
-            CognitionParameter::Pace => "pace",
-        };
-        f.write_str(name)
-    }
-}
+declare_parameters!(
+    Explore => "explore",
+    RetrySame => "retry_same",
+    Verify => "verify",
+    Persist => "persist",
+    Abandon => "abandon",
+    Risk => "risk",
+    Ask => "ask",
+    Connect => "connect",
+    Create => "create",
+    Revise => "revise",
+    Express => "express",
+    Refuse => "refuse",
+    Pace => "pace",
+);
 
 /// The behaviour deltas currently in force, one per parameter.
 ///
@@ -2588,7 +2763,7 @@ pub struct CognitionParameters {
     // The length comes from the registry itself, so the two cannot drift
     // apart: a fourteenth parameter would not fit, and a removed one would
     // not leave a hole.
-    values: [f32; CognitionParameter::ALL.len()],
+    values: [f32; CognitionParameter::COUNT],
 }
 
 impl CognitionParameters {
@@ -2615,7 +2790,7 @@ impl CognitionParameters {
 - [ ] **Step 5: Run the test to verify it passes**
 
 Run: `cargo test -p si-affect`
-Expected: PASS, 3 tests.
+Expected: PASS, 4 tests.
 
 Add the re-export to `crates/si-affect/src/lib.rs` now that the types exist:
 
@@ -2789,7 +2964,7 @@ impl Affect {
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-affect`
-Expected: PASS, 5 tests.
+Expected: PASS, 6 tests.
 
 
 - [ ] **Step 5: Run the task gate**
@@ -2824,9 +2999,12 @@ git commit -m "feat(si-affect): continuous affect vector with exponential decay"
 > **Nine pairs of feelings share an identical canonical point**: `bitterness`/`alienation`,
 > `unease`/`unrest`, `skepticism`/`conscience`, `open-mindedness`/`honesty`,
 > `reverence`/`coherence`, `openness`/`loyalty`, `fluency`/`self-trust`,
-> `affection`/`closeness` and `glee`/`epiphany`. Each pair names the other in
-> `nearest`, so the overlap is deliberate rather than accidental — but it has a
-> consequence for the labeller: a tie at equal distance is broken by the order
+> `affection`/`closeness` and `glee`/`epiphany`. Only three of the nine are
+> mutual in `nearest` — `open-mindedness`/`honesty`, `openness`/`loyalty` and
+> `unease`/`unrest` name each other; `bitterness`/`alienation` and
+> `fluency`/`self-trust` are one-way; the other four are not linked at all —
+> so the overlap is not a deliberate pairing throughout. It has a consequence
+> for the labeller either way: a tie at equal distance is broken by the order
 > of the embedded YAML, so **one member of each pair can never be the primary
 > label**, and its bias can never fire on its own. The pair still occupies the
 > region and still shows up as the runner-up, so the label is reported either
@@ -3127,7 +3305,7 @@ pub use lexicon::{FeelingMatch, Lexicon};
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-affect`
-Expected: PASS, 9 tests.
+Expected: PASS, 10 tests.
 
 - [ ] **Step 5: Run the external validator too**
 
@@ -8621,7 +8799,7 @@ pub use instructions::{Instructions, DEFAULT_AGENTS_MD};
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-vault`
-Expected: PASS, 26 tests.
+Expected: PASS, 32 tests.
 
 
 - [ ] **Step 5: Run the task gate**
@@ -9948,7 +10126,7 @@ pub mod okf;
 - [ ] **Step 4: Run the test to verify it passes**
 
 Run: `cargo test -p si-vault`
-Expected: PASS, 28 tests.
+Expected: PASS, 34 tests.
 
 
 - [ ] **Step 5: Run the task gate**
