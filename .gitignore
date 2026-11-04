@@ -11,6 +11,10 @@
 # Superpowers scratch: ledgers, briefs, review packages. Not source.
 /.superpowers/
 
+# Python bytecode caches written by the lexicon tools
+__pycache__/
+*.pyc
+
 # Editor / OS
 .vscode/
 .idea/

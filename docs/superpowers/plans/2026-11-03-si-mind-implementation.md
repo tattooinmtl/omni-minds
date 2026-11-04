@@ -3538,10 +3538,14 @@ git commit -m "feat(si-affect): continuous affect vector with exponential decay"
 >
 > The nine separations are 0.212, 0.141, 0.218, 0.229, 0.187, 0.495, 0.406,
 > 0.316 and 0.292 — every one of them well clear of a tie. After the change no
-> two feelings share a canonical point, no two feelings are equidistant from
-> each other, and all 250 are reachable as a primary label.
+> two feelings share a canonical point, and that is the property that matters:
+> no feeling is shadowed by an identical twin, so all 250 are reachable as a
+> primary label and each one's bias can fire on its own. Two *different*
+> feelings can still be exactly equidistant from a third point — the axis grid
+> makes that common, and 22 of the 250 have a tied primary — so the tie-break is
+> load-bearing rather than hypothetical.
 >
-> **The tie-break is defined even though nothing ties any more.** `label()` sorts
+> **The tie-break is therefore load-bearing, and it is defined.** `label()` sorts
 > by distance with a stable sort, so two feelings at the same distance would be
 > ordered by their position in the embedded lexicon. That rule is written down
 > on `label()`, and the validator refuses a lexicon in which two feelings share

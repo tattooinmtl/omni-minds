@@ -86,8 +86,13 @@ Two more tests guard the rest of the design:
 # lexicon schema, duplicate id, count and reference validation
 python tools/validate_lexicon.py
 
-# repair dangling `nearest` references by real vector distance
+# rewrite every `nearest` list that disagrees with the rule: the three closest
+# feelings by Euclidean distance over the three axes
 python tools/validate_lexicon.py --fix
+
+# regenerate the `nearest` lists themselves; reports "no change" when they are
+# already correct, and is what `--fix` uses
+python tools/regenerate_nearest.py
 ```
 
 ## Rust conventions
