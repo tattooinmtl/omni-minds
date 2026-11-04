@@ -56,7 +56,7 @@ Each phase ends in working, testable software and can be reviewed independently.
 |---|---|---|---|
 | 0 | Workspace + append-only event log | `si-log` | — |
 | 1 | The vault: markdown, frontmatter, wikilinks | `si-vault` | 0 |
-| 2 | The affect engine + 250 lexicon | `si-affect` | 0 |
+| 2 | The affect engine + 250 lexicon + the first hot-path benchmarks | `si-affect` | 0 |
 | 3 | The cognition loop, aperture, values floor | `si-cognition`, `si-values` | 0,1,2 |
 | 4 | Six providers, catalog discovery, router, chat client | `si-provider`, `si-router`, `si-minimax` | 0,3 |
 | 5 | The 3D scene | `si-view` | 0,1 |
@@ -3761,6 +3761,109 @@ git commit -m "feat(si-affect): embed the 250-feeling lexicon with nearest-neigh
 
 ---
 
+## Task 2.4: The hot-path benchmarks
+
+**Files:**
+- Create: `crates/si-log/benches/append.rs`
+- Create: `crates/si-affect/benches/label.rs`
+- Modify: `crates/si-log/Cargo.toml`
+- Modify: `crates/si-affect/Cargo.toml`
+
+**Interfaces:**
+- Consumes: `si_log::{Log, EventKind, AffectSnapshot}`, `si_affect::{Affect, Lexicon}`.
+- Produces: two criterion benchmarks.
+
+> **Why this task exists.** AGENTS.md's Global Constraints require hot paths to be
+> identified early and benchmarked (M-HOTPATH), and spec §20's verification table
+> lists four benchmarks: log append, layout solve, nearest-neighbour query and
+> catalog parse. The plan scheduled none of them, so the requirement was satisfied by
+> nothing. A benchmark cannot exist before its subject does, so the layout solve and
+> the catalog parse are added by the tasks that build that code — Task 5.2 and Task
+> 4.3. The two that can exist at the end of Phase 2 are here.
+
+> **What the numbers have to be able to show.** The Task 2.3 review measured the
+> nearest-neighbour query at **6.58 µs per call** in a release build and `get(id)` at
+> 1.343 µs, and found that `label()` sorts all 250 feelings and clones the two it
+> returns — roughly twenty heap allocations for a query whose result is usually
+> discarded. The log append path has never been measured at all. These benchmarks
+> exist so the next change to either path is measured rather than guessed, and so the
+> 6.58 µs figure has a benchmark behind it rather than a probe somebody ran once.
+
+- [ ] **Step 1: Add the dev-dependency**
+
+`criterion` is already declared in the workspace's `[workspace.dependencies]`, so each
+crate only needs it as a dev-dependency. In `crates/si-log/Cargo.toml` and
+`crates/si-affect/Cargo.toml`, add:
+
+```toml
+[dev-dependencies]
+criterion.workspace = true
+```
+
+- [ ] **Step 2: Write the log append benchmark**
+
+`crates/si-log/benches/append.rs` measures the per-event cost of an append. Use the
+public API exactly as it stands:
+
+- `si_log::Log::open_in_memory() -> Result<Log, LogError>` — an in-memory log, so the
+  benchmark measures the append path and not the disk.
+- `si_log::Log::append(&self, kind: EventKind, turn_id: Option<&TurnId>, affect: Option<AffectSnapshot>, salience: f32) -> Result<Event, LogError>`.
+- The event kind to append is `EventKind::Felt { delta: [f32; 3], after: [f32; 3], label: String }`
+  with a fixed label, so every iteration does the same work and the measurement is of
+  the append rather than of the payload.
+
+Measure with criterion's `benchmark_group` and `bench_function`, one
+`criterion_group` and one `criterion_main` per file, and a throughput of
+`Throughput::Elements(1)` so the report states the cost per event rather than per
+batch. Batch the appends inside a single `b.iter` so criterion's per-iteration
+overhead does not dominate the measurement.
+
+> `Log::append` panics if the event kind cannot be serialised to JSON. That is a
+> programming error, not a runtime condition, so a benchmark appending a fixed
+> `EventKind` cannot trigger it.
+
+- [ ] **Step 3: Write the nearest-neighbour query benchmark**
+
+`crates/si-affect/benches/label.rs` measures the cost of one labelling. Use the
+public API exactly as it stands:
+
+- `si_affect::Lexicon::load_embedded() -> Result<Lexicon, AffectError>` — load it
+  **once**, outside the measured function. Loading the lexicon is not the query; a
+  benchmark that reloads it every iteration measures `serde_yaml` instead.
+- `si_affect::Affect { valence: f32, arousal: f32, tension: f32 }` — the three public
+  `f32` fields.
+- `si_affect::Lexicon::label(&self, affect: Affect) -> FeelingMatch` — the query.
+
+Measure at least two points: one exactly on a feeling's canonical point, and one
+between two feelings, so the benchmark records both the cheapest and the typical
+case. Report the per-call cost in nanoseconds.
+
+- [ ] **Step 4: Verify the benchmarks compile and run**
+
+Run: `cargo bench -p si-log -p si-affect -- --test`
+Expected: criterion runs each benchmark exactly once in test mode and reports the
+result without taking a full measurement. No benchmark may fail.
+
+Run: `cargo bench -p si-log -p si-affect`
+Expected: both benchmarks report a measurement and the report names the per-event
+cost. Record both numbers in the task report — they are the baseline every later
+change is compared against.
+
+- [ ] **Step 5: Run the task gate**
+
+Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
+Expected: all green. `cargo clippy --all-targets` includes the benchmark targets, so a
+lint in a bench fails the gate.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add crates/si-log crates/si-affect Cargo.lock
+git commit -m "bench(si-mind): measure the log append and the nearest-neighbour query"
+```
+
+---
+
 # Phase 3 — The cognition loop, the aperture, and the values floor
 
 ## Task 3.1: The values floor
@@ -5834,15 +5937,34 @@ Run: `cargo test -p si-provider`
 Expected: PASS, 10 tests.
 
 
-- [ ] **Step 5: Run the task gate**
+- [ ] **Step 5: Add the catalog parse benchmark**
+
+`criterion` is already a workspace dependency, so `si-provider` only needs it as a
+dev-dependency:
+
+```toml
+[dev-dependencies]
+criterion.workspace = true
+```
+
+Create `crates/si-provider/benches/catalog.rs`. The catalog is fetched over the
+network, so the benchmark must measure **parsing**, not fetching: it holds a fixed
+catalog payload and measures the time to turn that payload into the provider's model
+descriptors. Use the parser the task above defines, and report the per-catalog parse
+cost.
+
+Run: `cargo bench -p si-provider -- --test`, then `cargo bench -p si-provider`
+Expected: the benchmark runs without failing and then reports a measurement.
+
+- [ ] **Step 6: Run the task gate**
 
 Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
 Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add crates/si-provider
+git add crates/si-provider Cargo.lock
 git commit -m "feat(si-provider): catalog fetch with pinned-limit merging"
 ```
 
@@ -7915,15 +8037,35 @@ Run: `cargo test -p si-view`
 Expected: PASS, 8 tests.
 
 
-- [ ] **Step 5: Run the task gate**
+- [ ] **Step 5: Add the layout solve benchmark**
+
+`criterion` is already a workspace dependency, so `si-view` only needs it as a
+dev-dependency:
+
+```toml
+[dev-dependencies]
+criterion.workspace = true
+```
+
+Create `crates/si-view/benches/layout.rs`, measuring
+`si_view::solve(&[LayoutNode], u32)`. The layout solve is the viewer's hot path — it
+runs whenever the scene changes — and it is one of the four hot paths spec §20 names.
+Measure it over a node count that matches the vault the mind actually holds: at least
+**500 nodes**, because a solve over ten nodes says nothing about the cost over five
+hundred. Report the per-solve cost.
+
+Run: `cargo bench -p si-view -- --test`, then `cargo bench -p si-view`
+Expected: the benchmark runs without failing and then reports a measurement.
+
+- [ ] **Step 6: Run the task gate**
 
 Run: `cargo fmt --all && cargo build --workspace && cargo test --workspace && cargo clippy --all-targets -- -D warnings && cargo fmt --all --check`
 Expected: all green. The plan's code blocks are not rustfmt-clean, so run `cargo fmt --all` before committing and commit the formatted result.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add crates/si-view
+git add crates/si-view Cargo.lock
 git commit -m "feat(si-view): deterministic force-directed layout with salience projection"
 ```
 
